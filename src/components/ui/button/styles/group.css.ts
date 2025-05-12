@@ -11,5 +11,5 @@ export const floatStyle = uiStyle({
 });
 
 export const bottomSafeAreaPaddingStyle = uiStyle({
-	paddingBottom: 'env(safe-area-inset-bottom)',
+	paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)',
 });

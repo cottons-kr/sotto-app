@@ -3,7 +3,7 @@ import { resetGlobalStyle } from './layer.css';
 
 resetGlobalStyle('html, body, #root', {
 	width: '100%',
-	height: '100vh',
+	height: 'var(--vh, 100vh)',
 	backgroundColor: color.milk,
 	color: color.mud,
 	wordBreak: 'keep-all',
