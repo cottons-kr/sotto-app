@@ -9,3 +9,7 @@ export const floatStyle = uiStyle({
 	position: 'fixed',
 	bottom: 'env(safe-area-inset-bottom)',
 });
+
+export const bottomSafeAreaPaddingStyle = uiStyle({
+	paddingBottom: 'env(safe-area-inset-bottom)',
+});

@@ -1,7 +1,9 @@
 import { color } from './color.css';
 import { resetGlobalStyle } from './layer.css';
 
-resetGlobalStyle('html, body', {
+resetGlobalStyle('html, body, #root', {
+	width: '100%',
+	height: '100vh',
 	backgroundColor: color.milk,
 	color: color.mud,
 	wordBreak: 'keep-all',
@@ -26,12 +28,12 @@ resetGlobalStyle('*:focus', { outline: 'none' });
 resetGlobalStyle('a', {
 	color: 'inherit',
 	cursor: 'pointer',
+	textDecoration: 'none',
 });
 
 resetGlobalStyle('svg', {
 	width: 24,
 	height: 24,
-	fill: 'currentColor',
 	flexShrink: 0,
 });
 
