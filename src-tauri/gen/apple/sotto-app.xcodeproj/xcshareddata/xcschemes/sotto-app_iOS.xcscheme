@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "4553F1F4A0D18BDA5BB308D6"
-               BuildableName = "sotto-app.app"
+               BuildableName = "Sotto.app"
                BlueprintName = "sotto-app_iOS"
                ReferencedContainer = "container:sotto-app.xcodeproj">
             </BuildableReference>
@@ -31,7 +31,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4553F1F4A0D18BDA5BB308D6"
-            BuildableName = "sotto-app.app"
+            BuildableName = "Sotto.app"
             BlueprintName = "sotto-app_iOS"
             ReferencedContainer = "container:sotto-app.xcodeproj">
          </BuildableReference>
@@ -66,7 +66,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4553F1F4A0D18BDA5BB308D6"
-            BuildableName = "sotto-app.app"
+            BuildableName = "Sotto.app"
             BlueprintName = "sotto-app_iOS"
             ReferencedContainer = "container:sotto-app.xcodeproj">
          </BuildableReference>
@@ -95,7 +95,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4553F1F4A0D18BDA5BB308D6"
-            BuildableName = "sotto-app.app"
+            BuildableName = "Sotto.app"
             BlueprintName = "sotto-app_iOS"
             ReferencedContainer = "container:sotto-app.xcodeproj">
          </BuildableReference>

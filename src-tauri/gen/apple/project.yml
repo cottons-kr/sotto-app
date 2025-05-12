@@ -10,7 +10,7 @@ configs:
 settingGroups:
   app:
     base:
-      PRODUCT_NAME: sotto-app
+      PRODUCT_NAME: Sotto
       PRODUCT_BUNDLE_IDENTIFIER: com.tyeongkim.sotto-app
 targetTemplates:
   app:
