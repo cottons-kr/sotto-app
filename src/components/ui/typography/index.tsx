@@ -1,4 +1,4 @@
-import { cn } from '@/utils/common';
+import { cn } from '@/lib/common';
 import { TypographyBase, type TypographyBaseProps } from './base';
 import { body, caption, lead, title } from './styles/typography.css';
 

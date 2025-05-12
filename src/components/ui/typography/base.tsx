@@ -1,5 +1,5 @@
+import { cn } from '@/lib/common';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { cn } from '@/utils/common';
 import { type JSX, createElement } from 'react';
 import { typography, typographyFill } from './styles/typography.css';
 import { weightStyles } from './styles/weight.css';

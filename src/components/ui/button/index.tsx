@@ -1,4 +1,4 @@
-import { cn } from '@/utils/common';
+import { cn } from '@/lib/common';
 import type { ButtonHTMLAttributes } from 'react';
 import { Typo } from '../typography';
 import { button, fillStyle, variantStyles } from './styles/button.css';

@@ -1,7 +1,7 @@
 import { Column } from '@/components/layout/column';
 import { Row } from '@/components/layout/row';
+import { cn } from '@/lib/common';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { cn } from '@/utils/common';
 import {
 	bottomSafeAreaPaddingStyle,
 	buttonGroup,

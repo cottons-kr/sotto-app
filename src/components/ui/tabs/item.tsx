@@ -1,6 +1,6 @@
 import { Row } from '@/components/layout/row';
+import { cn } from '@/lib/common';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { cn } from '@/utils/common';
 import { useContext } from 'react';
 import { Typo } from '../typography';
 import { TabsContext } from './context';

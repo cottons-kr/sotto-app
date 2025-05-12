@@ -1,4 +1,4 @@
-import { cn } from '@/utils/common';
+import { cn } from '@/lib/common';
 import { createElement } from 'react';
 import type { FlexProps } from './shared';
 import { alignStyles } from './styles/align.css';

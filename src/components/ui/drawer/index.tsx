@@ -4,6 +4,7 @@ import type { BaseProps, HAS_CHILDREN } from '@/types/props';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useContext } from 'react';
 import { createPortal } from 'react-dom';
+import { backdropVariants, drawerVariants } from './animation';
 import { DrawerContext } from './context';
 import { backdrop } from './styles/backdrop.css';
 import { drawer, handle } from './styles/drawer.css';
@@ -31,8 +32,21 @@ export function Drawer(props: DrawerProps) {
 		<AnimatePresence>
 			{id === currentDrawer && (
 				<>
-					<motion.div className={backdrop} onClick={onClickBackdrop} />
-					<motion.div className={drawer}>
+					<motion.div
+						className={backdrop}
+						variants={backdropVariants}
+						initial='hidden'
+						animate='visible'
+						exit='hidden'
+						onClick={onClickBackdrop}
+					/>
+					<motion.div
+						className={drawer}
+						variants={drawerVariants}
+						initial='hidden'
+						animate='visible'
+						exit='hidden'
+					>
 						<Container vertical='medium'>
 							<Row justify='center'>
 								<div className={handle} />
