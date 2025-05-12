@@ -1,14 +1,13 @@
+import { color } from './color.css';
 import { resetGlobalStyle } from './layer.css';
 
 resetGlobalStyle('html, body', {
+	backgroundColor: color.milk,
+	color: color.mud,
 	wordBreak: 'keep-all',
 	wordWrap: 'break-word',
 	textWrap: 'pretty',
 	scrollBehavior: 'smooth',
-});
-
-resetGlobalStyle('html', {
-	backgroundColor: colors.background.base.default,
 });
 
 resetGlobalStyle('*', {

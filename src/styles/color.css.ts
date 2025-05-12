@@ -1,6 +1,6 @@
-import { createTheme } from '@vanilla-extract/css';
+import { createGlobalTheme } from '@vanilla-extract/css';
 
-export const [colorClass, color] = createTheme({
+export const color = createGlobalTheme(':root', {
 	milk: 'hsla(27, 27%, 94%)',
 	cream: 'hsla(38, 35%, 88%)',
 	sand: 'hsla(38, 15%, 64%)',
