@@ -45,4 +45,8 @@ resetGlobalStyle('input, textarea, button', {
 	outline: 'none',
 });
 
+resetGlobalStyle('input::placeholder, textarea::placeholder', {
+	color: color.sand,
+});
+
 resetGlobalStyle('::-webkit-scrollbar', { display: 'none' });

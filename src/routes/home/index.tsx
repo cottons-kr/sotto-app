@@ -3,19 +3,16 @@ import { Row } from '@/components/layout/row';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
-import { Drawer } from '@/components/ui/drawer';
-import { useDrawer } from '@/components/ui/drawer/use-drawer';
 import { SottoSymbol } from '@/components/ui/sotto-symbol';
 import { Tabs } from '@/components/ui/tabs';
 import { TabsContent } from '@/components/ui/tabs/content';
 import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { Typo } from '@/components/ui/typography';
+import { Link } from 'react-router-dom';
 import { left, right } from './page.css';
 
 export default function HomePage() {
-	const { toggleDrawer } = useDrawer('test');
-
 	return (
 		<>
 			<Column>
@@ -36,15 +33,12 @@ export default function HomePage() {
 					<TabsContent value='my'>my</TabsContent>
 					<TabsContent value='shared'>shared</TabsContent>
 				</Tabs>
-				<ButtonGroup float>
-					<Button fill onClick={toggleDrawer}>
-						New Diary
-					</Button>
+				<ButtonGroup direction='vertical' float>
+					<Link to='/new-diary'>
+						<Button fill>New Diary</Button>
+					</Link>
 				</ButtonGroup>
 			</Column>
-			<Drawer id='test'>
-				<Typo.Lead>Test Drawer</Typo.Lead>
-			</Drawer>
 		</>
 	);
 }

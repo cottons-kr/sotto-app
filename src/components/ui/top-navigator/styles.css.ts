@@ -1,3 +1,4 @@
+import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
 
 export const topNavigator = uiStyle({
@@ -5,6 +6,7 @@ export const topNavigator = uiStyle({
 	width: '100%',
 	height: 'calc(48px + env(safe-area-inset-top))',
 	padding: '0 16px',
+	backgroundColor: color.milk,
 	top: 0,
 	left: 0,
 });
@@ -15,4 +17,5 @@ export const content = uiStyle({
 
 export const spacer = uiStyle({
 	height: 'calc(48px + env(safe-area-inset-top))',
+	flexShrink: 0,
 });
