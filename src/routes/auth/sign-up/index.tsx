@@ -17,6 +17,9 @@ export default function AuthSignUpPage() {
 				<Container>
 					<Typo.Title weight='strong'>Sign up</Typo.Title>
 				</Container>
+				<InputField label='Name'>
+					<Input placeholder='Your full name' />
+				</InputField>
 				<InputField label='Username'>
 					<Input placeholder='Alphabet and number only' />
 				</InputField>
