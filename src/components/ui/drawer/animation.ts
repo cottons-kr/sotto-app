@@ -15,10 +15,10 @@ export const backdropVariants: Variants = {
 export const drawerVariants: Variants = {
 	hidden: {
 		y: '100%',
-		transition: getTransition(0.3),
+		transition: getTransition(0.35),
 	},
 	visible: {
 		y: 0,
-		transition: getTransition(0.3),
+		transition: getTransition(0.35),
 	},
 };

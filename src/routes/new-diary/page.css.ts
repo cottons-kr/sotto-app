@@ -13,8 +13,8 @@ export const page = style({
 export const titleInput = style([typography, title, weightStyles.strong]);
 
 export const textAreaContainer = style({
-  height: '100%',
-})
+	height: '100%',
+});
 
 export const textArea = style([
 	typography,
@@ -24,3 +24,9 @@ export const textArea = style([
 		height: '100%',
 	},
 ]);
+
+export const friendList = style({
+	height: 184,
+	padding: '12px 16px',
+	overflowX: 'scroll',
+});

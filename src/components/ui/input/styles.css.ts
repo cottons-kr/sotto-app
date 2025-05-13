@@ -5,6 +5,7 @@ import { body } from '../typography/styles/typography.css';
 export const input = uiStyle([
 	body,
 	{
+		width: '100%',
 		padding: '12px 16px',
 		backgroundColor: color.cream,
 		borderRadius: 16,
