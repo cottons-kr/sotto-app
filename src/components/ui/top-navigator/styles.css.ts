@@ -9,6 +9,7 @@ export const topNavigator = uiStyle({
 	backgroundColor: color.milk,
 	top: 0,
 	left: 0,
+	zIndex: 100,
 });
 
 export const content = uiStyle({
