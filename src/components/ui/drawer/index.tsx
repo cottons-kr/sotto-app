@@ -47,7 +47,7 @@ export function Drawer(props: DrawerProps) {
 						animate='visible'
 						exit='hidden'
 					>
-						<Container vertical='medium'>
+						<Container vertical='regular'>
 							<Row justify='center'>
 								<div className={handle} />
 							</Row>

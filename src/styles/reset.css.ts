@@ -32,8 +32,6 @@ resetGlobalStyle('a', {
 });
 
 resetGlobalStyle('svg', {
-	width: 24,
-	height: 24,
 	flexShrink: 0,
 });
 

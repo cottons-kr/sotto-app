@@ -1,9 +1,14 @@
-import { uiStyle } from '@/styles/layer.css';
+import { style } from '@vanilla-extract/css';
 
-export const left = uiStyle({
+export const left = style({
 	marginLeft: 8,
 });
 
-export const right = uiStyle({
+export const right = style({
 	marginRight: 8,
+});
+
+export const banWarning = style({
+	opacity: 0.7,
+	lineHeight: 1.5,
 });
