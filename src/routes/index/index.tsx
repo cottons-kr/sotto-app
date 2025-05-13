@@ -9,12 +9,7 @@ export default function IndexPage() {
 		<>
 			<SottoSymbol className={centerSymbol} size={84} />
 			<ButtonGroup direction='vertical' float>
-				<Link to='/auth/sign-in'>
-					<Button variant='text' fill>
-						Sign in
-					</Button>
-				</Link>
-				<Link to='/auth/sign-up'>
+				<Link to='/sign-up'>
 					<Button fill>Sign up</Button>
 				</Link>
 			</ButtonGroup>

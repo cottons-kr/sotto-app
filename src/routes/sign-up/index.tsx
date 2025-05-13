@@ -9,23 +9,24 @@ import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { content, page } from './page.css';
 
-export default function AuthSignInPage() {
+export default function SignUpPage() {
 	return (
 		<Column className={page}>
 			<TopNavigator leadingArea={<GoBack />} />
 			<Column className={content}>
 				<Container>
-					<Typo.Title weight='strong'>Sign in</Typo.Title>
+					<Typo.Title weight='strong'>Sign up</Typo.Title>
 				</Container>
-				<InputField label='Username'>
-					<Input />
+				<InputField label='Profile Image' />
+				<InputField label='Name'>
+					<Input placeholder='Your full name' />
 				</InputField>
-				<InputField label='Password'>
-					<Input type='password' />
+				<InputField label='Username'>
+					<Input placeholder='Alphabet and number only' />
 				</InputField>
 			</Column>
 			<ButtonGroup bottomSafeAreaPadding>
-				<Button fill>Sign in</Button>
+				<Button fill>Sign up</Button>
 			</ButtonGroup>
 		</Column>
 	);
