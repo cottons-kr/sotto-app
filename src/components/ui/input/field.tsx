@@ -2,6 +2,7 @@ import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
 import { Typo } from '../typography';
+import { labelStyle } from './styles/field.css';
 
 interface InputFieldProps extends BaseProps<HAS_CHILDREN> {
 	label?: string;
@@ -12,9 +13,9 @@ export function InputField(props: InputFieldProps) {
 
 	return (
 		<Container>
-			<Column as='label' gap={6}>
+			<Column gap={6} align='center'>
 				{label && (
-					<Container vertical='none' horizontal='small'>
+					<Container className={labelStyle} vertical='none' horizontal='small'>
 						<Typo.Body>{label}</Typo.Body>
 					</Container>
 				)}
