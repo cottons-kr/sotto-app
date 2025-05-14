@@ -28,4 +28,7 @@ rand = "0.9.1"
 base64 = "0.22.1"
 tauri-plugin-dialog = "2"
 tauri-plugin-http = "2"
+tauri-plugin-stronghold = "2.2.0"
+rust-argon2 = "2.1.0"
+tauri-plugin-keychain = "2.0.2"
 

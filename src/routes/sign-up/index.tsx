@@ -41,18 +41,18 @@ export default function SignUpPage() {
 		generateKeyPair()
 			.then(async ({ publicKeyPem }) => {
 				try {
-					await apiClient.post('/users', {
-						name,
-						username,
-						profileUrl: profileImage,
-						publicKey: publicKeyPem,
-					});
-					await message(`Sign up successful! Welcome ${name}`, {
-						kind: 'info',
-					});
+					const { accessToken, user } = await apiClient.post<SignUpResponse>(
+						'/users',
+						{
+							name,
+							username,
+							profileUrl: profileImage,
+							publicKey: publicKeyPem,
+						},
+					);
+					await message(`Sign up successful! Welcome ${name}`);
 				} catch (error) {
 					await message('Sign up failed. Please try again.', { kind: 'error' });
-					console.error('Sign up error:', error);
 				}
 			})
 			.catch((error) => {

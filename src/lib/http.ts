@@ -9,7 +9,7 @@ interface APIResponse<T> {
 
 const DEFAULT_API_URL = 'http://localhost:3000' as const;
 
-export class APIClient {
+class APIClient {
 	constructor(private baseUrl: string) {
 		if (baseUrl === DEFAULT_API_URL) {
 			console.warn(

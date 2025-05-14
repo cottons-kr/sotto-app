@@ -1,3 +1,5 @@
+use tauri::Manager;
+
 mod crypto;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -11,6 +13,17 @@ pub fn run() {
             crypto::encrypt_diary,
             crypto::decrypt_diary
         ])
+        .setup(|app| {
+            let salt_path = app
+                .path()
+                .app_local_data_dir()
+                .expect("Failed to get app local data dir")
+                .join("sotto_salt.txt");
+
+            app.handle().plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
