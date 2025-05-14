@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Input } from '@/components/ui/input';
 import { InputField } from '@/components/ui/input/field';
+import { ImageInput } from '@/components/ui/input/image';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
@@ -17,7 +18,9 @@ export default function SignUpPage() {
 				<Container>
 					<Typo.Title weight='strong'>Sign up</Typo.Title>
 				</Container>
-				<InputField label='Profile Image' />
+				<InputField label='Profile Image'>
+					<ImageInput />
+				</InputField>
 				<InputField label='Name'>
 					<Input placeholder='Your full name' />
 				</InputField>

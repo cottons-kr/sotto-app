@@ -59,12 +59,10 @@ pub fn decrypt_diary(
     let aes_key = decryptor.decrypt(&encrypted_key)
         .map_err(|e| format!("RSA decryption failed: {:?}", e))?;
 
-    // 4. AES-GCM 복호화
     let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&aes_key));
     let decrypted_data = cipher.decrypt(nonce, encrypted_data.as_ref())
         .map_err(|e| format!("AES decryption failed: {:?}", e))?;
 
-    // 5. JSON 파싱
     let json_str = String::from_utf8(decrypted_data)
         .map_err(|e| format!("UTF-8 decode error: {:?}", e))?;
     let diary: DiaryData = serde_json::from_str(&json_str)

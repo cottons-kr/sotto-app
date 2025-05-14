@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes } from 'react';
-import { input } from './styles.css';
+import { input } from './styles/text.css';
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
 	return <input {...props} className={input} />;

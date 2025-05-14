@@ -1,6 +1,6 @@
 import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
-import { body } from '../typography/styles/typography.css';
+import { body } from '../../typography/styles/typography.css';
 
 export const input = uiStyle([
 	body,

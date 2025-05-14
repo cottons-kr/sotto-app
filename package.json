@@ -11,7 +11,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"preview": "vite preview",
+		"preview": "tauri ios dev \"iPhone 16 Pro\"",
 		"tauri": "tauri",
 		"format": "biome check --fix",
 		"commit": "bun format && git add . && cz"
