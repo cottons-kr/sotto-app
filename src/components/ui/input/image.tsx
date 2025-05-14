@@ -9,10 +9,11 @@ import { image, input, wrapper } from './styles/image.css';
 
 interface ImageInputProps extends InputHTMLAttributes<HTMLInputElement> {
 	preview?: string;
+	onImage?: (image: File | null) => void;
 }
 
 export function ImageInput(props: ImageInputProps) {
-	const { preview, onChange: propOnChange, ...rest } = props;
+	const { preview, onChange: propOnChange, onImage, ...rest } = props;
 	const [previewUrl, setPreviewUrl] = useState<string | undefined>(preview);
 
 	const onChange = useCallback(
@@ -24,10 +25,11 @@ export function ImageInput(props: ImageInputProps) {
 					setPreviewUrl(reader.result?.toString());
 				};
 				reader.readAsDataURL(file);
+				onImage?.(file);
 			}
 			propOnChange?.(e);
 		},
-		[propOnChange],
+		[propOnChange, onImage],
 	);
 
 	return (

@@ -26,4 +26,5 @@ rsa = "0.9.8"
 aes-gcm = "0.10.3"
 rand = "0.9.1"
 base64 = "0.22.1"
+tauri-plugin-dialog = "2"
 

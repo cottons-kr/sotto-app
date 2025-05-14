@@ -1,4 +1,4 @@
-use rsa::{pkcs1v15::DecryptingKey, pkcs8::{DecodePrivateKey, DecodePublicKey}, rand_core::RngCore, traits::Decryptor, RsaPrivateKey, RsaPublicKey};
+use rsa::{pkcs1::{EncodeRsaPrivateKey, EncodeRsaPublicKey}, pkcs1v15::DecryptingKey, pkcs8::{DecodePrivateKey, DecodePublicKey}, rand_core::RngCore, traits::Decryptor, RsaPrivateKey, RsaPublicKey};
 use aes_gcm::{aead::{Aead, KeyInit, OsRng}, Aes256Gcm, Key, Nonce};
 use serde::{Serialize, Deserialize};
 use base64::prelude::*;
@@ -7,6 +7,25 @@ use base64::prelude::*;
 pub struct DiaryData {
     pub title: String,
     pub content: String,
+}
+
+#[tauri::command]
+pub fn generate_key_pair() -> Result<(String, String), String> {
+    let mut rng = OsRng;
+    let bits = 2048;
+    let private_key = RsaPrivateKey::new(&mut rng, bits)
+        .map_err(|e| format!("Key generation failed: {:?}", e))?;
+    let public_key = RsaPublicKey::from(&private_key);
+
+    let private_key_pem = private_key.to_pkcs1_pem(Default::default())
+        .map_err(|e| format!("Private key PEM encoding failed: {:?}", e))?
+        .to_string();
+
+    let public_key_pem = public_key.to_pkcs1_pem(Default::default())
+        .map_err(|e| format!("Public key PEM encoding failed: {:?}", e))?
+        .to_string();
+
+    Ok((private_key_pem, public_key_pem))
 }
 
 #[tauri::command]
