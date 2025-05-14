@@ -1,3 +1,4 @@
+import { SignUpBiometricSection } from '@/components/sections/sign-up/biometric';
 import { SignUpConfirmPinSection } from '@/components/sections/sign-up/confirm-pin';
 import { SignUpFlowContext } from '@/components/sections/sign-up/context';
 import { SignUpInformationSection } from '@/components/sections/sign-up/information';
@@ -31,11 +32,12 @@ export default function SignUpPage() {
 			}}
 		>
 			<Flow
-				// defaultStep={1}
+				defaultStep={3}
 				pages={[
 					<SignUpInformationSection key='information' />,
 					<SignUpSetPinSection key='set-pin' />,
 					<SignUpConfirmPinSection key='confirm-pin' />,
+					<SignUpBiometricSection key='biometric' />,
 				]}
 			/>
 		</SignUpFlowContext>
