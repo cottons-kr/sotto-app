@@ -11,6 +11,7 @@ import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { resizeImage } from '@/lib/common';
 import { message } from '@tauri-apps/plugin-dialog';
+import { fetch } from '@tauri-apps/plugin-http';
 import { useCallback, useState } from 'react';
 import { content, page } from './page.css';
 
@@ -42,9 +43,24 @@ export default function SignUpPage() {
 		console.log('Username:', username);
 
 		generateKeyPair()
-			.then(async ({ privateKeyPem, publicKeyPem }) => {
-				console.log('Private Key:', privateKeyPem);
-				console.log('Public Key:', publicKeyPem);
+			.then(async ({ publicKeyPem }) => {
+				const res = await fetch('http://localhost:3000/users', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						name,
+						username,
+						profileUrl: profileImage,
+						publicKey: publicKeyPem,
+					}),
+				});
+				console.log('Response:', await res.json());
+				if (!res.ok) {
+					await message('Sign up failed. Please try again.', { kind: 'error' });
+					return;
+				}
 				await message(`Sign up successful! Welcome ${name}`, { kind: 'info' });
 			})
 			.catch((error) => {
