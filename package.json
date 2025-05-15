@@ -18,6 +18,7 @@
 	},
 	"dependencies": {
 		"@tauri-apps/api": "^2.5.0",
+		"@tauri-apps/plugin-biometric": "~2",
 		"@tauri-apps/plugin-dialog": "~2",
 		"@tauri-apps/plugin-fs": "~2",
 		"@tauri-apps/plugin-http": "~2",
@@ -30,7 +31,7 @@
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"react-router-dom": "^7.6.0",
-		"tauri-plugin-keyring-api": "^0.1.1"
+		"tauri-plugin-keychain": "^2.0.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",

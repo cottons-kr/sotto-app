@@ -8,6 +8,7 @@ import { storageClient } from '@/lib/storage';
 import { message } from '@tauri-apps/plugin-dialog';
 import { ScanFace } from 'lucide-react';
 import { useContext } from 'react';
+import { saveItem } from 'tauri-plugin-keychain';
 import { SignUpFlowContext } from './context';
 import { fillHeight } from './styles/styles.css';
 
@@ -32,6 +33,8 @@ export function SignUpBiometricSection() {
 
 			await storageClient.init(pin);
 
+			await saveItem('sotto-app', pin);
+
 			storageClient.set('accessToken', accessToken);
 			storageClient.set('username', username);
 			storageClient.set('publicKey', publicKeyPem);
@@ -46,6 +49,7 @@ export function SignUpBiometricSection() {
 			await message(`Sign up successful! Welcome ${user}`);
 		} catch (error) {
 			await message('Sign up failed. Please try again.', { kind: 'error' });
+			console.error('Sign up failed', error);
 		}
 	};
 

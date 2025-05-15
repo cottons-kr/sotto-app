@@ -12,7 +12,7 @@ export default function IndexPage() {
 	const navigate = useNavigate();
 
 	const startApp = useCallback(async () => {
-		await wait(1000);
+		await wait(500);
 
 		if (localStorage.getItem('app-initialized') === 'true') {
 			setShowSignUp(false);

@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { DrawerProvider } from './components/ui/drawer/provider';
@@ -9,9 +8,7 @@ if (!root) {
 }
 
 ReactDOM.createRoot(root).render(
-	<React.StrictMode>
-		<DrawerProvider>
-			<App />
-		</DrawerProvider>
-	</React.StrictMode>,
+	<DrawerProvider>
+		<App />
+	</DrawerProvider>,
 );
