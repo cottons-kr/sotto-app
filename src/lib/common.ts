@@ -26,3 +26,9 @@ export async function resizeImage(image: File, size = 256) {
 
 	return resizedImageUrl;
 }
+
+export async function wait(ms: number) {
+	return new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
+}

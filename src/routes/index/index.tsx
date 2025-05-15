@@ -1,20 +1,49 @@
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { SottoSymbol } from '@/components/ui/sotto-symbol';
-import { Link } from 'react-router-dom';
-import { centerSymbol } from './page.css';
+import { wait } from '@/lib/common';
+import { storageClient } from '@/lib/storage';
+import { LoaderCircle } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { centerSymbol, loaderCircle } from './page.css';
 
 export default function IndexPage() {
+	const [showSignUp, setShowSignUp] = useState(false);
+	const navigate = useNavigate();
+
+	const startApp = useCallback(async () => {
+		await wait(1000);
+
+		if (await storageClient.get('accessToken')) {
+			setShowSignUp(false);
+		} else {
+			setShowSignUp(true);
+			return;
+		}
+
+		if ((await storageClient.get('useBiometricLogin')) === 'true') {
+			navigate('/sign-in/biometric');
+		} else {
+			navigate('/sign-in/pin');
+		}
+	}, [navigate]);
+
+	useEffect(() => {
+		startApp();
+	}, [startApp]);
+
 	return (
 		<>
 			<SottoSymbol className={centerSymbol} size={84} />
 			<ButtonGroup direction='vertical' float>
-				<Link to='/home'>
-					<Button fill>go to home (debug)</Button>
-				</Link>
-				<Link to='/sign-up'>
-					<Button fill>Sign up</Button>
-				</Link>
+				{showSignUp ? (
+					<Link to='/sign-up'>
+						<Button fill>Sign up</Button>
+					</Link>
+				) : (
+					<LoaderCircle className={loaderCircle} size={32} />
+				)}
 			</ButtonGroup>
 		</>
 	);

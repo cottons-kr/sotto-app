@@ -26,6 +26,7 @@ resetGlobalStyle('*', {
 resetGlobalStyle('*:focus', { outline: 'none' });
 
 resetGlobalStyle('a', {
+	width: '100%',
 	color: 'inherit',
 	cursor: 'pointer',
 	textDecoration: 'none',

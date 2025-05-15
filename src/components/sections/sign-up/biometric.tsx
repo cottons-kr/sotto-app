@@ -35,6 +35,9 @@ export function SignUpBiometricSection() {
 			storageClient.set('publicKey', publicKeyPem);
 			storageClient.set('privateKey', privateKeyPem);
 			storageClient.set('useBiometricLogin', useBiometricLogin.toString());
+			if (profileImage) {
+				storageClient.set('profileImage', profileImage);
+			}
 
 			await message(`Sign up successful! Welcome ${user}`);
 		} catch (error) {

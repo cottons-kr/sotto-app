@@ -57,6 +57,7 @@ export function ButtonGroup(props: ButtonGroupProps) {
 		<>
 			<Wrapper
 				className={cn(classNames)}
+				align='center'
 				gap={direction === 'horizontal' ? 8 : 4}
 			>
 				{children}
