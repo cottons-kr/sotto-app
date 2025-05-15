@@ -47,11 +47,13 @@ export default function SignInPinPage() {
 				<Button fill variant='text'>
 					Forgot your PIN?
 				</Button>
-				<Link to='/sign-in/biometric'>
-					<Button fill variant='secondary'>
-						Use Biometric instead
-					</Button>
-				</Link>
+				{localStorage.getItem('useBiometricLogin') === 'true' && (
+					<Link to='/sign-in/biometric'>
+						<Button fill variant='secondary'>
+							Use Biometric instead
+						</Button>
+					</Link>
+				)}
 			</ButtonGroup>
 		</Column>
 	);
