@@ -12,7 +12,7 @@ import { SignUpFlowContext } from './context';
 import { fillHeight } from './styles/styles.css';
 
 export function SignUpBiometricSection() {
-	const { name, username, profileImage, setUseBiometricLogin } =
+	const { name, username, profileImage, pin, setUseBiometricLogin } =
 		useContext(SignUpFlowContext);
 
 	const onClick = async (useBiometricLogin: boolean) => {
@@ -30,14 +30,18 @@ export function SignUpBiometricSection() {
 				},
 			);
 
+			await storageClient.init(pin);
+
 			storageClient.set('accessToken', accessToken);
 			storageClient.set('username', username);
 			storageClient.set('publicKey', publicKeyPem);
 			storageClient.set('privateKey', privateKeyPem);
-			storageClient.set('useBiometricLogin', useBiometricLogin.toString());
 			if (profileImage) {
 				storageClient.set('profileImage', profileImage);
 			}
+
+			localStorage.setItem('app-initialized', 'true');
+			localStorage.setItem('useBiometricLogin', useBiometricLogin.toString());
 
 			await message(`Sign up successful! Welcome ${user}`);
 		} catch (error) {

@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { SottoSymbol } from '@/components/ui/sotto-symbol';
 import { wait } from '@/lib/common';
-import { storageClient } from '@/lib/storage';
 import { LoaderCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -15,14 +14,14 @@ export default function IndexPage() {
 	const startApp = useCallback(async () => {
 		await wait(1000);
 
-		if (await storageClient.get('accessToken')) {
+		if (localStorage.getItem('app-initialized') === 'true') {
 			setShowSignUp(false);
 		} else {
 			setShowSignUp(true);
 			return;
 		}
 
-		if ((await storageClient.get('useBiometricLogin')) === 'true') {
+		if (localStorage.getItem('useBiometricLogin') === 'true') {
 			navigate('/sign-in/biometric');
 		} else {
 			navigate('/sign-in/pin');
