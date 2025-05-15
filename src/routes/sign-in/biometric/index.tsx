@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Content } from '@/components/ui/content';
 import { wait } from '@/lib/common';
-import { storageClient } from '@/lib/storage';
+import { storageClient } from '@/lib/managers/storage';
 import { authenticate } from '@tauri-apps/plugin-biometric';
 import { message } from '@tauri-apps/plugin-dialog';
 import { LockKeyhole } from 'lucide-react';

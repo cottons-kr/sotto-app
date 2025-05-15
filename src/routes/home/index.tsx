@@ -30,7 +30,12 @@ export default function HomePage() {
 							<Typo.Lead weight='strong'>Sotto</Typo.Lead>
 						</Row>
 					}
-					trailingArea={<Avatar className={right} />}
+					trailingArea={
+						<Avatar
+							className={right}
+							src={localStorage.getItem('profileImage')}
+						/>
+					}
 				/>
 				<Tabs defaultValue='my'>
 					<TabsGroup>

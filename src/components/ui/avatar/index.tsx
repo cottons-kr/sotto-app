@@ -4,16 +4,16 @@ import { avatar } from './styles.css';
 
 interface AvatarProps extends BaseProps {
 	size?: number;
-	src?: string;
+	src?: string | null;
 }
 
 export function Avatar(props: AvatarProps) {
-	const { size = 32, className } = props;
+	const { size = 32, src, className } = props;
 
 	return (
 		<img
 			className={cn(avatar, className)}
-			src='/profile.png'
+			src={src || '/profile.png'}
 			alt='Avatar'
 			style={{
 				width: size,

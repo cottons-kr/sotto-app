@@ -7,6 +7,8 @@ import {
 } from '@tauri-apps/plugin-stronghold';
 
 abstract class StorageClient {
+	public isInitialized = false;
+
 	abstract init(password: string): Promise<void>;
 	abstract get(key: string): Promise<string | null>;
 	abstract set(key: string, value: string): Promise<void>;
@@ -17,11 +19,12 @@ abstract class StorageClient {
 class LocalStorageClient extends StorageClient {
 	constructor() {
 		super();
-		console.log('Using LocalStorageClient');
+		console.warn('Using LocalStorageClient');
 	}
 
 	async init() {
 		console.log('LocalStorageClient does not require initialization');
+		this.isInitialized = true;
 	}
 
 	async get(key: string) {
@@ -63,6 +66,7 @@ class StrongholdStorageClient extends StorageClient {
 		}
 
 		this.store = this.client.getStore();
+		this.isInitialized = true;
 	}
 
 	private checkInitialized() {
