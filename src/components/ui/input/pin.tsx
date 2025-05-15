@@ -1,8 +1,8 @@
 import { Row } from '@/components/layout/row';
-import { useEffect, useState } from 'react';
+import { cn } from '@/lib/common';
+import { useEffect, useRef, useState } from 'react';
 import { Typo } from '../typography';
 import { input, item, itemActive, wrapper } from './styles/pin.css';
-import { cn } from '@/lib/common';
 
 interface PINInputProps {
 	onPin?: (pin: string) => void;
@@ -11,6 +11,7 @@ interface PINInputProps {
 export function PINInput(props: PINInputProps) {
 	const { onPin } = props;
 	const [pin, setPin] = useState('');
+	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
 		if (pin.length >= 4) {
@@ -18,10 +19,17 @@ export function PINInput(props: PINInputProps) {
 		}
 	}, [pin, onPin]);
 
+	useEffect(() => {
+		if (inputRef.current) {
+			inputRef.current.focus();
+		}
+	}, []);
+
 	return (
 		<Row className={wrapper} gap={8}>
 			<input
 				className={input}
+				ref={inputRef}
 				type='number'
 				maxLength={4}
 				pattern='[0-9]*'

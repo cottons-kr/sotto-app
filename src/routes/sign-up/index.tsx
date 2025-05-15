@@ -32,7 +32,7 @@ export default function SignUpPage() {
 			}}
 		>
 			<Flow
-				defaultStep={3}
+				defaultStep={1}
 				pages={[
 					<SignUpInformationSection key='information' />,
 					<SignUpSetPinSection key='set-pin' />,
