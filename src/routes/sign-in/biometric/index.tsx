@@ -5,6 +5,7 @@ import { Content } from '@/components/ui/content';
 import { wait } from '@/lib/common';
 import { storageClient } from '@/lib/storage';
 import { authenticate } from '@tauri-apps/plugin-biometric';
+import { message } from '@tauri-apps/plugin-dialog';
 import { LockKeyhole } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -28,6 +29,7 @@ export default function SignInBiometricPage() {
 			navigate('/home');
 		} catch (error) {
 			console.error('Biometric authentication failed', error);
+			await message('Biometric authentication failed', { kind: 'error' });
 		}
 	}, [navigate]);
 
