@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { PINInput } from '@/components/ui/input/pin';
 import { Typo } from '@/components/ui/typography';
-import { storageClient } from '@/lib/managers/storage';
+import { processSignIn } from '@/lib/app';
 import { message } from '@tauri-apps/plugin-dialog';
 import { Link, useNavigate } from 'react-router-dom';
 import { getItem } from 'tauri-plugin-keychain';
@@ -24,7 +24,7 @@ export default function SignInPinPage() {
 				return;
 			}
 
-			await storageClient.init(pin);
+			await processSignIn(pin);
 
 			navigate('/home');
 		} catch (error) {

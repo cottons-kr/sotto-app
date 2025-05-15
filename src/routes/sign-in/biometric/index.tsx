@@ -2,8 +2,7 @@ import { Column } from '@/components/layout/column';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Content } from '@/components/ui/content';
-import { wait } from '@/lib/common';
-import { storageClient } from '@/lib/managers/storage';
+import { processSignIn } from '@/lib/app';
 import { authenticate } from '@tauri-apps/plugin-biometric';
 import { message } from '@tauri-apps/plugin-dialog';
 import { LockKeyhole } from 'lucide-react';
@@ -23,8 +22,7 @@ export default function SignInBiometricPage() {
 				throw new Error('PIN not found');
 			}
 
-			await storageClient.init(pin);
-			await wait(500);
+			await processSignIn(pin);
 
 			navigate('/home');
 		} catch (error) {
