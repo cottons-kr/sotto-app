@@ -1,5 +1,6 @@
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
+import { DiarySavingToast } from '@/components/pages/diary/saving-toast';
 import { DiaryShareSection } from '@/components/pages/diary/share';
 import { Divider } from '@/components/ui/divider';
 import { EmojiInput } from '@/components/ui/input/emoji';
@@ -12,7 +13,7 @@ import { wait } from '@/lib/common';
 import { diaryManager } from '@/lib/managers/diary';
 import { color } from '@/styles/color.css';
 import { Share } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { page, textArea, textAreaContainer, titleInput } from './page.css';
 
@@ -21,14 +22,17 @@ export default function DiaryPage() {
 	const [searchParams] = useSearchParams();
 	const diaryUUID = useMemo(() => searchParams.get('uuid'), [searchParams]);
 	const [diary, { setEmoji, setTitle, setContent }] = useDiary(diaryUUID);
+	const [isSaving, setIsSaving] = useState(false);
 
 	const saveDiary = useCallback(async () => {
 		if (!diary.emoji && !diary.title && !diary.content) {
 			return;
 		}
 
+		setIsSaving(true);
+
 		if (import.meta.env.DEV) {
-			// for toast
+			// for toast development purpose
 			await wait(1000);
 		}
 
@@ -37,6 +41,8 @@ export default function DiaryPage() {
 		} else {
 			await diaryManager.addDiary(diary);
 		}
+
+		setIsSaving(false);
 	}, [diary]);
 
 	return (
@@ -44,16 +50,21 @@ export default function DiaryPage() {
 			<Column className={page} justify='start'>
 				<TopNavigator
 					leadingArea={<GoBack beforeBack={saveDiary} />}
-					trailingArea={<Share onClick={toggleDrawer} />}
+					trailingArea={<Share onClick={isSaving ? undefined : toggleDrawer} />}
 				/>
 				<Container vertical='large' horizontal='large'>
 					<Column gap={12}>
-						<EmojiInput defaultValue={diary.emoji} onValue={setEmoji} />
+						<EmojiInput
+							defaultValue={diary.emoji}
+							onValue={setEmoji}
+							disabled={isSaving}
+						/>
 						<input
 							className={titleInput}
 							placeholder='New Diary'
 							value={diary.title}
 							onChange={(e) => setTitle(e.target.value)}
+							disabled={isSaving}
 						/>
 						<Typo.Caption
 							color={color.sand}
@@ -71,10 +82,12 @@ export default function DiaryPage() {
 						placeholder='Write your diary'
 						value={diary.content}
 						onChange={(e) => setContent(e.target.value)}
+						disabled={isSaving}
 					/>
 				</Container>
 			</Column>
 			<DiaryShareSection />
+			<DiarySavingToast visible={isSaving} />
 		</>
 	);
 }

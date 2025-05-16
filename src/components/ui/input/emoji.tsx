@@ -18,17 +18,21 @@ interface EmojiInputProps {
 	placeholder?: string;
 	defaultValue?: string;
 	onValue?: (value: string) => unknown;
+	disabled?: boolean;
 }
 
 export function EmojiInput(props: EmojiInputProps) {
-	const { placeholder = '😀', defaultValue, onValue } = props;
+	const { placeholder = '😀', defaultValue, onValue, disabled } = props;
 
 	const [value, setValue] = useState<string | undefined>(defaultValue);
 	const { toggleDrawer } = useDrawer('emoji-selector');
 
 	return (
 		<>
-			<div className={cn(!value && placeholderStyle)} onClick={toggleDrawer}>
+			<div
+				className={cn(!value && placeholderStyle)}
+				onClick={disabled ? undefined : toggleDrawer}
+			>
 				<Typo.Title>{value || placeholder}</Typo.Title>
 			</div>
 			<Drawer id='emoji-selector'>
