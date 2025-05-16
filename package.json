@@ -35,6 +35,7 @@
 		"react-dom": "^19.1.0",
 		"react-router-dom": "^7.6.0",
 		"tauri-plugin-keychain": "^2.0.1",
+		"use-debounce": "^10.0.4",
 		"uuid": "^11.1.0"
 	},
 	"devDependencies": {

@@ -1,4 +1,5 @@
 import { diaryManager } from '@/lib/managers/diary';
+import { storageClient } from '@/lib/managers/storage';
 import { useCallback, useState } from 'react';
 
 export function useDiary(uuid: string | null) {
@@ -29,6 +30,10 @@ export function useDiary(uuid: string | null) {
 }
 
 function getDiaryOrCreate(uuid?: string | null) {
+	if (!storageClient.isInitialized) {
+		return diaryManager.createDiary();
+	}
+
 	if (uuid) {
 		const data = diaryManager.getDiary(uuid);
 		if (!data) {
