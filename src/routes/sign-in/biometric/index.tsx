@@ -24,6 +24,7 @@ export default function SignInBiometricPage() {
 
 			await processSignIn(pin);
 
+			console.log(location);
 			navigate('/home');
 		} catch (error) {
 			console.error('Biometric authentication failed', error);

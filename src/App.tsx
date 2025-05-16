@@ -17,7 +17,7 @@ export default function App() {
 			location.pathname !== '/' &&
 			(!storageClient.isInitialized || !diaryManager.isInitialized)
 		) {
-			location.href = '/';
+			location.href = `/?redirect=${location.pathname}`;
 		}
 	}, []);
 

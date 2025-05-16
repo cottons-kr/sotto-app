@@ -6,6 +6,7 @@ import { ButtonGroup } from '@/components/ui/button/group';
 import { Divider } from '@/components/ui/divider';
 import { Drawer } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
+import { EmojiInput } from '@/components/ui/input/emoji';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
@@ -32,6 +33,7 @@ export default function NewDiaryPage() {
 				/>
 				<Container vertical='large' horizontal='large'>
 					<Column gap={12}>
+						<EmojiInput />
 						<input className={titleInput} placeholder='New Diary' />
 						<Typo.Caption color={color.sand}>
 							Last Edited : 9:41 PM
