@@ -21,7 +21,7 @@ import {
 	titleInput,
 } from './page.css';
 
-export default function NewDiaryPage() {
+export default function DiaryPage() {
 	const { toggleDrawer } = useDrawer('share');
 
 	return (

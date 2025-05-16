@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { diaryManager } from './lib/managers/diary';
 import { storageClient } from './lib/managers/storage';
+import DiaryPage from './routes/diary';
 import HomePage from './routes/home';
 import IndexPage from './routes/index';
-import NewDiaryPage from './routes/new-diary';
 import SignInBiometricPage from './routes/sign-in/biometric';
 import SignInPinPage from './routes/sign-in/pin';
 import SignUpPage from './routes/sign-up';
@@ -29,7 +29,7 @@ export default function App() {
 				<Route path='/sign-in/biometric' element={<SignInBiometricPage />} />
 				<Route path='/sign-in/pin' element={<SignInPinPage />} />
 				<Route path='/home' element={<HomePage />} />
-				<Route path='/new-diary' element={<NewDiaryPage />} />
+				<Route path='/new-diary' element={<DiaryPage />} />
 			</Routes>
 		</BrowserRouter>
 	);
