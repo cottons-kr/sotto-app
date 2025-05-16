@@ -3,6 +3,7 @@ import { Column } from '@/components/layout/column';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Content } from '@/components/ui/content';
+import { log } from '@/lib/log';
 import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
 import { message } from '@tauri-apps/plugin-dialog';
@@ -21,6 +22,9 @@ export function SignUpBiometricSection() {
 
 		const { publicKeyPem, privateKeyPem } = await generateKeyPair();
 		try {
+			await storageClient.init(pin);
+			await saveItem('sotto-app', pin);
+
 			const { accessToken, user } = await apiClient.post<SignUpResponse>(
 				'/users',
 				{
@@ -30,10 +34,6 @@ export function SignUpBiometricSection() {
 					publicKey: publicKeyPem,
 				},
 			);
-
-			await storageClient.init(pin);
-
-			await saveItem('sotto-app', pin);
 
 			storageClient.set('accessToken', accessToken);
 			storageClient.set('username', username);
@@ -49,7 +49,7 @@ export function SignUpBiometricSection() {
 			await message(`Sign up successful! Welcome ${user}`);
 		} catch (error) {
 			await message('Sign up failed. Please try again.', { kind: 'error' });
-			console.error('Sign up failed', error);
+			log('error', 'Sign up failed', error);
 		}
 	};
 

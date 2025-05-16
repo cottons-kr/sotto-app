@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Content } from '@/components/ui/content';
 import { processSignIn } from '@/lib/app';
+import { log } from '@/lib/log';
 import { authenticate } from '@tauri-apps/plugin-biometric';
 import { message } from '@tauri-apps/plugin-dialog';
 import { LockKeyhole } from 'lucide-react';
@@ -24,11 +25,12 @@ export default function SignInBiometricPage() {
 
 			await processSignIn(pin);
 
-			console.log(location);
 			navigate('/home');
 		} catch (error) {
-			console.error('Biometric authentication failed', error);
 			await message('Biometric authentication failed', { kind: 'error' });
+			if (error && typeof error === 'object' && 'message' in error) {
+				log('error', 'Biometric authentication failed', error.message);
+			}
 		}
 	}, [navigate]);
 

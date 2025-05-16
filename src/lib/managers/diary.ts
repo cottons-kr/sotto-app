@@ -103,7 +103,7 @@ class DiaryManager {
 		return updatedDiary;
 	}
 
-	async shareDiary(uuid: string) {}
+	async shareDiary() {}
 }
 
 export const diaryManager = new DiaryManager();

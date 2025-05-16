@@ -25,7 +25,7 @@ export default function DiaryPage() {
 		if (!diary.emoji && !diary.title && !diary.content) {
 			return;
 		}
-		if (diary.uuid) {
+		if (diaryManager.getDiary(diary.uuid)) {
 			await diaryManager.updateDiary(diary.uuid, diary);
 		} else {
 			await diaryManager.addDiary(diary);

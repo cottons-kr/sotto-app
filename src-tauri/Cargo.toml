@@ -32,6 +32,7 @@ tauri-plugin-stronghold = "2.2.0"
 rust-argon2 = "2.1.0"
 tauri-plugin-keychain = "2.0.2"
 tauri-plugin-fs = "2"
+tauri-plugin-log = "2"
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
 tauri-plugin-biometric = "2"

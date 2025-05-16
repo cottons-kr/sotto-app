@@ -1,4 +1,5 @@
 import { fetch } from '@tauri-apps/plugin-http';
+import { log } from '../log';
 import { storageClient } from './storage';
 
 interface APIResponse<T> {
@@ -13,7 +14,8 @@ const DEFAULT_API_URL = 'http://localhost:3000' as const;
 class APIClient {
 	constructor(private baseUrl: string) {
 		if (baseUrl === DEFAULT_API_URL) {
-			console.warn(
+			log(
+				'warn',
 				'Using default API URL. Make sure to set the VITE_API_URL environment variable in production.',
 			);
 		}

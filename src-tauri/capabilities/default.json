@@ -9,6 +9,8 @@
 		"dialog:default",
 		"fs:default",
 		"keychain:default",
+		"stronghold:default",
+		"log:default",
 		{
 			"identifier": "http:default",
 			"allow": [

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { SottoSymbol } from '@/components/ui/sotto-symbol';
+import { Typo } from '@/components/ui/typography';
 import { wait } from '@/lib/common';
 import { LoaderCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -36,6 +37,7 @@ export default function IndexPage() {
 		<>
 			<SottoSymbol className={centerSymbol} size={84} />
 			<ButtonGroup direction='vertical' float>
+				{import.meta.env.DEV && <Typo.Body>{import.meta.env.MODE}</Typo.Body>}
 				{showSignUp ? (
 					<Link to='/sign-up'>
 						<Button fill>Sign up</Button>
