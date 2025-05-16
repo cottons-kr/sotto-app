@@ -45,7 +45,7 @@ class DiaryManager {
 		);
 	}
 
-	async getDiaries() {
+	getDiaries() {
 		return Array.from(this.data.values());
 	}
 

@@ -15,6 +15,7 @@ import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
+import { diaryManager } from '@/lib/managers/diary';
 import { Ban } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { banWarning, left, right } from './page.css';
@@ -45,11 +46,9 @@ export default function HomePage() {
 					<TabsContent value='my'>
 						<Container>
 							<Grid>
-								<Card />
-								<Card />
-								<Card />
-								<Card />
-								<Card />
+								{diaryManager.getDiaries().map((diary) => (
+									<Card key={diary.uuid} diary={diary} />
+								))}
 							</Grid>
 						</Container>
 						<ButtonGroup direction='vertical' float>
@@ -85,12 +84,7 @@ function FriendDiaries() {
 				</Row>
 			</Container>
 			<Container vertical='small'>
-				<Grid>
-					<Card />
-					<Card />
-					<Card />
-					<Card />
-				</Grid>
+				<Grid />
 			</Container>
 			<Container horizontal='none'>
 				<Divider />
