@@ -1,0 +1,40 @@
+import { diaryManager } from '@/lib/managers/diary';
+import { useCallback, useState } from 'react';
+
+export function useDiary(uuid: string | null) {
+	const [diary, setDiary] = useState(() => getDiaryOrCreate(uuid));
+
+	const setEmoji = useCallback((emoji: string) => {
+		setDiary((prev) => ({
+			...prev,
+			emoji,
+		}));
+	}, []);
+
+	const setTitle = useCallback((title: string) => {
+		setDiary((prev) => ({
+			...prev,
+			title,
+		}));
+	}, []);
+
+	const setContent = useCallback((content: string) => {
+		setDiary((prev) => ({
+			...prev,
+			content,
+		}));
+	}, []);
+
+	return [diary, { setEmoji, setTitle, setContent }] as const;
+}
+
+function getDiaryOrCreate(uuid?: string | null) {
+	if (uuid) {
+		const data = diaryManager.getDiary(uuid);
+		if (!data) {
+			throw new Error('Diary not found');
+		}
+		return data;
+	}
+	return diaryManager.createDiary();
+}

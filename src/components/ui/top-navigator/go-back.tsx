@@ -4,12 +4,21 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typo } from '../typography';
 
-export function GoBack() {
+interface GoBackProps {
+	beforeBack?: () => unknown;
+}
+
+export function GoBack(props: GoBackProps) {
+	const { beforeBack } = props;
+
 	const navigate = useNavigate();
 
-	const onClickBack = useCallback(() => {
+	const onClickBack = useCallback(async () => {
+		if (beforeBack) {
+			await beforeBack();
+		}
 		navigate(-1);
-	}, [navigate]);
+	}, [beforeBack, navigate]);
 
 	return (
 		<Row as='button' gap={4} align='center' onClick={onClickBack}>

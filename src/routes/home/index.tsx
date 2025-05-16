@@ -5,7 +5,7 @@ import { Row } from '@/components/layout/row';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
-import { Card } from '@/components/ui/card';
+import { DiaryCard } from '@/components/ui/card/diary';
 import { Divider } from '@/components/ui/divider';
 import { Drawer } from '@/components/ui/drawer';
 import { SottoSymbol } from '@/components/ui/sotto-symbol';
@@ -47,12 +47,12 @@ export default function HomePage() {
 						<Container>
 							<Grid>
 								{diaryManager.getDiaries().map((diary) => (
-									<Card key={diary.uuid} diary={diary} />
+									<DiaryCard key={diary.uuid} diary={diary} />
 								))}
 							</Grid>
 						</Container>
 						<ButtonGroup direction='vertical' float>
-							<Link to='/new-diary'>
+							<Link to='/diary'>
 								<Button fill>New Diary</Button>
 							</Link>
 						</ButtonGroup>

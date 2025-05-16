@@ -29,7 +29,7 @@ export default function App() {
 				<Route path='/sign-in/biometric' element={<SignInBiometricPage />} />
 				<Route path='/sign-in/pin' element={<SignInPinPage />} />
 				<Route path='/home' element={<HomePage />} />
-				<Route path='/new-diary' element={<DiaryPage />} />
+				<Route path='/diary' element={<DiaryPage />} />
 			</Routes>
 		</BrowserRouter>
 	);

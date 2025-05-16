@@ -13,6 +13,7 @@ export interface Diary {
 }
 
 interface DiaryEditable {
+	uuid?: string;
 	emoji: string;
 	title: string;
 	content: string;
@@ -46,11 +47,25 @@ class DiaryManager {
 	}
 
 	getDiaries() {
-		return Array.from(this.data.values());
+		return Array.from(this.data.values()).sort((a, b) => {
+			return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+		});
+	}
+
+	getDiary(uuid: string) {
+		return this.data.get(uuid);
 	}
 
 	async getSharedDiaries() {
 		return [] as Array<Diary>;
+	}
+
+	createDiary(): DiaryEditable {
+		return {
+			emoji: '',
+			title: '',
+			content: '',
+		};
 	}
 
 	async addDiary(newDiary: DiaryEditable) {
