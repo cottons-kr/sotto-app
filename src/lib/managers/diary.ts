@@ -13,7 +13,6 @@ export interface Diary {
 }
 
 interface DiaryEditable {
-	uuid?: string;
 	emoji: string;
 	title: string;
 	content: string;
@@ -60,11 +59,16 @@ class DiaryManager {
 		return [] as Array<Diary>;
 	}
 
-	createDiary(): DiaryEditable {
+	createDiary(): Diary {
 		return {
+			uuid: v4(),
+			shareUUID: null,
+			sharedWith: [],
 			emoji: '',
 			title: '',
 			content: '',
+			createdAt: new Date(),
+			updatedAt: new Date(),
 		};
 	}
 

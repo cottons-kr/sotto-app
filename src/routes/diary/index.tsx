@@ -48,9 +48,9 @@ export default function DiaryPage() {
 							value={diary.title}
 							onChange={(e) => setTitle(e.target.value)}
 						/>
-						<Typo.Caption color={color.sand}>
-							Last Edited : 9:41 PM
-						</Typo.Caption>
+						<Typo.Caption
+							color={color.sand}
+						>{`Last Edited : ${new Date(diary.updatedAt).toLocaleString()}`}</Typo.Caption>
 					</Column>
 				</Container>
 				<Divider />

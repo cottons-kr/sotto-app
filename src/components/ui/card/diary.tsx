@@ -11,11 +11,21 @@ interface DiaryCardProps {
 
 export function DiaryCard(props: DiaryCardProps) {
 	const { diary } = props;
+	const now = new Date();
+	const createdAt = new Date(diary.createdAt);
+	const diff = Math.abs(now.getTime() - createdAt.getTime());
+	const diffDays = Math.floor(diff / (1000 * 3600 * 24));
 
 	return (
 		<Link to={`/diary?uuid=${diary.uuid}`}>
 			<Container className={card}>
-				<Typo.Caption className={date}>1 day ago</Typo.Caption>
+				<Typo.Caption className={date}>
+					{diffDays === 0
+						? 'Today'
+						: diffDays === 1
+							? 'Yesterday'
+							: `${diffDays} days ago`}
+				</Typo.Caption>
 				<Column className={content} justify='end'>
 					<Typo.Title>{diary.emoji}</Typo.Title>
 					<Typo.Body weight='strong'>{diary.title || 'Untitled'}</Typo.Body>
