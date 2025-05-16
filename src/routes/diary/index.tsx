@@ -1,6 +1,6 @@
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
-import { DiaryShareSection } from '@/components/sections/diary/share';
+import { DiaryShareSection } from '@/components/pages/diary/share';
 import { Divider } from '@/components/ui/divider';
 import { EmojiInput } from '@/components/ui/input/emoji';
 import { TopNavigator } from '@/components/ui/top-navigator';
@@ -8,6 +8,7 @@ import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { useDiary } from '@/hooks/use-diary';
 import { useDrawer } from '@/hooks/use-drawer';
+import { wait } from '@/lib/common';
 import { diaryManager } from '@/lib/managers/diary';
 import { color } from '@/styles/color.css';
 import { Share } from 'lucide-react';
@@ -25,6 +26,12 @@ export default function DiaryPage() {
 		if (!diary.emoji && !diary.title && !diary.content) {
 			return;
 		}
+
+		if (import.meta.env.DEV) {
+			// for toast
+			await wait(1000);
+		}
+
 		if (diaryManager.getDiary(diary.uuid)) {
 			await diaryManager.updateDiary(diary.uuid, diary);
 		} else {

@@ -1,8 +1,8 @@
-import { SignUpBiometricSection } from '@/components/sections/sign-up/biometric';
-import { SignUpConfirmPinSection } from '@/components/sections/sign-up/confirm-pin';
-import { SignUpFlowContext } from '@/components/sections/sign-up/context';
-import { SignUpInformationSection } from '@/components/sections/sign-up/information';
-import { SignUpSetPinSection } from '@/components/sections/sign-up/set-pin';
+import { SignUpBiometricSection } from '@/components/pages/sign-up/biometric';
+import { SignUpConfirmPinSection } from '@/components/pages/sign-up/confirm-pin';
+import { SignUpFlowContext } from '@/components/pages/sign-up/context';
+import { SignUpInformationSection } from '@/components/pages/sign-up/information';
+import { SignUpSetPinSection } from '@/components/pages/sign-up/set-pin';
 import { Flow } from '@/components/ui/flow';
 import { useState } from 'react';
 
