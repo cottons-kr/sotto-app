@@ -5,7 +5,6 @@ mod crypto;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_biometric::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
@@ -17,6 +16,9 @@ pub fn run() {
             crypto::decrypt_diary
         ])
         .setup(|app| {
+            #[cfg(any(target_os = "android", target_os = "ios"))]
+            app.handle().plugin(tauri_plugin_biometric::init());
+
             let salt_path = app
                 .path()
                 .app_local_data_dir()
