@@ -2,6 +2,7 @@ import { color } from '@/styles/color.css';
 import { style } from '@vanilla-extract/css';
 
 export const friendList = style({
+  height: 204,
 	display: 'grid',
 	gridAutoFlow: 'column',
 	gridTemplateRows: 'repeat(2, 1fr)',

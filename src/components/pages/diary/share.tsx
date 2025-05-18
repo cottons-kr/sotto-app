@@ -6,6 +6,7 @@ import { ButtonGroup } from '@/components/ui/button/group';
 import { Drawer } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { Typo } from '@/components/ui/typography';
+import { useDrawer } from '@/hooks/use-drawer';
 import { type Diary, diaryManager } from '@/lib/managers/diary';
 import { type User, friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
@@ -26,7 +27,7 @@ interface DiaryShareSectionProps {
 
 export function DiaryShareSection(props: DiaryShareSectionProps) {
 	const { diary, setDiary } = props;
-	const [visibleUsers, setVisibleUsers] = useState(friendManager.getFriends());
+	const { closeDrawer } = useDrawer('share-diary');
 	const [searchedUsers, setSearchedUsers] = useState<Array<User>>([]);
 	const [selectedUsers, setSelectedUsers] = useState<Array<User>>(
 		diary.sharedWith
@@ -45,10 +46,7 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 	}, 300);
 
 	const onClickShare = useCallback(async () => {
-		if (
-			visibleUsers.length === 0 ||
-			(!diary.emoji && !diary.title && !diary.content)
-		) {
+		if (!diary.emoji && !diary.title && !diary.content) {
 			return;
 		}
 
@@ -59,7 +57,8 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 		}
 		const result = await diaryManager.shareDiary(uuid, selectedUsers);
 		setDiary(result);
-	}, [diary, setDiary, visibleUsers, selectedUsers]);
+		closeDrawer();
+	}, [diary, setDiary, selectedUsers, closeDrawer]);
 
 	return (
 		<Drawer id='share-diary'>
@@ -70,21 +69,26 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 				<Input placeholder='Search username' onValue={onSearch} />
 			</Container>
 			<div className={friendList}>
-				{[...searchedUsers, ...visibleUsers].map((user) => (
-					<UserItem
-						key={user.uuid}
-						user={user}
-						selected={selectedUsers.map((u) => u.uuid).includes(user.uuid)}
-						onClick={() =>
-							setSelectedUsers((prev) => {
-								if (prev.map((u) => u.uuid).includes(user.uuid)) {
-									return prev.filter((u) => u.uuid !== user.uuid);
-								}
-								return [...prev, user];
-							})
-						}
-					/>
-				))}
+				{[...searchedUsers, ...selectedUsers, ...friendManager.getFriends()]
+					.filter(
+						(user, index, self) =>
+							index === self.findIndex((u) => u.uuid === user.uuid),
+					)
+					.map((user) => (
+						<UserItem
+							key={user.uuid}
+							user={user}
+							selected={selectedUsers.map((u) => u.uuid).includes(user.uuid)}
+							onClick={() =>
+								setSelectedUsers((prev) => {
+									if (prev.map((u) => u.uuid).includes(user.uuid)) {
+										return prev.filter((u) => u.uuid !== user.uuid);
+									}
+									return [...prev, user];
+								})
+							}
+						/>
+					))}
 			</div>
 			<ButtonGroup>
 				<Button fill onClick={onClickShare}>

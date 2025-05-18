@@ -119,34 +119,62 @@ class DiaryManager {
 		if (!diary) {
 			throw new Error('Diary not found');
 		}
-		if (targetUsers.length === 0) {
-			throw new Error('No users selected to share with');
+
+		if (diary.shareUUID) {
+			console.log('Diary is already shared');
+			if (targetUsers.length === 0) {
+				console.log('Unsharing diary');
+				await apiClient.delete(`/diaries/${diary.shareUUID}`);
+
+				diary.shareUUID = null;
+				diary.encryptedData = null;
+				diary.aesKey = null;
+				diary.nonce = null;
+				diary.sharedWith = [];
+			} else {
+				console.log('Updating shared users');
+				const removedUsers = diary.sharedWith.filter(
+					(uuid) => !targetUsers.some((user) => user.uuid === uuid),
+				);
+				await Promise.all(
+					removedUsers.map((uuid) =>
+						apiClient.delete(
+							`/diaries/shared/${diary.shareUUID}/users/${uuid}`,
+						),
+					),
+				);
+				diary.sharedWith = diary.sharedWith.filter(
+					(uuid) => !removedUsers.includes(uuid),
+				);
+			}
+		} else {
+			console.log('Sharing diary');
+			const [encryptedData, aesKey, nonce] = await encryptDiary(diary);
+
+			diary.encryptedData = encryptedData;
+			diary.aesKey = aesKey;
+			diary.nonce = nonce;
+			diary.sharedWith = targetUsers.map((user) => user.uuid);
+
+			const targets = await Promise.all(
+				targetUsers.map(async (user) => {
+					friendManager.addFriend(user);
+					return {
+						uuid: user.uuid,
+						encryptedKey: await encryptKeyForRecipient(user.publicKey, aesKey),
+					};
+				}),
+			);
+
+			const res = await apiClient.post<ShareDiaryResponse>('/diaries', {
+				data: encryptedData,
+				nonce,
+				targets,
+			});
+
+			diary.shareUUID = res.uuid;
 		}
 
-		const [encryptedData, aesKey, nonce] = await encryptDiary(diary);
-
-		diary.encryptedData = encryptedData;
-		diary.aesKey = aesKey;
-		diary.nonce = nonce;
-		diary.sharedWith = targetUsers.map((user) => user.uuid);
-
-		const targets = await Promise.all(
-			targetUsers.map(async (user) => {
-				friendManager.addFriend(user);
-				return {
-					uuid: user.uuid,
-					encryptedKey: await encryptKeyForRecipient(user.publicKey, aesKey),
-				};
-			}),
-		);
-
-		const res = await apiClient.post<ShareDiaryResponse>('/diaries', {
-			data: encryptedData,
-			nonce,
-			targets,
-		});
-
-		diary.shareUUID = res.uuid;
 		diary.updatedAt = new Date();
 
 		this.data.set(uuid, diary);
