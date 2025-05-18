@@ -9,7 +9,6 @@ import { Typo } from '@/components/ui/typography';
 import { type Diary, diaryManager } from '@/lib/managers/diary';
 import { type User, friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
-import { friendList } from '@/routes/diary/page.css';
 import { Check } from 'lucide-react';
 import {
 	type Dispatch,
@@ -18,7 +17,7 @@ import {
 	useState,
 } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import { avatar, check } from './styles/share.css';
+import { avatar, check, friendList, item } from './styles/share.css';
 
 interface DiaryShareSectionProps {
 	diary: Diary;
@@ -28,6 +27,7 @@ interface DiaryShareSectionProps {
 export function DiaryShareSection(props: DiaryShareSectionProps) {
 	const { diary, setDiary } = props;
 	const [visibleUsers, setVisibleUsers] = useState(friendManager.getFriends());
+	const [searchedUsers, setSearchedUsers] = useState<Array<User>>([]);
 	const [selectedUsers, setSelectedUsers] = useState<Array<User>>(
 		diary.sharedWith
 			.map((uuid) => friendManager.getFriend(uuid))
@@ -38,15 +38,14 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 		if (username) {
 			apiClient
 				.get<Array<User>>(`/users?username=${username}`)
-				.then((res) => setVisibleUsers((prev) => [...res, ...prev]));
+				.then(setSearchedUsers);
 		} else {
-			setVisibleUsers(selectedUsers);
+			setSearchedUsers([]);
 		}
 	}, 300);
 
 	const onClickShare = useCallback(async () => {
 		if (
-			selectedUsers.length === 0 ||
 			visibleUsers.length === 0 ||
 			(!diary.emoji && !diary.title && !diary.content)
 		) {
@@ -70,14 +69,8 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 			<Container vertical='small' horizontal='medium'>
 				<Input placeholder='Search username' onValue={onSearch} />
 			</Container>
-			<Column
-				className={friendList}
-				gap={12}
-				wrap='wrap'
-				align='start'
-				justify='start'
-			>
-				{visibleUsers.map((user) => (
+			<div className={friendList}>
+				{[...searchedUsers, ...visibleUsers].map((user) => (
 					<UserItem
 						key={user.uuid}
 						user={user}
@@ -92,10 +85,10 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 						}
 					/>
 				))}
-			</Column>
+			</div>
 			<ButtonGroup>
 				<Button fill onClick={onClickShare}>
-					Share
+					Apply
 				</Button>
 			</ButtonGroup>
 		</Drawer>
@@ -112,7 +105,7 @@ function UserItem(props: UserItemProps) {
 	const { user, selected, onClick } = props;
 
 	return (
-		<Column gap={8} align='center' onClick={onClick}>
+		<Column className={item} gap={8} align='center' onClick={onClick}>
 			<div className={avatar}>
 				<Avatar size={48} src={user.profileUrl} />
 				{selected && (

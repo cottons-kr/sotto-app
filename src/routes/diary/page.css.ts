@@ -24,9 +24,3 @@ export const textArea = style([
 		height: '100%',
 	},
 ]);
-
-export const friendList = style({
-	height: 184,
-	padding: '12px 16px',
-	overflowX: 'scroll',
-});

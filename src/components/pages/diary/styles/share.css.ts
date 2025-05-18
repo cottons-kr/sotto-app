@@ -1,6 +1,19 @@
 import { color } from '@/styles/color.css';
 import { style } from '@vanilla-extract/css';
 
+export const friendList = style({
+	display: 'grid',
+	gridAutoFlow: 'column',
+	gridTemplateRows: 'repeat(2, 1fr)',
+	gap: 24,
+	padding: '12px 16px',
+	overflowX: 'scroll',
+});
+
+export const item = style({
+	width: 100,
+});
+
 export const avatar = style({
 	position: 'relative',
 	width: 'fit-content',
