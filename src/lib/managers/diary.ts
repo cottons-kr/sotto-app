@@ -1,4 +1,8 @@
+import { encryptDiary } from '@/binding/function/encrypt-diary';
+import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
 import { v4 } from 'uuid';
+import { type User, friendManager } from './friend';
+import { apiClient } from './http';
 import { storageClient } from './storage';
 
 export interface Diary {
@@ -8,6 +12,9 @@ export interface Diary {
 	title: string;
 	content: string;
 	sharedWith: Array<string>;
+	encryptedData: string | null;
+	aesKey: string | null;
+	nonce: string | null;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -61,12 +68,15 @@ class DiaryManager {
 
 	createDiary(): Diary {
 		return {
-			uuid: v4(),
+			uuid: 'NOT_SAVED',
 			shareUUID: null,
 			sharedWith: [],
 			emoji: '',
 			title: '',
 			content: '',
+			encryptedData: null,
+			aesKey: null,
+			nonce: null,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
@@ -75,18 +85,18 @@ class DiaryManager {
 	async addDiary(newDiary: DiaryEditable) {
 		const uuid = v4();
 		const diary: Diary = {
+			...this.createDiary(),
 			...newDiary,
 			uuid,
-			shareUUID: null,
-			sharedWith: [],
-			createdAt: new Date(),
-			updatedAt: new Date(),
 		};
 		this.data.set(uuid, diary);
 		await this.saveData();
-		return this.data.get(uuid);
+		return diary;
 	}
 
+	/**
+	 * TODO: 만약 기존에 공유된 일기라면 nonce 재발급해서 다시 암호화 후 서버에 업데이트
+	 */
 	async updateDiary(uuid: string, updatedData: DiaryEditable) {
 		this.checkInitialized();
 		const diary = this.data.get(uuid);
@@ -103,7 +113,51 @@ class DiaryManager {
 		return updatedDiary;
 	}
 
-	async shareDiary() {}
+	async shareDiary(uuid: string, targetUsers: Array<User>) {
+		this.checkInitialized();
+		const diary = this.data.get(uuid);
+		if (!diary) {
+			throw new Error('Diary not found');
+		}
+		if (targetUsers.length === 0) {
+			throw new Error('No users selected to share with');
+		}
+
+		const [encryptedData, aesKey, nonce] = await encryptDiary(diary);
+
+		diary.encryptedData = encryptedData;
+		diary.aesKey = aesKey;
+		diary.nonce = nonce;
+		diary.sharedWith = targetUsers.map((user) => user.uuid);
+
+		const targets = await Promise.all(
+			targetUsers.map(async (user) => {
+				friendManager.addFriend(user);
+				return {
+					uuid: user.uuid,
+					encryptedKey: await encryptKeyForRecipient(user.publicKey, aesKey),
+				};
+			}),
+		);
+
+		const res = await apiClient.post<ShareDiaryResponse>('/diaries', {
+			data: encryptedData,
+			nonce,
+			targets,
+		});
+
+		diary.shareUUID = res.uuid;
+		diary.updatedAt = new Date();
+
+		this.data.set(uuid, diary);
+		await this.saveData();
+
+		return diary;
+	}
+
+	isSharedDiary(diary: Diary) {
+		return diary.shareUUID !== null;
+	}
 }
 
 export const diaryManager = new DiaryManager();

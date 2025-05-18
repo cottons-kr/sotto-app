@@ -1,4 +1,4 @@
-use rsa::{pkcs1::{EncodeRsaPrivateKey, EncodeRsaPublicKey}, pkcs1v15::DecryptingKey, pkcs8::{DecodePrivateKey, DecodePublicKey}, rand_core::RngCore, traits::Decryptor, RsaPrivateKey, RsaPublicKey};
+use rsa::{pkcs1::{DecodeRsaPrivateKey, DecodeRsaPublicKey, EncodeRsaPrivateKey, EncodeRsaPublicKey}, pkcs1v15::DecryptingKey, rand_core::RngCore, traits::Decryptor, RsaPrivateKey, RsaPublicKey};
 use aes_gcm::{aead::{Aead, KeyInit, OsRng}, Aes256Gcm, Key, Nonce};
 use serde::{Serialize, Deserialize};
 use base64::prelude::*;
@@ -29,14 +29,22 @@ pub fn generate_key_pair() -> Result<(String, String), String> {
 }
 
 #[tauri::command]
-pub fn encrypt_diary(public_key_pem: String, diary: DiaryData) -> Result<(String, String, String), String> {
+pub fn encrypt_diary(diary: DiaryData, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
     let json = serde_json::to_string(&diary).map_err(|e| e.to_string())?;
-    let public_key = RsaPublicKey::from_public_key_pem(&public_key_pem)
-        .map_err(|e| format!("Invalid public key: {:?}", e))?;
 
-    let mut aes_key: [u8; 32] = [0u8; 32];
-    let mut rng = OsRng;
-    rng.fill_bytes(&mut aes_key);
+    let aes_key: [u8; 32] = if let Some(b64) = prev_aes_key {
+        BASE64_STANDARD
+            .decode(b64)
+            .map_err(|e| format!("Failed to decode provided AES key: {:?}", e))?
+            .try_into()
+            .map_err(|_| "Invalid AES key length".to_string())?
+    } else {
+        let mut key = [0u8; 32];
+        let mut rng = OsRng;
+        rng.fill_bytes(&mut key);
+        key
+    };
+
     let nonce_bytes: [u8; 12] = rand::random();
     let nonce = Nonce::from_slice(&nonce_bytes);
 
@@ -45,15 +53,31 @@ pub fn encrypt_diary(public_key_pem: String, diary: DiaryData) -> Result<(String
         .encrypt(nonce, json.as_bytes())
         .map_err(|e| format!("AES encryption failed: {:?}", e))?;
 
+    Ok((
+        BASE64_STANDARD.encode(&encrypted_data),
+        BASE64_STANDARD.encode(&aes_key),
+        BASE64_STANDARD.encode(&nonce_bytes),
+    ))
+}
+
+#[tauri::command]
+pub fn encrypt_key_for_recipient(
+    public_key_pem: String,
+    aes_key: String,
+) -> Result<String, String> {
+    let public_key = RsaPublicKey::from_pkcs1_pem(&public_key_pem)
+        .map_err(|e| format!("Invalid public key: {:?}", e))?;
+
+    let aes_key = BASE64_STANDARD
+        .decode(&aes_key)
+        .map_err(|e| format!("Failed to decode AES key: {:?}", e))?;
+
+    let mut rng = OsRng;
     let encrypted_key = public_key
         .encrypt(&mut rng, rsa::pkcs1v15::Pkcs1v15Encrypt, &aes_key)
         .map_err(|e| format!("RSA encryption failed: {:?}", e))?;
 
-    Ok((
-        BASE64_STANDARD.encode(&encrypted_data),
-        BASE64_STANDARD.encode(&encrypted_key),
-        BASE64_STANDARD.encode(&nonce_bytes),
-    ))
+    Ok(BASE64_STANDARD.encode(&encrypted_key))
 }
 
 #[tauri::command]
@@ -63,7 +87,7 @@ pub fn decrypt_diary(
     encrypted_key_b64: String,
     nonce_b64: String,
 ) -> Result<DiaryData, String> {
-    let private_key = RsaPrivateKey::from_pkcs8_pem(&private_key_pem)
+    let private_key = RsaPrivateKey::from_pkcs1_pem(&private_key_pem)
         .map_err(|e| format!("Invalid private key: {:?}", e))?;
 
     let encrypted_data = BASE64_STANDARD.decode(encrypted_data_b64)

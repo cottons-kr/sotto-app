@@ -14,6 +14,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             crypto::generate_key_pair,
             crypto::encrypt_diary,
+            crypto::encrypt_key_for_recipient,
             crypto::decrypt_diary
         ])
         .setup(|app| {

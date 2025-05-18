@@ -6,17 +6,33 @@ import { ButtonGroup } from '@/components/ui/button/group';
 import { Drawer } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { Typo } from '@/components/ui/typography';
-import { type User, userManager } from '@/lib/managers/friend';
+import { type Diary, diaryManager } from '@/lib/managers/diary';
+import { type User, friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { friendList } from '@/routes/diary/page.css';
 import { Check } from 'lucide-react';
-import { useState } from 'react';
+import {
+	type Dispatch,
+	type SetStateAction,
+	useCallback,
+	useState,
+} from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { avatar, check } from './styles/share.css';
 
-export function DiaryShareSection() {
-	const [visibleUsers, setVisibleUsers] = useState(userManager.getFriends());
-	const [selectedUsers, setSelectedUsers] = useState<Array<string>>([]);
+interface DiaryShareSectionProps {
+	diary: Diary;
+	setDiary: Dispatch<SetStateAction<Diary>>;
+}
+
+export function DiaryShareSection(props: DiaryShareSectionProps) {
+	const { diary, setDiary } = props;
+	const [visibleUsers, setVisibleUsers] = useState(friendManager.getFriends());
+	const [selectedUsers, setSelectedUsers] = useState<Array<User>>(
+		diary.sharedWith
+			.map((uuid) => friendManager.getFriend(uuid))
+			.filter(Boolean) as Array<User>,
+	);
 
 	const onSearch = useDebouncedCallback(async (username: string) => {
 		if (username) {
@@ -24,13 +40,27 @@ export function DiaryShareSection() {
 				.get<Array<User>>(`/users?username=${username}`)
 				.then((res) => setVisibleUsers((prev) => [...res, ...prev]));
 		} else {
-			setVisibleUsers((prev) =>
-				prev.filter((user) => selectedUsers.includes(user.uuid)),
-			);
+			setVisibleUsers(selectedUsers);
 		}
 	}, 300);
 
-	const onClickShare = async () => {};
+	const onClickShare = useCallback(async () => {
+		if (
+			selectedUsers.length === 0 ||
+			visibleUsers.length === 0 ||
+			(!diary.emoji && !diary.title && !diary.content)
+		) {
+			return;
+		}
+
+		let uuid = diary.uuid;
+		if (uuid === 'NOT_SAVED') {
+			const savedDiary = await diaryManager.addDiary(diary);
+			uuid = savedDiary.uuid;
+		}
+		const result = await diaryManager.shareDiary(uuid, selectedUsers);
+		setDiary(result);
+	}, [diary, setDiary, visibleUsers, selectedUsers]);
 
 	return (
 		<Drawer id='share-diary'>
@@ -51,13 +81,13 @@ export function DiaryShareSection() {
 					<UserItem
 						key={user.uuid}
 						user={user}
-						selected={selectedUsers.includes(user.uuid)}
+						selected={selectedUsers.map((u) => u.uuid).includes(user.uuid)}
 						onClick={() =>
 							setSelectedUsers((prev) => {
-								if (prev.includes(user.uuid)) {
-									return prev.filter((uuid) => uuid !== user.uuid);
+								if (prev.map((u) => u.uuid).includes(user.uuid)) {
+									return prev.filter((u) => u.uuid !== user.uuid);
 								}
-								return [...prev, user.uuid];
+								return [...prev, user];
 							})
 						}
 					/>

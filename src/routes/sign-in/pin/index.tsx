@@ -5,6 +5,7 @@ import { ButtonGroup } from '@/components/ui/button/group';
 import { PINInput } from '@/components/ui/input/pin';
 import { Typo } from '@/components/ui/typography';
 import { processSignIn } from '@/lib/app';
+import { log } from '@/lib/log';
 import { message } from '@tauri-apps/plugin-dialog';
 import { Link, useNavigate } from 'react-router-dom';
 import { getItem } from 'tauri-plugin-keychain';
@@ -28,7 +29,7 @@ export default function SignInPinPage() {
 
 			navigate('/home');
 		} catch (error) {
-			console.error('PIN authentication failed', error);
+			log('error', 'PIN authentication failed', error);
 			await message('PIN authentication failed', { kind: 'error' });
 		}
 	};

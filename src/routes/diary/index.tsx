@@ -21,7 +21,7 @@ export default function DiaryPage() {
 	const { toggleDrawer } = useDrawer('share-diary');
 	const [searchParams] = useSearchParams();
 	const diaryUUID = useMemo(() => searchParams.get('uuid'), [searchParams]);
-	const [diary, { setEmoji, setTitle, setContent }] = useDiary(diaryUUID);
+	const [diary, { setEmoji, setTitle, setContent, setDiary }] = useDiary(diaryUUID);
 	const [isSaving, setIsSaving] = useState(false);
 
 	const saveDiary = useCallback(async () => {
@@ -86,7 +86,7 @@ export default function DiaryPage() {
 					/>
 				</Container>
 			</Column>
-			<DiaryShareSection />
+			<DiaryShareSection diary={diary} setDiary={setDiary} />
 			<DiarySavingToast visible={isSaving} />
 		</>
 	);

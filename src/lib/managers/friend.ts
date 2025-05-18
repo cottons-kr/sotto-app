@@ -19,6 +19,15 @@ class FriendManager {
 		}
 	}
 
+	private save() {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(
+				'saved-friends',
+				JSON.stringify(Object.fromEntries(this.friends)),
+			);
+		}
+	}
+
 	isCached(uuid: string) {
 		return this.friends.has(uuid);
 	}
@@ -34,6 +43,14 @@ class FriendManager {
 	getFriend(uuid: string) {
 		return this.friends.get(uuid);
 	}
+
+	addFriend(user: User) {
+		if (this.friends.has(user.uuid)) {
+			return;
+		}
+		this.friends.set(user.uuid, user);
+		this.save();
+	}
 }
 
-export const userManager = new FriendManager();
+export const friendManager = new FriendManager();

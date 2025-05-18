@@ -26,7 +26,7 @@ export function useDiary(uuid: string | null) {
 		}));
 	}, []);
 
-	return [diary, { setEmoji, setTitle, setContent }] as const;
+	return [diary, { setEmoji, setTitle, setContent, setDiary }] as const;
 }
 
 function getDiaryOrCreate(uuid?: string | null) {
