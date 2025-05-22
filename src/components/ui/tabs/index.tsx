@@ -1,5 +1,5 @@
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { useState } from 'react';
+import { useQueryState } from 'nuqs';
 import { TabsContext } from './context';
 
 interface TabsProps extends BaseProps<HAS_CHILDREN> {
@@ -8,7 +8,7 @@ interface TabsProps extends BaseProps<HAS_CHILDREN> {
 
 export function Tabs(props: TabsProps) {
 	const { defaultValue, children } = props;
-	const [currentValue, setCurrentValue] = useState(defaultValue);
+	const [currentValue, setCurrentValue] = useQueryState('tab');
 
 	return (
 		<TabsContext
