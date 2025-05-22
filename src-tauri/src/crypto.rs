@@ -5,6 +5,7 @@ use base64::prelude::*;
 
 #[derive(Serialize, Deserialize)]
 pub struct DiaryData {
+    pub emoji: String,
     pub title: String,
     pub content: String,
 }

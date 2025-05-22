@@ -8,13 +8,16 @@ import { storageClient } from './storage';
 export interface Diary {
 	uuid: string;
 	shareUUID: string | null;
+	sharedBy: string | null;
 	emoji: string;
 	title: string;
 	content: string;
 	sharedWith: Array<string>;
 	encryptedData: string | null;
 	aesKey: string | null;
+	encryptedKey: string | null;
 	nonce: string | null;
+	readonly: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -44,6 +47,18 @@ class DiaryManager {
 		}
 	}
 
+	isDiaryExists(uuid: string) {
+		this.checkInitialized();
+		return this.data.has(uuid);
+	}
+
+	isSharedDiaryExists(shareUUID: string) {
+		this.checkInitialized();
+		return Array.from(this.data.values()).some(
+			(diary) => diary.shareUUID === shareUUID,
+		);
+	}
+
 	private async saveData() {
 		this.checkInitialized();
 		await storageClient.set(
@@ -53,36 +68,49 @@ class DiaryManager {
 	}
 
 	getDiaries() {
-		return Array.from(this.data.values()).sort((a, b) => {
-			return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-		});
+		return Array.from(this.data.values())
+			.filter((diary) => !diary.readonly)
+			.sort((a, b) => {
+				return (
+					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+				);
+			});
+	}
+
+	getFriendDiaries(friendUUID: string) {
+		return Array.from(this.data.values())
+			.filter((diary) => diary.sharedBy === friendUUID)
+			.sort((a, b) => {
+				return (
+					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+				);
+			});
 	}
 
 	getDiary(uuid: string) {
 		return this.data.get(uuid);
 	}
 
-	async getSharedDiaries() {
-		return [] as Array<Diary>;
-	}
-
 	createDiary(): Diary {
 		return {
 			uuid: 'NOT_SAVED',
 			shareUUID: null,
+			sharedBy: null,
 			sharedWith: [],
 			emoji: '',
 			title: '',
 			content: '',
 			encryptedData: null,
 			aesKey: null,
+			encryptedKey: null,
 			nonce: null,
+			readonly: false,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
 	}
 
-	async addDiary(newDiary: DiaryEditable) {
+	async addDiary(newDiary: DiaryEditable | Diary) {
 		const uuid = v4();
 		const diary: Diary = {
 			...this.createDiary(),
@@ -121,9 +149,7 @@ class DiaryManager {
 		}
 
 		if (diary.shareUUID) {
-			console.log('Diary is already shared');
 			if (targetUsers.length === 0) {
-				console.log('Unsharing diary');
 				await apiClient.delete(`/diaries/${diary.shareUUID}`);
 
 				diary.shareUUID = null;
@@ -132,7 +158,6 @@ class DiaryManager {
 				diary.nonce = null;
 				diary.sharedWith = [];
 			} else {
-				console.log('Updating shared users');
 				const removedUsers = diary.sharedWith.filter(
 					(uuid) => !targetUsers.some((user) => user.uuid === uuid),
 				);
@@ -148,7 +173,6 @@ class DiaryManager {
 				);
 			}
 		} else {
-			console.log('Sharing diary');
 			const [encryptedData, aesKey, nonce] = await encryptDiary(diary);
 
 			diary.encryptedData = encryptedData;

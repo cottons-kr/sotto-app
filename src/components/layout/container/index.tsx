@@ -5,6 +5,7 @@ interface ContainerProps extends BaseProps<HAS_CHILDREN> {
 	as?: keyof JSX.IntrinsicElements;
 	vertical?: Padding;
 	horizontal?: Padding;
+	onClick?: () => unknown;
 }
 
 type Padding = 'none' | 'small' | 'regular' | 'medium' | 'large';

@@ -21,11 +21,16 @@ export default function DiaryPage() {
 	const { toggleDrawer } = useDrawer('share-diary');
 	const [searchParams] = useSearchParams();
 	const diaryUUID = useMemo(() => searchParams.get('uuid'), [searchParams]);
-	const [diary, { setEmoji, setTitle, setContent, setDiary }] = useDiary(diaryUUID);
+	const isReadOnly = useMemo(
+		() => searchParams.get('readonly') === 'true',
+		[searchParams],
+	);
+	const [diary, { setEmoji, setTitle, setContent, setDiary }] =
+		useDiary(diaryUUID);
 	const [isSaving, setIsSaving] = useState(false);
 
 	const saveDiary = useCallback(async () => {
-		if (!diary.emoji && !diary.title && !diary.content) {
+		if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {
 			return;
 		}
 
@@ -50,21 +55,25 @@ export default function DiaryPage() {
 			<Column className={page} justify='start'>
 				<TopNavigator
 					leadingArea={<GoBack beforeBack={saveDiary} />}
-					trailingArea={<Share onClick={isSaving ? undefined : toggleDrawer} />}
+					trailingArea={
+						isReadOnly ? undefined : (
+							<Share onClick={isSaving ? undefined : toggleDrawer} />
+						)
+					}
 				/>
 				<Container vertical='large' horizontal='large'>
 					<Column gap={12}>
 						<EmojiInput
 							defaultValue={diary.emoji}
 							onValue={setEmoji}
-							disabled={isSaving}
+							disabled={isSaving || isReadOnly}
 						/>
 						<input
 							className={titleInput}
 							placeholder='New Diary'
 							value={diary.title}
 							onChange={(e) => setTitle(e.target.value)}
-							disabled={isSaving}
+							disabled={isSaving || isReadOnly}
 						/>
 						<Typo.Caption
 							color={color.sand}
@@ -82,7 +91,7 @@ export default function DiaryPage() {
 						placeholder='Write your diary'
 						value={diary.content}
 						onChange={(e) => setContent(e.target.value)}
-						disabled={isSaving}
+						disabled={isSaving || isReadOnly}
 					/>
 				</Container>
 			</Column>

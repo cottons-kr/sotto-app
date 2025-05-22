@@ -10,7 +10,16 @@ export const page = style({
 	height: '100%',
 });
 
-export const titleInput = style([typography, title, weightStyles.strong]);
+export const titleInput = style([
+	typography,
+	title,
+	weightStyles.strong,
+	{
+		':disabled': {
+			opacity: 1,
+		},
+	},
+]);
 
 export const textAreaContainer = style({
 	height: '100%',
@@ -22,5 +31,8 @@ export const textArea = style([
 	weightStyles.medium,
 	{
 		height: '100%',
+		':disabled': {
+			opacity: 1,
+		},
 	},
 ]);

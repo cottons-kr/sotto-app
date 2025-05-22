@@ -1,3 +1,4 @@
+import { decryptDiary } from '@/binding/function/decrypt-diary';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Grid } from '@/components/layout/grid';
@@ -5,25 +6,73 @@ import { Row } from '@/components/layout/row';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
+import { DiaryCard } from '@/components/ui/card/diary';
 import { Divider } from '@/components/ui/divider';
 import { Drawer } from '@/components/ui/drawer';
 import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
+import { diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
+import { storageClient } from '@/lib/managers/storage';
 import { banWarning } from '@/routes/home/page.css';
 import { Ban } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export function HomeFriendsDiariesSection() {
-	return (
-		<>
-			<FriendDiaries />
-			<FriendDiaries />
-			<FriendDiaries />
-			<FriendDiaries />
-		</>
+	const [friendList, setFriendList] = useState<Array<string>>(
+		friendManager.getFriends().map((friend) => friend.uuid),
 	);
+
+	useEffect(() => {
+		apiClient
+			.get<SharedDiariesResponse>('/diaries/shared')
+			.then(async (data) => {
+				const privateKey = await storageClient.get('privateKey');
+				if (!privateKey) {
+					throw new Error('Private key not found');
+				}
+				for (const sharedDiary of data) {
+					const { emoji, title, content } = await decryptDiary(
+						privateKey,
+						sharedDiary.diary.data,
+						sharedDiary.encryptedKey,
+						sharedDiary.diary.nonce,
+					);
+					if (!diaryManager.isSharedDiaryExists(sharedDiary.diary.uuid)) {
+						friendManager.addFriend(sharedDiary.diary.owner);
+						await diaryManager.addDiary({
+							emoji,
+							title,
+							content,
+							shareUUID: sharedDiary.diary.uuid,
+							sharedBy: sharedDiary.diary.owner.uuid,
+							encryptedKey: sharedDiary.encryptedKey,
+							readonly: true,
+						});
+					}
+				}
+				setFriendList(data.map((diary) => diary.diary.owner.uuid));
+			});
+	}, []);
+
+	return friendList.map((userUUID) => (
+		<FriendDiaries key={userUUID} userUUID={userUUID} />
+	));
 }
 
-function FriendDiaries() {
+interface FriendDiariesProps {
+	userUUID: string;
+}
+
+function FriendDiaries(props: FriendDiariesProps) {
+	const { userUUID } = props;
+	const user = friendManager.getFriend(userUUID);
+	console.log('friends', friendManager.getFriends());
+	if (!user) {
+		return null;
+	}
+
 	const { toggleDrawer } = useDrawer('ban-user');
 
 	return (
@@ -31,14 +80,18 @@ function FriendDiaries() {
 			<Container vertical='small'>
 				<Row align='center' justify='space-between'>
 					<Row align='center' gap={8}>
-						<Avatar />
-						<Typo.Body weight='strong'>Yuchan Han</Typo.Body>
+						<Avatar src={user.profileUrl} />
+						<Typo.Body weight='strong'>{user.name}</Typo.Body>
 					</Row>
 					<Ban size={20} onClick={toggleDrawer} />
 				</Row>
 			</Container>
 			<Container vertical='small'>
-				<Grid />
+				<Grid>
+					{diaryManager.getFriendDiaries(userUUID).map((d) => (
+						<DiaryCard key={d.uuid} diary={d} />
+					))}
+				</Grid>
 			</Container>
 			<Container horizontal='none'>
 				<Divider />
@@ -46,9 +99,9 @@ function FriendDiaries() {
 			<Drawer id='ban-user'>
 				<Container horizontal='large'>
 					<Column gap={8}>
-						<Typo.Lead weight='strong'>Block “Yuchan Han”?</Typo.Lead>
+						<Typo.Lead weight='strong'>Block “{user.name}”?</Typo.Lead>
 						<Typo.Body className={banWarning}>
-							You will never receive friends diary from “Yuchan Han”
+							You will never receive friends diary from “{user.name}”
 						</Typo.Body>
 					</Column>
 				</Container>
