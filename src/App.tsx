@@ -8,9 +8,9 @@ import DiaryPage from './routes/diary';
 import HomePage from './routes/home';
 import IndexPage from './routes/index';
 import SignInBiometricPage from './routes/sign-in/biometric';
+import SignInForgotPinPage from './routes/sign-in/forgot-pin';
 import SignInPinPage from './routes/sign-in/pin';
 import SignUpPage from './routes/sign-up';
-import SignInForgotPinPage from './routes/sign-in/forgot-pin';
 
 export default function App() {
 	useEffect(() => {

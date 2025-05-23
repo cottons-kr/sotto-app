@@ -10,6 +10,13 @@ export const drawer = uiStyle({
 	backgroundColor: color.milk,
 	paddingBottom: 'env(safe-area-inset-bottom)',
 	borderRadius: '32px 32px 0px 0px',
+	'::after': {
+		content: '""',
+		position: 'absolute',
+		width: '100%',
+		height: 1000,
+		backgroundColor: color.milk,
+	},
 });
 
 export const handle = uiStyle({

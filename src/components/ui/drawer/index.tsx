@@ -46,6 +46,14 @@ export function Drawer(props: DrawerProps) {
 						initial='hidden'
 						animate='visible'
 						exit='hidden'
+						drag='y'
+						dragConstraints={{ top: 0, bottom: 0 }}
+						dragDirectionLock
+						onDragEnd={(_, { offset }) => {
+							if (offset.y > 100) {
+								closeDrawer();
+							}
+						}}
 					>
 						<Container vertical='regular'>
 							<Row justify='center'>
