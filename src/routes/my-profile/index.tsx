@@ -12,8 +12,10 @@ import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
+import { color } from '@/styles/color.css';
+import { Pencil } from 'lucide-react';
 import { useCallback } from 'react';
-import { imageContainer, stat } from './page.css';
+import { avatar, avatarContainer, edit, stat } from './page.css';
 
 export default function MyProfilePage() {
 	const { toggleDrawer: toggleChangeName } = useDrawer('change-name');
@@ -27,8 +29,14 @@ export default function MyProfilePage() {
 		<>
 			<Column>
 				<TopNavigator trailingArea={<GoBack />} />
-				<Container className={imageContainer}>
-					<Avatar size={72} src={localStorage.getItem('profileImage')} />
+				<Container className={avatarContainer}>
+					<label className={avatar}>
+						<Avatar size={72} src={localStorage.getItem('profileImage')} />
+						<div className={edit}>
+							<Pencil size={12} color={color.milk} />
+						</div>
+						<input type='file' accept='image/*' hidden />
+					</label>
 				</Container>
 				<Column align='center' gap={8}>
 					<Typo.Title weight='strong'>
