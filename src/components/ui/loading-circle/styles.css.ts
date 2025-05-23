@@ -10,9 +10,7 @@ const loading = keyframes({
 	},
 });
 
-export const wrapper = uiStyle({
-	
-})
+export const wrapper = uiStyle({});
 
 export const loaderCircle = uiStyle({
 	aspectRatio: '1 / 1',
