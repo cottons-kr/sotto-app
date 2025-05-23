@@ -28,7 +28,7 @@ class FriendManager {
 		}
 	}
 
-	isCached(uuid: string) {
+	isFriend(uuid: string) {
 		return this.friends.has(uuid);
 	}
 
@@ -49,6 +49,14 @@ class FriendManager {
 			return;
 		}
 		this.friends.set(user.uuid, user);
+		this.save();
+	}
+
+	updateFriend(uuid: string, user: User) {
+		if (!this.friends.has(uuid)) {
+			return;
+		}
+		this.friends.set(uuid, user);
 		this.save();
 	}
 

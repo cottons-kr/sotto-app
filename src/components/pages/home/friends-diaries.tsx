@@ -43,6 +43,14 @@ export function HomeFriendsDiariesSection() {
 						sharedDiary.encryptedKey,
 						sharedDiary.diary.nonce,
 					);
+
+					if (friendManager.isFriend(sharedDiary.diary.owner.uuid)) {
+						friendManager.updateFriend(
+							sharedDiary.diary.owner.uuid,
+							sharedDiary.diary.owner,
+						);
+					}
+
 					if (!diaryManager.isSharedDiaryExists(sharedDiary.diary.uuid)) {
 						friendManager.addFriend(sharedDiary.diary.owner);
 						await diaryManager.addDiary({
