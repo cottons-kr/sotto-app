@@ -15,6 +15,11 @@ export const button = uiStyle({
 		transform: 'scale(0.98)',
 		filter: 'brightness(0.9)',
 	},
+	':disabled': {
+		cursor: 'not-allowed',
+		filter: 'brightness(0.85)',
+		opacity: 0.6,
+	},
 });
 
 export const variantStyles = {
