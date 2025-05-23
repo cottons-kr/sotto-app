@@ -1,6 +1,5 @@
 import { fetch } from '@tauri-apps/plugin-http';
 import { log } from '../log';
-import { storageClient } from './storage';
 
 interface APIResponse<T> {
 	status: number;
@@ -28,10 +27,7 @@ class APIClient {
 	): Promise<T> {
 		const url = new URL(path, this.baseUrl).toString();
 
-		let accessToken: string | null = null;
-		if (storageClient.isInitialized) {
-			accessToken = await storageClient.get('accessToken');
-		}
+		const accessToken = localStorage.getItem('accessToken') || null;
 
 		try {
 			const response = await fetch(url, {

@@ -38,7 +38,6 @@ export function SignUpBiometricSection() {
 				},
 			);
 
-			storageClient.set('accessToken', accessToken);
 			storageClient.set('username', username);
 			storageClient.set('publicKey', publicKeyPem);
 			storageClient.set('privateKey', privateKeyPem);
@@ -47,6 +46,7 @@ export function SignUpBiometricSection() {
 			}
 
 			localStorage.setItem('app-initialized', 'true');
+			localStorage.setItem('accessToken', accessToken);
 			localStorage.setItem('useBiometricLogin', useBiometricLogin.toString());
 
 			await message(`Sign up successful! Welcome ${user.name}`);

@@ -2,10 +2,12 @@ import { Column } from '@/components/layout/column';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Content } from '@/components/ui/content';
+import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
-import { confirm } from '@tauri-apps/plugin-dialog';
+import { confirm, message } from '@tauri-apps/plugin-dialog';
 import { ShieldQuestion } from 'lucide-react';
 import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
@@ -22,10 +24,19 @@ export default function SignInForgotPinPage() {
 				},
 			)
 		) {
-			friendManager.clear();
-			await diaryManager.clear();
-			await storageClient.clear();
-			location.reload();
+			try {
+				await apiClient.delete('/users/me');
+				friendManager.clear();
+				await diaryManager.clear();
+				await storageClient.clear();
+
+				location.reload();
+			} catch (error) {
+				await message(
+					'Failed to delete all diaries and log out. Please try again.',
+				);
+				log('error', 'Failed to delete all diaries and log out', error);
+			}
 		}
 	}, []);
 
