@@ -5,10 +5,11 @@ import { avatar } from './styles.css';
 interface AvatarProps extends BaseProps {
 	size?: number;
 	src?: string | null;
+	onClick?: () => unknown;
 }
 
 export function Avatar(props: AvatarProps) {
-	const { size = 32, src, className } = props;
+	const { size = 32, src, onClick, className } = props;
 
 	return (
 		<img
@@ -19,6 +20,7 @@ export function Avatar(props: AvatarProps) {
 				width: size,
 				height: size,
 			}}
+			onClick={onClick}
 		/>
 	);
 }

@@ -38,15 +38,16 @@ export function SignUpBiometricSection() {
 				},
 			);
 
-			storageClient.set('username', username);
 			storageClient.set('publicKey', publicKeyPem);
 			storageClient.set('privateKey', privateKeyPem);
 			if (profileImage) {
-				storageClient.set('profileImage', profileImage);
+				localStorage.setItem('profileImage', profileImage);
 			}
 
 			localStorage.setItem('app-initialized', 'true');
 			localStorage.setItem('accessToken', accessToken);
+			localStorage.setItem('username', username);
+			localStorage.setItem('name', name);
 			localStorage.setItem('useBiometricLogin', useBiometricLogin.toString());
 
 			await message(`Sign up successful! Welcome ${user.name}`);

@@ -10,9 +10,17 @@ import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { Typo } from '@/components/ui/typography';
 import { fullHeight } from '@/styles/utils.css';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { left, right } from './page.css';
 
 export default function HomePage() {
+	const navigator = useNavigate();
+
+	const onClickAvatar = useCallback(() => {
+		navigator('/my-profile');
+	}, [navigator]);
+
 	return (
 		<>
 			<Column className={fullHeight} justify='start'>
@@ -27,6 +35,7 @@ export default function HomePage() {
 						<Avatar
 							className={right}
 							src={localStorage.getItem('profileImage')}
+							onClick={onClickAvatar}
 						/>
 					}
 				/>

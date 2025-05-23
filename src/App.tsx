@@ -7,6 +7,7 @@ import { storageClient } from './lib/managers/storage';
 import DiaryPage from './routes/diary';
 import HomePage from './routes/home';
 import IndexPage from './routes/index';
+import MyProfilePage from './routes/my-profile';
 import SignInBiometricPage from './routes/sign-in/biometric';
 import SignInForgotPinPage from './routes/sign-in/forgot-pin';
 import SignInPinPage from './routes/sign-in/pin';
@@ -32,6 +33,7 @@ export default function App() {
 				<Route path='/sign-in/forgot-pin' element={<SignInForgotPinPage />} />
 				<Route path='/home' element={<HomePage />} />
 				<Route path='/diary' element={<DiaryPage />} />
+				<Route path='/my-profile' element={<MyProfilePage />} />
 			</Routes>
 		</BrowserRouter>
 	);
