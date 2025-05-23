@@ -33,3 +33,16 @@ export const check = style({
 	borderRadius: '50%',
 	color: color.milk,
 });
+
+export const empty = style({
+	height: 204,
+});
+
+export const emptyIcon = style({
+	width: 'fit-content',
+	aspectRatio: '1 / 1',
+	backgroundColor: color.cream,
+	borderRadius: '50%',
+	display: 'grid',
+	placeItems: 'center',
+});

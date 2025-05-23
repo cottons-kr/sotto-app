@@ -11,15 +11,23 @@ import { type Diary, diaryManager } from '@/lib/managers/diary';
 import { type User, friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { message } from '@tauri-apps/plugin-dialog';
-import { Check } from 'lucide-react';
+import { Check, Search, UserRoundX } from 'lucide-react';
 import {
 	type Dispatch,
 	type SetStateAction,
 	useCallback,
+	useMemo,
 	useState,
 } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import { avatar, check, friendList, item } from './styles/share.css';
+import {
+	avatar,
+	check,
+	empty,
+	emptyIcon,
+	friendList,
+	item,
+} from './styles/share.css';
 
 interface DiaryShareSectionProps {
 	diary: Diary;
@@ -29,19 +37,26 @@ interface DiaryShareSectionProps {
 export function DiaryShareSection(props: DiaryShareSectionProps) {
 	const { diary, setDiary } = props;
 	const { closeDrawer } = useDrawer('share-diary');
+	const [isSearching, setIsSearching] = useState(false);
 	const [searchedUsers, setSearchedUsers] = useState<Array<User>>([]);
 	const [selectedUsers, setSelectedUsers] = useState<Array<User>>(
 		diary.sharedWith
 			.map((uuid) => friendManager.getFriend(uuid))
 			.filter(Boolean) as Array<User>,
 	);
+	const visibleUsers = useMemo(
+		() => [...searchedUsers, ...selectedUsers, ...friendManager.getFriends()],
+		[searchedUsers, selectedUsers],
+	);
 
 	const onSearch = useDebouncedCallback(async (username: string) => {
 		if (username) {
+			setIsSearching(true);
 			apiClient
 				.get<Array<User>>(`/users?username=${username}`)
 				.then(setSearchedUsers);
 		} else {
+			setIsSearching(false);
 			setSearchedUsers([]);
 		}
 	}, 300);
@@ -70,28 +85,45 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 			<Container vertical='small' horizontal='medium'>
 				<Input placeholder='Search username' onValue={onSearch} />
 			</Container>
-			<div className={friendList}>
-				{[...searchedUsers, ...selectedUsers, ...friendManager.getFriends()]
-					.filter(
-						(user, index, self) =>
-							index === self.findIndex((u) => u.uuid === user.uuid),
-					)
-					.map((user) => (
-						<UserItem
-							key={user.uuid}
-							user={user}
-							selected={selectedUsers.map((u) => u.uuid).includes(user.uuid)}
-							onClick={() =>
-								setSelectedUsers((prev) => {
-									if (prev.map((u) => u.uuid).includes(user.uuid)) {
-										return prev.filter((u) => u.uuid !== user.uuid);
-									}
-									return [...prev, user];
-								})
-							}
-						/>
-					))}
-			</div>
+			{visibleUsers.length > 0 ? (
+				<div className={friendList}>
+					{visibleUsers
+						.filter(
+							(user, index, self) =>
+								index === self.findIndex((u) => u.uuid === user.uuid),
+						)
+						.map((user) => (
+							<UserItem
+								key={user.uuid}
+								user={user}
+								selected={selectedUsers.map((u) => u.uuid).includes(user.uuid)}
+								onClick={() =>
+									setSelectedUsers((prev) => {
+										if (prev.map((u) => u.uuid).includes(user.uuid)) {
+											return prev.filter((u) => u.uuid !== user.uuid);
+										}
+										return [...prev, user];
+									})
+								}
+							/>
+						))}
+				</div>
+			) : (
+				<Column className={empty} gap={16} align='center'>
+					<Container className={emptyIcon}>
+						{searchedUsers.length <= 0 && isSearching ? (
+							<UserRoundX />
+						) : (
+							<Search />
+						)}
+					</Container>
+					<Typo.Body>
+						{searchedUsers.length <= 0 && isSearching
+							? 'No users found'
+							: 'Search your friends'}
+					</Typo.Body>
+				</Column>
+			)}
 			<ButtonGroup>
 				<Button fill onClick={onClickShare}>
 					Apply
