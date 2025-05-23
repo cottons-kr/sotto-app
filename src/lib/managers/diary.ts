@@ -115,7 +115,7 @@ class DiaryManager {
 	}
 
 	async addDiary(newDiary: DiaryEditable | Diary) {
-		const uuid = v4();
+		const uuid = 'uuid' in newDiary ? newDiary.uuid : v4();
 		const diary: Diary = {
 			...this.createDiary(),
 			...newDiary,
@@ -126,9 +126,6 @@ class DiaryManager {
 		return diary;
 	}
 
-	/**
-	 * TODO: 만약 기존에 공유된 일기라면 nonce 재발급해서 다시 암호화 후 서버에 업데이트
-	 */
 	async updateDiary(uuid: string, updatedData: DiaryEditable) {
 		this.checkInitialized();
 		const diary = this.data.get(uuid);
@@ -142,6 +139,21 @@ class DiaryManager {
 		};
 		this.data.set(uuid, updatedDiary);
 		await this.saveData();
+
+		if (diary.shareUUID && diary.aesKey) {
+			const [encryptedData, _, nonce] = await encryptDiary(
+				updatedDiary,
+				diary.aesKey,
+			);
+
+			updatedDiary.encryptedData = encryptedData;
+			updatedDiary.nonce = nonce;
+
+			await apiClient.put(`/diaries/${diary.shareUUID}`, {
+				data: encryptedData,
+				nonce,
+			});
+		}
 
 		return updatedDiary;
 	}

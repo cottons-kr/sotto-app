@@ -68,6 +68,10 @@ class APIClient {
 		return this.request<T>(path, 'POST', data);
 	}
 
+	async put<T>(path: string, data: unknown): Promise<T> {
+		return this.request<T>(path, 'PUT', data);
+	}
+
 	async patch<T>(path: string, data: unknown): Promise<T> {
 		return this.request<T>(path, 'PATCH', data);
 	}

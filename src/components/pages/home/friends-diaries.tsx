@@ -42,6 +42,7 @@ export function HomeFriendsDiariesSection() {
 					if (!diaryManager.isSharedDiaryExists(sharedDiary.diary.uuid)) {
 						friendManager.addFriend(sharedDiary.diary.owner);
 						await diaryManager.addDiary({
+							uuid: sharedDiary.diary.uuid,
 							emoji,
 							title,
 							content,
@@ -49,6 +50,12 @@ export function HomeFriendsDiariesSection() {
 							sharedBy: sharedDiary.diary.owner.uuid,
 							encryptedKey: sharedDiary.encryptedKey,
 							readonly: true,
+						});
+					} else {
+						await diaryManager.updateDiary(sharedDiary.diary.uuid, {
+							emoji,
+							title,
+							content,
 						});
 					}
 				}

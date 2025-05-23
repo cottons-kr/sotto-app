@@ -9,7 +9,7 @@ import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { useDiary } from '@/hooks/use-diary';
 import { useDrawer } from '@/hooks/use-drawer';
-import { wait } from '@/lib/common';
+import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
 import { color } from '@/styles/color.css';
 import { Share } from 'lucide-react';
@@ -36,18 +36,18 @@ export default function DiaryPage() {
 
 		setIsSaving(true);
 
-		if (import.meta.env.DEV) {
-			// for toast development purpose
-			await wait(1000);
+		try {
+			if (diaryManager.getDiary(diary.uuid)) {
+				await diaryManager.updateDiary(diary.uuid, diary);
+			} else {
+				await diaryManager.addDiary(diary);
+			}
+		} catch (error) {
+			log('error', 'Error while saving diary', error);
+			console.error('Error while saving diary', error);
+		} finally {
+			setIsSaving(false);
 		}
-
-		if (diaryManager.getDiary(diary.uuid)) {
-			await diaryManager.updateDiary(diary.uuid, diary);
-		} else {
-			await diaryManager.addDiary(diary);
-		}
-
-		setIsSaving(false);
 	}, [diary]);
 
 	return (
