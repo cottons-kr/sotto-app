@@ -10,6 +10,7 @@ import { useDrawer } from '@/hooks/use-drawer';
 import { type Diary, diaryManager } from '@/lib/managers/diary';
 import { type User, friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
+import { message } from '@tauri-apps/plugin-dialog';
 import { Check } from 'lucide-react';
 import {
 	type Dispatch,
@@ -47,6 +48,7 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 
 	const onClickShare = useCallback(async () => {
 		if (!diary.emoji && !diary.title && !diary.content) {
+			await message('Please add some content to your diary before sharing.');
 			return;
 		}
 
