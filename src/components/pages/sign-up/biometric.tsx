@@ -3,12 +3,14 @@ import { Column } from '@/components/layout/column';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Content } from '@/components/ui/content';
+import { processSignIn } from '@/lib/app';
 import { log } from '@/lib/log';
 import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
 import { message } from '@tauri-apps/plugin-dialog';
 import { ScanFace } from 'lucide-react';
 import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { saveItem } from 'tauri-plugin-keychain';
 import { SignUpFlowContext } from './context';
 import { fillHeight } from './styles/styles.css';
@@ -16,6 +18,7 @@ import { fillHeight } from './styles/styles.css';
 export function SignUpBiometricSection() {
 	const { name, username, profileImage, pin, setUseBiometricLogin } =
 		useContext(SignUpFlowContext);
+	const navigate = useNavigate();
 
 	const onClick = async (useBiometricLogin: boolean) => {
 		setUseBiometricLogin(useBiometricLogin);
@@ -46,7 +49,10 @@ export function SignUpBiometricSection() {
 			localStorage.setItem('app-initialized', 'true');
 			localStorage.setItem('useBiometricLogin', useBiometricLogin.toString());
 
-			await message(`Sign up successful! Welcome ${user}`);
+			await message(`Sign up successful! Welcome ${user.name}`);
+			await processSignIn(pin);
+
+			navigate('/home');
 		} catch (error) {
 			await message('Sign up failed. Please try again.', { kind: 'error' });
 			log('error', 'Sign up failed', error);

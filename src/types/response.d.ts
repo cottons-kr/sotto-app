@@ -1,6 +1,8 @@
 interface SignUpResponse {
 	accessToken: string;
-	user: unknown;
+	user: {
+		name: string;
+	};
 }
 
 interface ShareDiaryResponse {
