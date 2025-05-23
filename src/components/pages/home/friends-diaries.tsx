@@ -1,5 +1,4 @@
 import { decryptDiary } from '@/binding/function/decrypt-diary';
-import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Grid } from '@/components/layout/grid';
 import { Row } from '@/components/layout/row';
@@ -19,6 +18,7 @@ import { storageClient } from '@/lib/managers/storage';
 import { banWarning } from '@/routes/home/page.css';
 import { Ban, SmilePlus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { center } from './styles/friends-diaries.css';
 
 export function HomeFriendsDiariesSection() {
 	const [friendList, setFriendList] = useState<Array<string>>(
@@ -135,13 +135,18 @@ function FriendDiaries(props: FriendDiariesProps) {
 				<Divider />
 			</Container>
 			<Drawer id='ban-user'>
-				<Container horizontal='large'>
-					<Column gap={8}>
+				<Container horizontal='none'>
+					<Container vertical='regular' className={center}>
+						<Avatar size={56} />
+					</Container>
+					<Container className={center} vertical='small'>
 						<Typo.Lead weight='strong'>Block “{user.name}”?</Typo.Lead>
+					</Container>
+					<Container className={center} vertical='none'>
 						<Typo.Body className={banWarning}>
 							You will never receive friends diary from “{user.name}”
 						</Typo.Body>
-					</Column>
+					</Container>
 				</Container>
 				<ButtonGroup direction='horizontal'>
 					<Button fill onClick={onClickBlock}>

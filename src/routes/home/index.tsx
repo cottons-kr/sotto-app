@@ -15,7 +15,7 @@ import { left, right } from './page.css';
 export default function HomePage() {
 	return (
 		<>
-			<Column className={fullHeight}>
+			<Column className={fullHeight} justify='start'>
 				<TopNavigator
 					leadingArea={
 						<Row className={left} align='center' gap={6}>
