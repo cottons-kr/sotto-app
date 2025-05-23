@@ -52,6 +52,14 @@ class FriendManager {
 		this.save();
 	}
 
+	removeFriend(uuid: string) {
+		if (!this.friends.has(uuid)) {
+			return;
+		}
+		this.friends.delete(uuid);
+		this.save();
+	}
+
 	clear() {
 		this.friends.clear();
 		this.save();

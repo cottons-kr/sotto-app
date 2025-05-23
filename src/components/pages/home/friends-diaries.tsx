@@ -17,7 +17,7 @@ import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
 import { banWarning } from '@/routes/home/page.css';
 import { Ban } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function HomeFriendsDiariesSection() {
 	const [friendList, setFriendList] = useState<Array<string>>(
@@ -82,13 +82,24 @@ interface FriendDiariesProps {
 
 function FriendDiaries(props: FriendDiariesProps) {
 	const { userUUID } = props;
+	const { toggleDrawer, closeDrawer } = useDrawer('ban-user');
 	const user = friendManager.getFriend(userUUID);
-	console.log('friends', friendManager.getFriends());
 	if (!user) {
 		return null;
 	}
 
-	const { toggleDrawer } = useDrawer('ban-user');
+	const onClickBlock = useCallback(async () => {
+		for (const diary of diaryManager.getFriendDiaries(userUUID)) {
+			diaryManager.removeDiary(diary.uuid);
+		}
+		friendManager.removeFriend(userUUID);
+
+		await apiClient.post('/users/ban', {
+			uuid: userUUID,
+		});
+
+		closeDrawer();
+	}, [userUUID, closeDrawer]);
 
 	return (
 		<>
@@ -121,8 +132,10 @@ function FriendDiaries(props: FriendDiariesProps) {
 					</Column>
 				</Container>
 				<ButtonGroup direction='horizontal'>
-					<Button fill>Block</Button>
-					<Button variant='secondary' fill>
+					<Button fill onClick={onClickBlock}>
+						Block
+					</Button>
+					<Button variant='secondary' fill onClick={closeDrawer}>
 						Cancel
 					</Button>
 				</ButtonGroup>
