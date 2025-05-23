@@ -3,8 +3,6 @@ import { useDrawer } from '@/hooks/use-drawer';
 import { cn } from '@/lib/common';
 import emojis from 'emojibase-data/en/data.json';
 import { useState } from 'react';
-import { Button } from '../button';
-import { ButtonGroup } from '../button/group';
 import { Drawer } from '../drawer';
 import { Typo } from '../typography';
 import {
@@ -59,9 +57,6 @@ export function EmojiInput(props: EmojiInputProps) {
 							))}
 					</div>
 				</Container>
-				<ButtonGroup>
-					<Button fill>Select</Button>
-				</ButtonGroup>
 			</Drawer>
 		</>
 	);
