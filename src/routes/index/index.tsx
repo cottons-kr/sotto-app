@@ -1,12 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
+import { LoadingCircle } from '@/components/ui/loading-circle';
 import { SottoSymbol } from '@/components/ui/sotto-symbol';
 import { Typo } from '@/components/ui/typography';
 import { wait } from '@/lib/common';
-import { LoaderCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { centerSymbol, loaderCircle } from './page.css';
+import { centerSymbol } from './page.css';
 
 export default function IndexPage() {
 	const [showSignUp, setShowSignUp] = useState(false);
@@ -43,7 +43,7 @@ export default function IndexPage() {
 						<Button fill>Sign up</Button>
 					</Link>
 				) : (
-					<LoaderCircle className={loaderCircle} size={32} />
+					<LoadingCircle size={32} />
 				)}
 			</ButtonGroup>
 		</>

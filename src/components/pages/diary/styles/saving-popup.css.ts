@@ -1,5 +1,5 @@
 import { color } from '@/styles/color.css';
-import { keyframes, style } from '@vanilla-extract/css';
+import { style } from '@vanilla-extract/css';
 
 export const backdrop = style({
 	position: 'fixed',
@@ -18,17 +18,4 @@ export const popup = style({
 	backgroundColor: color.milk,
 	borderRadius: 24,
 	zIndex: 1000,
-});
-
-const loading = keyframes({
-	'0%': {
-		transform: 'rotate(0deg)',
-	},
-	'100%': {
-		transform: 'rotate(360deg)',
-	},
-});
-
-export const loaderCircle = style({
-	animation: `${loading} 1s linear infinite`,
 });

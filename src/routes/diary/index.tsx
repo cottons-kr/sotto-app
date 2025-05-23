@@ -9,7 +9,6 @@ import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { useDiary } from '@/hooks/use-diary';
 import { useDrawer } from '@/hooks/use-drawer';
-import { wait } from '@/lib/common';
 import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
 import { color } from '@/styles/color.css';
@@ -36,8 +35,6 @@ export default function DiaryPage() {
 		}
 
 		setIsSaving(true);
-
-		await wait(1000); // Simulate saving delay
 
 		try {
 			if (diaryManager.getDiary(diary.uuid)) {

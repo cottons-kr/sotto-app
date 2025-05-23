@@ -1,10 +1,10 @@
 import { Column } from '@/components/layout/column';
+import { LoadingCircle } from '@/components/ui/loading-circle';
 import { Typo } from '@/components/ui/typography';
 import { getTransition } from '@/lib/animation';
-import { LoaderCircle } from 'lucide-react';
 import { type Variants, motion } from 'motion/react';
 import { createPortal } from 'react-dom';
-import { backdrop, loaderCircle, popup } from './styles/saving-popup.css';
+import { backdrop, popup } from './styles/saving-popup.css';
 
 const backdropVariants: Variants = {
 	hidden: {
@@ -40,7 +40,7 @@ export function DiarySavingPopup(props: DiarySavingPopupProps) {
 			>
 				<motion.div className={popup}>
 					<Column align='center' gap={12}>
-						<LoaderCircle className={loaderCircle} size={48} />
+						<LoadingCircle size={48} />
 						<Typo.Body>Saving</Typo.Body>
 					</Column>
 				</motion.div>

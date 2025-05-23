@@ -11,10 +11,11 @@ import { drawer, handle } from './styles/drawer.css';
 
 interface DrawerProps extends BaseProps<HAS_CHILDREN> {
 	id: string;
+	preventBackdropClose?: boolean;
 }
 
 export function Drawer(props: DrawerProps) {
-	const { id, children: drawerContent } = props;
+	const { id, preventBackdropClose, children: drawerContent } = props;
 	const { currentDrawer, closeDrawer } = useContext(DrawerContext);
 
 	const drawerPortal = document.getElementById('drawer-root');
@@ -23,10 +24,10 @@ export function Drawer(props: DrawerProps) {
 	}
 
 	const onClickBackdrop = useCallback(() => {
-		if (id === currentDrawer) {
+		if (id === currentDrawer && !preventBackdropClose) {
 			closeDrawer();
 		}
-	}, [id, currentDrawer, closeDrawer]);
+	}, [id, currentDrawer, closeDrawer, preventBackdropClose]);
 
 	const children = (
 		<AnimatePresence>

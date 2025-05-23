@@ -38,6 +38,7 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 	const { diary, setDiary } = props;
 	const { closeDrawer } = useDrawer('share-diary');
 	const [isSearching, setIsSearching] = useState(false);
+	const [isSharing, setIsSharing] = useState(false);
 	const [searchedUsers, setSearchedUsers] = useState<Array<User>>([]);
 	const [selectedUsers, setSelectedUsers] = useState<Array<User>>(
 		diary.sharedWith
@@ -67,6 +68,8 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 			return;
 		}
 
+		setIsSharing(true);
+
 		let uuid = diary.uuid;
 		if (uuid === 'NOT_SAVED') {
 			const savedDiary = await diaryManager.addDiary(diary);
@@ -74,11 +77,13 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 		}
 		const result = await diaryManager.shareDiary(uuid, selectedUsers);
 		setDiary(result);
+
+		setIsSharing(false);
 		closeDrawer();
 	}, [diary, setDiary, selectedUsers, closeDrawer]);
 
 	return (
-		<Drawer id='share-diary'>
+		<Drawer id='share-diary' preventBackdropClose={isSharing}>
 			<Container vertical='small' horizontal='large'>
 				<Typo.Lead weight='strong'>Share with your friends</Typo.Lead>
 			</Container>
@@ -125,7 +130,7 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 				</Column>
 			)}
 			<ButtonGroup>
-				<Button fill onClick={onClickShare}>
+				<Button fill onClick={onClickShare} loading={isSharing}>
 					Apply
 				</Button>
 			</ButtonGroup>
