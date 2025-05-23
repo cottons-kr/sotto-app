@@ -9,12 +9,13 @@ import { TabsContent } from '@/components/ui/tabs/content';
 import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { Typo } from '@/components/ui/typography';
+import { fullHeight } from '@/styles/utils.css';
 import { left, right } from './page.css';
 
 export default function HomePage() {
 	return (
 		<>
-			<Column>
+			<Column className={fullHeight}>
 				<TopNavigator
 					leadingArea={
 						<Row className={left} align='center' gap={6}>

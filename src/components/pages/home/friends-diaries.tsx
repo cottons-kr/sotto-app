@@ -7,6 +7,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { DiaryCard } from '@/components/ui/card/diary';
+import { Content } from '@/components/ui/content';
 import { Divider } from '@/components/ui/divider';
 import { Drawer } from '@/components/ui/drawer';
 import { Typo } from '@/components/ui/typography';
@@ -16,12 +17,15 @@ import { friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
 import { banWarning } from '@/routes/home/page.css';
-import { Ban } from 'lucide-react';
+import { Ban, SmilePlus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 export function HomeFriendsDiariesSection() {
 	const [friendList, setFriendList] = useState<Array<string>>(
-		friendManager.getFriends().map((friend) => friend.uuid),
+		friendManager
+			.getFriends()
+			.map((friend) => friend.uuid)
+			.filter((userUUID) => diaryManager.getFriendDiaries(userUUID).length > 0),
 	);
 
 	useEffect(() => {
@@ -71,9 +75,16 @@ export function HomeFriendsDiariesSection() {
 			});
 	}, []);
 
-	return friendList
-		.filter((userUUID) => diaryManager.getFriendDiaries(userUUID).length > 0)
-		.map((userUUID) => <FriendDiaries key={userUUID} userUUID={userUUID} />);
+	return friendList.length > 0 ? (
+		friendList.map((userUUID) => (
+			<FriendDiaries key={userUUID} userUUID={userUUID} />
+		))
+	) : (
+		<Content
+			icon={<SmilePlus size={48} />}
+			description='Share this app to your friends'
+		/>
+	);
 }
 
 interface FriendDiariesProps {
@@ -84,6 +95,7 @@ function FriendDiaries(props: FriendDiariesProps) {
 	const { userUUID } = props;
 	const { toggleDrawer, closeDrawer } = useDrawer('ban-user');
 	const user = friendManager.getFriend(userUUID);
+	const diaries = diaryManager.getFriendDiaries(userUUID);
 	if (!user) {
 		return null;
 	}
@@ -114,7 +126,7 @@ function FriendDiaries(props: FriendDiariesProps) {
 			</Container>
 			<Container vertical='small'>
 				<Grid>
-					{diaryManager.getFriendDiaries(userUUID).map((d) => (
+					{diaries.map((d) => (
 						<DiaryCard key={d.uuid} diary={d} />
 					))}
 				</Grid>

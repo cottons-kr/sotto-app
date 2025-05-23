@@ -19,12 +19,16 @@ export function Content(props: ContentProps) {
 					<div className={iconStyle}>{icon}</div>
 				</Container>
 			)}
-			<Container vertical='small' horizontal='none'>
-				<Typo.Title weight='strong'>{title}</Typo.Title>
-			</Container>
-			<Container vertical='small' horizontal='none'>
-				<Typo.Body>{description}</Typo.Body>
-			</Container>
+			{title && (
+				<Container vertical='small' horizontal='none'>
+					<Typo.Title weight='strong'>{title}</Typo.Title>
+				</Container>
+			)}
+			{description && (
+				<Container vertical='small' horizontal='none'>
+					<Typo.Body>{description}</Typo.Body>
+				</Container>
+			)}
 		</Column>
 	);
 }
