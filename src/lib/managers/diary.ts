@@ -77,6 +77,10 @@ class DiaryManager {
 			});
 	}
 
+	getSharedDiaries() {
+		return Array.from(this.data.values()).filter((diary) => diary.readonly);
+	}
+
 	getFriendDiaries(friendUUID: string) {
 		return Array.from(this.data.values())
 			.filter((diary) => diary.sharedBy === friendUUID)
@@ -138,6 +142,7 @@ class DiaryManager {
 		};
 		this.data.set(uuid, updatedDiary);
 		await this.saveData();
+
 		return updatedDiary;
 	}
 
@@ -209,6 +214,17 @@ class DiaryManager {
 
 	isSharedDiary(diary: Diary) {
 		return diary.shareUUID !== null;
+	}
+
+	removeDiary(uuid: string) {
+		this.checkInitialized();
+		const diary = this.data.get(uuid);
+		if (!diary) {
+			throw new Error('Diary not found');
+		}
+		this.data.delete(uuid);
+		this.saveData();
+		return diary;
 	}
 }
 

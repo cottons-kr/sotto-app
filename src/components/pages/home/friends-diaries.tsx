@@ -52,13 +52,21 @@ export function HomeFriendsDiariesSection() {
 						});
 					}
 				}
-				setFriendList(data.map((diary) => diary.diary.owner.uuid));
+				for (const existingSharedDiary of diaryManager.getSharedDiaries()) {
+					const isSharingCanceled = data.every(
+						(b) => b.diary.uuid !== existingSharedDiary.shareUUID,
+					);
+					if (isSharingCanceled) {
+						diaryManager.removeDiary(existingSharedDiary.uuid);
+					}
+				}
+				setFriendList(friendManager.getFriends().map((friend) => friend.uuid));
 			});
 	}, []);
 
-	return friendList.map((userUUID) => (
-		<FriendDiaries key={userUUID} userUUID={userUUID} />
-	));
+	return friendList
+		.filter((userUUID) => diaryManager.getFriendDiaries(userUUID).length > 0)
+		.map((userUUID) => <FriendDiaries key={userUUID} userUUID={userUUID} />);
 }
 
 interface FriendDiariesProps {
