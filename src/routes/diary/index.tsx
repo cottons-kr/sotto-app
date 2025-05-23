@@ -1,6 +1,6 @@
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
-import { DiarySavingToast } from '@/components/pages/diary/saving-toast';
+import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
 import { DiaryShareSection } from '@/components/pages/diary/share';
 import { Divider } from '@/components/ui/divider';
 import { EmojiInput } from '@/components/ui/input/emoji';
@@ -9,6 +9,7 @@ import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { useDiary } from '@/hooks/use-diary';
 import { useDrawer } from '@/hooks/use-drawer';
+import { wait } from '@/lib/common';
 import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
 import { color } from '@/styles/color.css';
@@ -35,6 +36,8 @@ export default function DiaryPage() {
 		}
 
 		setIsSaving(true);
+
+		await wait(1000); // Simulate saving delay
 
 		try {
 			if (diaryManager.getDiary(diary.uuid)) {
@@ -96,7 +99,7 @@ export default function DiaryPage() {
 				</Container>
 			</Column>
 			<DiaryShareSection diary={diary} setDiary={setDiary} />
-			<DiarySavingToast visible={isSaving} />
+			<DiarySavingPopup visible={isSaving} />
 		</>
 	);
 }
