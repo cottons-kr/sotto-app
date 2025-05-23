@@ -39,9 +39,7 @@ export default function MyProfilePage() {
 					</label>
 				</Container>
 				<Column align='center' gap={8}>
-					<Typo.Title weight='strong'>
-						{localStorage.getItem('name')}
-					</Typo.Title>
+					<Typo.Lead weight='strong'>{localStorage.getItem('name')}</Typo.Lead>
 					<Typo.Body>@{localStorage.getItem('username')}</Typo.Body>
 				</Column>
 				<Container vertical='large' horizontal='large'>

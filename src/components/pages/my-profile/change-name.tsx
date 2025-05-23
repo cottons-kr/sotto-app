@@ -5,19 +5,34 @@ import { Drawer } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
+import { log } from '@/lib/log';
 import { apiClient } from '@/lib/managers/http';
+import { message } from '@tauri-apps/plugin-dialog';
 import { useCallback, useState } from 'react';
 
 export function MyProfileChangeName() {
 	const { closeDrawer } = useDrawer('change-name');
-	const [name, setName] = useState(localStorage.getItem('name') || '') ;
+	const [name, setName] = useState(localStorage.getItem('name') || '');
 
 	const onClickChange = useCallback(async () => {
+		const prevName = localStorage.getItem('name');
+		if (prevName === name) {
+			closeDrawer();
+			return;
+		}
+
 		try {
-			await apiClient.patch('/user/me', {
+			await apiClient.patch('/users/me', {
 				name,
 			});
 			localStorage.setItem('name', name);
+		} catch (error) {
+			await message('Failed to change name');
+			log('error', 'Failed to change name', error);
+			if (prevName) {
+				localStorage.setItem('name', prevName);
+				setName(prevName);
+			}
 		} finally {
 			closeDrawer();
 		}
