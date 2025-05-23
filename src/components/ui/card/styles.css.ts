@@ -2,8 +2,10 @@ import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
 
 export const card = uiStyle({
+	width: '100%',
 	backgroundColor: color.cream,
 	borderRadius: 16,
+	overflow: 'hidden',
 	userSelect: 'none',
 	WebkitUserSelect: 'none',
 	transition: 'transform 0.2s ease-in-out, filter 0.2s ease-in-out',
@@ -17,9 +19,21 @@ export const content = uiStyle({
 	height: 100,
 });
 
-export const preview = uiStyle({
-	opacity: 0.7,
+export const preventOverflow = uiStyle({
+	width: '100%',
+	overflow: 'hidden',
+	textOverflow: 'ellipsis',
+	whiteSpace: 'nowrap',
 });
+
+export const title = uiStyle([preventOverflow]);
+
+export const preview = uiStyle([
+	preventOverflow,
+	{
+		opacity: 0.7,
+	},
+]);
 
 export const date = uiStyle({
 	textAlign: 'right',
