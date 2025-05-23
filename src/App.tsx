@@ -10,6 +10,7 @@ import IndexPage from './routes/index';
 import SignInBiometricPage from './routes/sign-in/biometric';
 import SignInPinPage from './routes/sign-in/pin';
 import SignUpPage from './routes/sign-up';
+import SignInForgotPinPage from './routes/sign-in/forgot-pin';
 
 export default function App() {
 	useEffect(() => {
@@ -28,6 +29,7 @@ export default function App() {
 				<Route path='/sign-up' element={<SignUpPage />} />
 				<Route path='/sign-in/biometric' element={<SignInBiometricPage />} />
 				<Route path='/sign-in/pin' element={<SignInPinPage />} />
+				<Route path='/sign-in/forgot-pin' element={<SignInForgotPinPage />} />
 				<Route path='/home' element={<HomePage />} />
 				<Route path='/diary' element={<DiaryPage />} />
 			</Routes>

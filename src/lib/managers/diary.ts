@@ -238,6 +238,11 @@ class DiaryManager {
 		this.saveData();
 		return diary;
 	}
+
+	async clear() {
+		this.data.clear();
+		this.isInitialized = false;
+	}
 }
 
 export const diaryManager = new DiaryManager();

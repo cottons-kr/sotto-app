@@ -45,9 +45,11 @@ export default function SignInPinPage() {
 				</Container>
 			</Column>
 			<ButtonGroup direction='vertical' bottomSafeAreaPadding>
-				<Button fill variant='text'>
-					Forgot your PIN?
-				</Button>
+				<Link to='/sign-in/forgot-pin'>
+					<Button fill variant='text'>
+						Forgot your PIN?
+					</Button>
+				</Link>
 				{localStorage.getItem('useBiometricLogin') === 'true' && (
 					<Link to='/sign-in/biometric'>
 						<Button fill variant='secondary'>

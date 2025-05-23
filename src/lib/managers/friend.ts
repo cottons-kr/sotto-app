@@ -51,6 +51,11 @@ class FriendManager {
 		this.friends.set(user.uuid, user);
 		this.save();
 	}
+
+	clear() {
+		this.friends.clear();
+		this.save();
+	}
 }
 
 export const friendManager = new FriendManager();
