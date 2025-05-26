@@ -5,11 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { Typo } from '../typography';
 
 interface GoBackProps {
+	label?: string;
 	beforeBack?: () => unknown;
 }
 
 export function GoBack(props: GoBackProps) {
-	const { beforeBack } = props;
+	const { label = 'Back', beforeBack } = props;
 
 	const navigate = useNavigate();
 
@@ -23,7 +24,7 @@ export function GoBack(props: GoBackProps) {
 	return (
 		<Row as='button' gap={4} align='center' onClick={onClickBack}>
 			<ChevronLeft />
-			<Typo.Body>Back</Typo.Body>
+			<Typo.Body>{label}</Typo.Body>
 		</Row>
 	);
 }

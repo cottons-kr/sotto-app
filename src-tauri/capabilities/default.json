@@ -16,6 +16,9 @@
 			"allow": [
 				{
 					"url": "http://localhost:3000"
+				},
+				{
+					"url": "https://sotto-api.tapie.kr"
 				}
 			]
 		}

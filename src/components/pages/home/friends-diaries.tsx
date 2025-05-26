@@ -79,7 +79,14 @@ export function HomeFriendsDiariesSection() {
 						diaryManager.removeDiary(existingSharedDiary.uuid);
 					}
 				}
-				setFriendList(friendManager.getFriends().map((friend) => friend.uuid));
+				setFriendList(
+					friendManager
+						.getFriends()
+						.map((friend) => friend.uuid)
+						.filter(
+							(userUUID) => diaryManager.getFriendDiaries(userUUID).length > 0,
+						),
+				);
 			});
 	}, []);
 
@@ -145,7 +152,7 @@ function FriendDiaries(props: FriendDiariesProps) {
 			<Drawer id='ban-user'>
 				<Container horizontal='none'>
 					<Container vertical='regular' className={center}>
-						<Avatar size={56} />
+						<Avatar size={56} src={user.profileUrl} />
 					</Container>
 					<Container className={center} vertical='small'>
 						<Typo.Lead weight='strong'>Block “{user.name}”?</Typo.Lead>

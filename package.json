@@ -14,7 +14,7 @@
 		"preview": "tauri ios dev \"iPhone 16 Pro\"",
 		"tauri": "tauri",
 		"format": "biome check --fix",
-		"build:sim": "rimraf ./src-tauri/gen/apple/build/arm64-sim && tauri ios build --target aarch64-sim",
+		"build:sim": "cross-env VITE_API_URL=https://sotto-api.tapie.kr rimraf ./src-tauri/gen/apple/build/arm64-sim && tauri ios build --target aarch64-sim",
 		"commit": "bun format && git add . && cz"
 	},
 	"dependencies": {
@@ -49,6 +49,7 @@
 		"@vanilla-extract/vite-plugin": "^5.0.1",
 		"@vitejs/plugin-react": "^4.4.1",
 		"commitizen": "^4.3.1",
+		"cross-env": "^7.0.3",
 		"cz-conventional-changelog": "^3.3.0",
 		"rimraf": "^6.0.1",
 		"typescript": "~5.8.3",
