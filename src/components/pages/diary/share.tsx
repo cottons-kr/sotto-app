@@ -82,6 +82,8 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 		closeDrawer();
 	}, [diary, setDiary, selectedUsers, closeDrawer]);
 
+	const onClickShareViaUrl = useCallback(async () => {}, []);
+
 	return (
 		<Drawer id='share-diary' preventBackdropClose={isSharing}>
 			<Container vertical='small' horizontal='large'>
@@ -129,7 +131,10 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 					</Typo.Body>
 				</Column>
 			)}
-			<ButtonGroup>
+			<ButtonGroup direction='horizontal'>
+				<Button fill variant='secondary' onClick={onClickShareViaUrl}>
+					Share via URL
+				</Button>
 				<Button fill onClick={onClickShare} loading={isSharing}>
 					Apply
 				</Button>

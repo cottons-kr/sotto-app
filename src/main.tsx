@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { DrawerProvider } from './components/ui/drawer/provider';
+import { OverlayProvider } from './components/ui/overlay/provider';
 
 const root = document.getElementById('root');
 if (!root) {
@@ -12,9 +13,11 @@ if (!root) {
 ReactDOM.createRoot(root).render(
 	<Suspense>
 		<NuqsAdapter>
-			<DrawerProvider>
-				<App />
-			</DrawerProvider>
+			<OverlayProvider>
+				<DrawerProvider>
+					<App />
+				</DrawerProvider>
+			</OverlayProvider>
 		</NuqsAdapter>
 	</Suspense>,
 );
