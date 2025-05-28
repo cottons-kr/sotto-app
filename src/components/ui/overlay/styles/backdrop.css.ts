@@ -1,12 +1,5 @@
 import { style } from '@vanilla-extract/css';
 
-export const root = style({
-	position: 'fixed',
-	top: 0,
-	left: 0,
-	zIndex: 1000,
-});
-
 export const backdrop = style({
 	position: 'fixed',
 	width: '100%',
