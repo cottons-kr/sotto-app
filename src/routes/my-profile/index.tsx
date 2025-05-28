@@ -12,7 +12,6 @@ import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
-import { ChevronRight } from 'lucide-react';
 import { useCallback } from 'react';
 import { avatarContainer, stat } from './page.css';
 
@@ -69,14 +68,11 @@ function Stat(props: StatProps) {
 	const { name, value } = props;
 
 	return (
-		<Container className={stat}>
-			<Column gap={8}>
-				<Row justify='space-between' align='center'>
-					<Typo.Body weight='medium'>{name}</Typo.Body>
-					<ChevronRight size={20} />
-				</Row>
-				<Typo.Title weight='strong'>{value.toString()}</Typo.Title>
-			</Column>
-		</Container>
+		<Column className={stat} align='center' gap={8}>
+			<Row justify='space-between' align='center'>
+				<Typo.Body weight='medium'>{name}</Typo.Body>
+			</Row>
+			<Typo.Title weight='strong'>{value.toString()}</Typo.Title>
+		</Column>
 	);
 }
