@@ -1,20 +1,5 @@
-import {
-	type Dispatch,
-	type ReactNode,
-	type SetStateAction,
-	createContext,
-} from 'react';
-
-export interface OverlayProps {
-	close: () => void;
-}
-
-export type Renderer = (props: OverlayProps) => ReactNode;
-
-export type OverlayContent = {
-	id: string;
-	Render: Renderer;
-};
+import { type Dispatch, type SetStateAction, createContext } from 'react';
+import type { OverlayContent } from './types';
 
 type OverlayContextType = {
 	contents: Array<OverlayContent>;

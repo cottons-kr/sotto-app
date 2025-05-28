@@ -3,7 +3,9 @@ import type { BaseProps, HAS_CHILDREN } from '@/types/props';
 import { AnimatePresence } from 'motion/react';
 import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { type OverlayContent, OverlayContext } from './context';
+import { OverlayContext } from './context';
+import { OverlayRenderer } from './renderer';
+import type { OverlayContent } from './types';
 
 interface OverlayProviderProps extends BaseProps<HAS_CHILDREN> {}
 
@@ -16,18 +18,22 @@ export function OverlayProvider(props: OverlayProviderProps) {
 		setContents((prev) => prev.filter((content) => content.id !== id));
 	}, []);
 
+	const children = (
+		<AnimatePresence>
+			{contents.map((c) => (
+				<OverlayRenderer
+					key={c.id}
+					content={c}
+					close={() => hideContent(c.id)}
+				/>
+			))}
+		</AnimatePresence>
+	);
+
 	const overlayRoot = document.getElementById('overlay-root');
 	if (!overlayRoot) {
 		throw new Error('Overlay root element not found.');
 	}
-
-	const children = (
-		<AnimatePresence>
-			{contents.map(({ id, Render }) => (
-				<Render key={id} close={() => hideContent(id)} />
-			))}
-		</AnimatePresence>
-	);
 
 	return (
 		<OverlayContext value={{ contents, setContents }}>

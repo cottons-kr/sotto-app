@@ -1,11 +1,7 @@
-import { OverlayContext, type Renderer } from '@/components/ui/overlay/context';
+import { OverlayContext } from '@/components/ui/overlay/context';
+import type { OverlayOptions, Renderer } from '@/components/ui/overlay/types';
 import { nanoid } from 'nanoid';
 import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-
-type OverlayOptions = {
-	defaultShow?: boolean;
-	onClickBackdrop?: () => unknown;
-};
 
 export function useOverlay(renderer: Renderer, options: OverlayOptions = {}) {
 	const id = useRef(nanoid());
@@ -21,11 +17,12 @@ export function useOverlay(renderer: Renderer, options: OverlayOptions = {}) {
 				...prev,
 				{
 					id: id.current,
-					Render: renderer,
+					render: renderer,
+					options,
 				},
 			]);
 		}
-	}, [targetContent, renderer, setContents]);
+	}, [targetContent, renderer, options, setContents]);
 
 	const hide = useCallback(() => {
 		if (targetContent) {
