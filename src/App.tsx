@@ -4,14 +4,14 @@ import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { diaryManager } from './lib/managers/diary';
 import { storageClient } from './lib/managers/storage';
+import SignInBiometricPage from './routes/auth/sign-in/biometric';
+import SignInForgotPinPage from './routes/auth/sign-in/forgot-pin';
+import SignInPinPage from './routes/auth/sign-in/pin';
+import SignUpPage from './routes/auth/sign-up';
 import DiaryPage from './routes/diary';
 import HomePage from './routes/home';
 import IndexPage from './routes/index';
 import MyProfilePage from './routes/my-profile';
-import SignInBiometricPage from './routes/sign-in/biometric';
-import SignInForgotPinPage from './routes/sign-in/forgot-pin';
-import SignInPinPage from './routes/sign-in/pin';
-import SignUpPage from './routes/sign-up';
 
 export default function App() {
 	useEffect(() => {
