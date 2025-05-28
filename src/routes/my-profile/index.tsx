@@ -12,6 +12,7 @@ import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
+import { ChevronRight } from 'lucide-react';
 import { useCallback } from 'react';
 import { avatarContainer, stat } from './page.css';
 
@@ -35,12 +36,12 @@ export default function MyProfilePage() {
 					<Typo.Body>@{localStorage.getItem('username')}</Typo.Body>
 				</Column>
 				<Container vertical='large' horizontal='large'>
-					<Button variant='secondary' fill onClick={openChangeName}>
+					<Button fill onClick={openChangeName}>
 						Change name
 					</Button>
 				</Container>
 				<Container vertical='none'>
-					<Row>
+					<Row gap={8}>
 						<Stat name='Diary' value={diaryManager.getDiaries().length} />
 						<Stat name='Friend' value={friendManager.getFriends().length} />
 					</Row>
@@ -49,7 +50,7 @@ export default function MyProfilePage() {
 					<Button variant='text' fill onClick={openResetConfirm}>
 						Reset
 					</Button>
-					<Button fill onClick={onClickLock}>
+					<Button fill variant='secondary' onClick={onClickLock}>
 						Lock the app
 					</Button>
 				</ButtonGroup>
@@ -61,15 +62,21 @@ export default function MyProfilePage() {
 interface StatProps {
 	name: string;
 	value: string | number;
+	onClick?: () => void;
 }
 
 function Stat(props: StatProps) {
 	const { name, value } = props;
 
 	return (
-		<Column className={stat} align='center' gap={8}>
-			<Typo.Body>{name}</Typo.Body>
-			<Typo.Title weight='strong'>{value.toString()}</Typo.Title>
-		</Column>
+		<Container className={stat}>
+			<Column gap={8}>
+				<Row justify='space-between' align='center'>
+					<Typo.Body weight='medium'>{name}</Typo.Body>
+					<ChevronRight size={20} />
+				</Row>
+				<Typo.Title weight='strong'>{value.toString()}</Typo.Title>
+			</Column>
+		</Container>
 	);
 }
