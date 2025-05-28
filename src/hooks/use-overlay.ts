@@ -3,7 +3,10 @@ import type { OverlayOptions, Renderer } from '@/components/ui/overlay/types';
 import { nanoid } from 'nanoid';
 import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 
-export function useOverlay(renderer: Renderer, options: OverlayOptions = {}) {
+export function useOverlay<T extends object>(
+	renderer: Renderer<T>,
+	options: OverlayOptions = {},
+) {
 	const id = useRef(nanoid());
 	const { contents, setContents } = useContext(OverlayContext);
 	const targetContent = useMemo(
@@ -11,18 +14,25 @@ export function useOverlay(renderer: Renderer, options: OverlayOptions = {}) {
 		[contents],
 	);
 
-	const show = useCallback(() => {
-		if (!targetContent) {
-			setContents((prev) => [
-				...prev,
-				{
-					id: id.current,
-					render: renderer,
-					options,
-				},
-			]);
-		}
-	}, [targetContent, renderer, options, setContents]);
+	const show = useCallback(
+		(props: T) => {
+			if (!targetContent) {
+				setContents((prev) => [
+					...prev,
+					{
+						id: id.current,
+						render: (prevProps) =>
+							renderer({
+								...prevProps,
+								...props,
+							}),
+						options,
+					},
+				]);
+			}
+		},
+		[targetContent, renderer, options, setContents],
+	);
 
 	const hide = useCallback(() => {
 		if (targetContent) {
@@ -32,14 +42,6 @@ export function useOverlay(renderer: Renderer, options: OverlayOptions = {}) {
 		}
 	}, [targetContent, setContents]);
 
-	const toggle = useCallback(() => {
-		if (targetContent) {
-			hide();
-		} else {
-			show();
-		}
-	}, [targetContent, show, hide]);
-
 	useEffect(() => {
 		return hide;
 	}, [hide]);
@@ -47,6 +49,5 @@ export function useOverlay(renderer: Renderer, options: OverlayOptions = {}) {
 	return {
 		show,
 		hide,
-		toggle,
 	};
 }

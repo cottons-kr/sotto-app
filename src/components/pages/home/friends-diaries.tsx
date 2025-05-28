@@ -9,10 +9,11 @@ import { DiaryCard } from '@/components/ui/card/diary';
 import { Content } from '@/components/ui/content';
 import { Divider } from '@/components/ui/divider';
 import { Drawer } from '@/components/ui/drawer';
+import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
 import { diaryManager } from '@/lib/managers/diary';
-import { friendManager } from '@/lib/managers/friend';
+import { type User, friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
 import { banWarning } from '@/routes/home/page.css';
@@ -108,25 +109,17 @@ interface FriendDiariesProps {
 
 function FriendDiaries(props: FriendDiariesProps) {
 	const { userUUID } = props;
-	const { toggleDrawer, closeDrawer } = useDrawer('ban-user');
+
+	const { show } = useDrawer(BanUserDrawer);
 	const user = friendManager.getFriend(userUUID);
 	const diaries = diaryManager.getFriendDiaries(userUUID);
 	if (!user) {
 		return null;
 	}
 
-	const onClickBlock = useCallback(async () => {
-		for (const diary of diaryManager.getFriendDiaries(userUUID)) {
-			diaryManager.removeDiary(diary.uuid);
-		}
-		friendManager.removeFriend(userUUID);
-
-		await apiClient.post('/users/ban', {
-			uuid: userUUID,
-		});
-
-		closeDrawer();
-	}, [userUUID, closeDrawer]);
+	const showBanDrawer = useCallback(() => {
+		show({ user });
+	}, [show, user]);
 
 	return (
 		<>
@@ -136,7 +129,7 @@ function FriendDiaries(props: FriendDiariesProps) {
 						<Avatar src={user.profileUrl} />
 						<Typo.Body weight='strong'>{user.name}</Typo.Body>
 					</Row>
-					<Ban size={20} onClick={toggleDrawer} />
+					<Ban size={20} onClick={showBanDrawer} />
 				</Row>
 			</Container>
 			<Container vertical='small'>
@@ -149,29 +142,53 @@ function FriendDiaries(props: FriendDiariesProps) {
 			<Container horizontal='none'>
 				<Divider />
 			</Container>
-			<Drawer id='ban-user'>
-				<Container horizontal='none'>
-					<Container vertical='regular' className={center}>
-						<Avatar size={56} src={user.profileUrl} />
-					</Container>
-					<Container className={center} vertical='small'>
-						<Typo.Lead weight='strong'>Block “{user.name}”?</Typo.Lead>
-					</Container>
-					<Container className={center} vertical='none'>
-						<Typo.Body className={banWarning}>
-							You will never receive friends diary from “{user.name}”
-						</Typo.Body>
-					</Container>
-				</Container>
-				<ButtonGroup direction='horizontal'>
-					<Button fill onClick={onClickBlock}>
-						Block
-					</Button>
-					<Button variant='secondary' fill onClick={closeDrawer}>
-						Cancel
-					</Button>
-				</ButtonGroup>
-			</Drawer>
 		</>
+	);
+}
+
+interface BanUserDrawerProps {
+	user: User;
+}
+
+function BanUserDrawer(props: BanUserDrawerProps & OverlayProps) {
+	const { user, close } = props;
+
+	const onClickBlock = useCallback(async () => {
+		for (const diary of diaryManager.getFriendDiaries(user.uuid)) {
+			diaryManager.removeDiary(diary.uuid);
+		}
+		friendManager.removeFriend(user.uuid);
+
+		await apiClient.post('/users/ban', {
+			uuid: user.uuid,
+		});
+
+		close();
+	}, [user.uuid, close]);
+
+	return (
+		<Drawer>
+			<Container horizontal='none'>
+				<Container vertical='regular' className={center}>
+					<Avatar size={56} src={user.profileUrl} />
+				</Container>
+				<Container className={center} vertical='small'>
+					<Typo.Lead weight='strong'>Block “{user.name}”?</Typo.Lead>
+				</Container>
+				<Container className={center} vertical='none'>
+					<Typo.Body className={banWarning}>
+						You will never receive friends diary from “{user.name}”
+					</Typo.Body>
+				</Container>
+			</Container>
+			<ButtonGroup direction='horizontal'>
+				<Button fill onClick={onClickBlock}>
+					Block
+				</Button>
+				<Button variant='secondary' fill onClick={close}>
+					Cancel
+				</Button>
+			</ButtonGroup>
+		</Drawer>
 	);
 }

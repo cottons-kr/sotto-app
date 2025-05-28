@@ -2,7 +2,7 @@ import { Container } from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Drawer } from '@/components/ui/drawer';
-import type { OverlayProps } from '@/components/ui/overlay/context';
+import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import { resetApp } from '@/lib/app';
 import { authenticate, checkStatus } from '@tauri-apps/plugin-biometric';

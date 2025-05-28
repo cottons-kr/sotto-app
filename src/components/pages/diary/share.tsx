@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Drawer } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
+import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
-import { useDrawer } from '@/hooks/use-drawer';
 import { type Diary, diaryManager } from '@/lib/managers/diary';
 import { type User, friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
@@ -29,14 +29,13 @@ import {
 	item,
 } from './styles/share.css';
 
-interface DiaryShareSectionProps {
+interface DiaryShareDrawerProps {
 	diary: Diary;
 	setDiary: Dispatch<SetStateAction<Diary>>;
 }
 
-export function DiaryShareSection(props: DiaryShareSectionProps) {
-	const { diary, setDiary } = props;
-	const { closeDrawer } = useDrawer('share-diary');
+export function DiaryShareDrawer(props: DiaryShareDrawerProps & OverlayProps) {
+	const { diary, setDiary, close } = props;
 	const [isSearching, setIsSearching] = useState(false);
 	const [isSharing, setIsSharing] = useState(false);
 	const [searchedUsers, setSearchedUsers] = useState<Array<User>>([]);
@@ -79,13 +78,13 @@ export function DiaryShareSection(props: DiaryShareSectionProps) {
 		setDiary(result);
 
 		setIsSharing(false);
-		closeDrawer();
-	}, [diary, setDiary, selectedUsers, closeDrawer]);
+		close();
+	}, [diary, setDiary, selectedUsers, close]);
 
 	const onClickShareViaUrl = useCallback(async () => {}, []);
 
 	return (
-		<Drawer id='share-diary' preventBackdropClose={isSharing}>
+		<Drawer preventBackdropClose={isSharing}>
 			<Container vertical='small' horizontal='large'>
 				<Typo.Lead weight='strong'>Share with your friends</Typo.Lead>
 			</Container>

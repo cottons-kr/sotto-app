@@ -1,7 +1,7 @@
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
-import { DiaryShareSection } from '@/components/pages/diary/share';
+import { DiaryShareDrawer } from '@/components/pages/diary/share';
 import { Divider } from '@/components/ui/divider';
 import { EmojiInput } from '@/components/ui/input/emoji';
 import { TopNavigator } from '@/components/ui/top-navigator';
@@ -18,7 +18,6 @@ import { useSearchParams } from 'react-router-dom';
 import { page, textArea, textAreaContainer, titleInput } from './page.css';
 
 export default function DiaryPage() {
-	const { toggleDrawer } = useDrawer('share-diary');
 	const [searchParams] = useSearchParams();
 	const diaryUUID = useMemo(() => searchParams.get('uuid'), [searchParams]);
 	const isReadOnly = useMemo(
@@ -28,6 +27,7 @@ export default function DiaryPage() {
 	const [diary, { setEmoji, setTitle, setContent, setDiary }] =
 		useDiary(diaryUUID);
 	const [isSaving, setIsSaving] = useState(false);
+	const { show: showShareDrawer } = useDrawer(DiaryShareDrawer);
 
 	const saveDiary = useCallback(async () => {
 		if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {
@@ -50,6 +50,13 @@ export default function DiaryPage() {
 		}
 	}, [diary]);
 
+	const openShareDrawer = useCallback(() => {
+		showShareDrawer({
+			diary,
+			setDiary,
+		});
+	}, [showShareDrawer, diary, setDiary]);
+
 	return (
 		<>
 			<Column className={page} justify='start'>
@@ -57,7 +64,7 @@ export default function DiaryPage() {
 					leadingArea={<GoBack beforeBack={saveDiary} />}
 					trailingArea={
 						isReadOnly ? undefined : (
-							<Share onClick={isSaving ? undefined : toggleDrawer} />
+							<Share onClick={isSaving ? undefined : openShareDrawer} />
 						)
 					}
 				/>
@@ -95,7 +102,6 @@ export default function DiaryPage() {
 					/>
 				</Container>
 			</Column>
-			<DiaryShareSection diary={diary} setDiary={setDiary} />
 			<DiarySavingPopup visible={isSaving} />
 		</>
 	);

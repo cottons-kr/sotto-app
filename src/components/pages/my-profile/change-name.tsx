@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Drawer } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
-import type { OverlayProps } from '@/components/ui/overlay/context';
+import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import { log } from '@/lib/log';
 import { apiClient } from '@/lib/managers/http';
