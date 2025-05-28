@@ -21,6 +21,7 @@ resetGlobalStyle('*', {
 	textRendering: 'optimizeLegibility',
 	shapeRendering: 'geometricPrecision',
 	WebkitTapHighlightColor: 'rgba(0, 0, 0, 0)',
+	userSelect: 'none',
 });
 
 resetGlobalStyle('*:focus', { outline: 'none' });

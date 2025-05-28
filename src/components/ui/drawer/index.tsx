@@ -1,54 +1,46 @@
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { motion } from 'motion/react';
-import { useCallback, useContext } from 'react';
-import { Overlay } from '../overlay';
+import { type PanInfo, motion } from 'motion/react';
+import { useCallback } from 'react';
+import type { OverlayProps } from '../overlay/context';
 import { drawerVariants } from './animation';
-import { DrawerContext } from './context';
-import { drawer, handle } from './styles/drawer.css';
+import { drawer, handle } from './styles.css';
 
-interface DrawerProps extends BaseProps<HAS_CHILDREN> {
-	id: string;
+interface DrawerProps extends BaseProps<HAS_CHILDREN>, OverlayProps {
 	preventBackdropClose?: boolean;
 }
 
 export function Drawer(props: DrawerProps) {
-	const { id, preventBackdropClose, children: drawerContent } = props;
-	const { currentDrawer, closeDrawer } = useContext(DrawerContext);
+	const { preventBackdropClose, children: drawerContent, close } = props;
 
-	const onClickBackdrop = useCallback(() => {
-		if (id === currentDrawer && !preventBackdropClose) {
-			closeDrawer();
-		}
-	}, [id, currentDrawer, closeDrawer, preventBackdropClose]);
+	const onDragEnd = useCallback(
+		(_: unknown, info: PanInfo) => {
+			if (info.offset.y > 100) {
+				close();
+			}
+		},
+		[close],
+	);
 
 	return (
-		id === currentDrawer && (
-			<Overlay id={`drawer-${id}`} close={onClickBackdrop}>
-				<motion.div
-					className={drawer}
-					variants={drawerVariants}
-					initial='hidden'
-					animate='visible'
-					exit='hidden'
-					drag='y'
-					dragConstraints={{ top: 0, bottom: 0 }}
-					dragDirectionLock
-					onDragEnd={(_, { offset }) => {
-						if (offset.y > 100) {
-							closeDrawer();
-						}
-					}}
-				>
-					<Container vertical='regular'>
-						<Row justify='center'>
-							<div className={handle} />
-						</Row>
-					</Container>
-					{drawerContent}
-				</motion.div>
-			</Overlay>
-		)
+		<motion.div
+			className={drawer}
+			variants={drawerVariants}
+			initial='hidden'
+			animate='visible'
+			exit='hidden'
+			drag='y'
+			dragConstraints={{ top: 0, bottom: 0 }}
+			dragDirectionLock
+			onDragEnd={onDragEnd}
+		>
+			<Container vertical='regular'>
+				<Row justify='center'>
+					<div className={handle} />
+				</Row>
+			</Container>
+			{drawerContent}
+		</motion.div>
 	);
 }

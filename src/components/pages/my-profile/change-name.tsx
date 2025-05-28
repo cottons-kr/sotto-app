@@ -3,21 +3,22 @@ import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Drawer } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
+import type { OverlayProps } from '@/components/ui/overlay/context';
 import { Typo } from '@/components/ui/typography';
-import { useDrawer } from '@/hooks/use-drawer';
 import { log } from '@/lib/log';
 import { apiClient } from '@/lib/managers/http';
 import { message } from '@tauri-apps/plugin-dialog';
 import { useCallback, useState } from 'react';
 
-export function MyProfileChangeName() {
-	const { closeDrawer } = useDrawer('change-name');
+export function MyProfileChangeNameDrawer(props: OverlayProps) {
+	const { close } = props;
+
 	const [name, setName] = useState(localStorage.getItem('name') || '');
 
 	const onClickChange = useCallback(async () => {
 		const prevName = localStorage.getItem('name');
 		if (prevName === name) {
-			closeDrawer();
+			close();
 			return;
 		}
 
@@ -34,12 +35,12 @@ export function MyProfileChangeName() {
 				setName(prevName);
 			}
 		} finally {
-			closeDrawer();
+			close();
 		}
-	}, [name, closeDrawer]);
+	}, [name, close]);
 
 	return (
-		<Drawer id='change-name'>
+		<Drawer {...props}>
 			<Container vertical='small' horizontal='large'>
 				<Typo.Lead weight='strong'>Change name</Typo.Lead>
 			</Container>

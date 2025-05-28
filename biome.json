@@ -6,8 +6,8 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"ignoreUnknown": false,
-		"ignore": []
+		"ignoreUnknown": true,
+		"ignore": ["src-tauri/"]
 	},
 	"formatter": {
 		"enabled": true,

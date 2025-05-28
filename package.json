@@ -31,6 +31,7 @@
 		"emojibase-data": "^16.0.3",
 		"lucide-react": "^0.510.0",
 		"motion": "^12.10.5",
+		"nanoid": "^5.1.5",
 		"nuqs": "^2.4.3",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",

@@ -5,13 +5,18 @@ import {
 	createContext,
 } from 'react';
 
+export interface OverlayProps {
+	close: () => void;
+}
+
+export type Renderer = (props: OverlayProps) => ReactNode;
+
 export type OverlayContent = {
 	id: string;
-	children: ReactNode;
+	Render: Renderer;
 };
 
 type OverlayContextType = {
-	dom?: HTMLDivElement | null;
 	contents: Array<OverlayContent>;
 	setContents: Dispatch<SetStateAction<Array<OverlayContent>>>;
 };

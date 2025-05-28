@@ -1,9 +1,9 @@
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
-import { MyProfileChangeName } from '@/components/pages/my-profile/change-name';
+import { MyProfileChangeNameDrawer } from '@/components/pages/my-profile/change-name';
 import { MyProfileImage } from '@/components/pages/my-profile/image';
-import { MyProfileResetConfirm } from '@/components/pages/my-profile/reset-confirm';
+import { MyProfileResetConfirmDrawer } from '@/components/pages/my-profile/reset-confirm';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { TopNavigator } from '@/components/ui/top-navigator';
@@ -16,8 +16,8 @@ import { useCallback } from 'react';
 import { avatarContainer, stat } from './page.css';
 
 export default function MyProfilePage() {
-	const { toggleDrawer: toggleChangeName } = useDrawer('change-name');
-	const { toggleDrawer: toggleResetConfirm } = useDrawer('reset-confirm');
+	const { show: openChangeName } = useDrawer(MyProfileChangeNameDrawer);
+	const { show: openResetConfirm } = useDrawer(MyProfileResetConfirmDrawer);
 
 	const onClickLock = useCallback(() => {
 		location.reload();
@@ -35,7 +35,7 @@ export default function MyProfilePage() {
 					<Typo.Body>@{localStorage.getItem('username')}</Typo.Body>
 				</Column>
 				<Container vertical='large' horizontal='large'>
-					<Button variant='secondary' fill onClick={toggleChangeName}>
+					<Button variant='secondary' fill onClick={openChangeName}>
 						Change name
 					</Button>
 				</Container>
@@ -46,7 +46,7 @@ export default function MyProfilePage() {
 					</Row>
 				</Container>
 				<ButtonGroup direction='vertical' float>
-					<Button variant='text' fill onClick={toggleResetConfirm}>
+					<Button variant='text' fill onClick={openResetConfirm}>
 						Reset
 					</Button>
 					<Button fill onClick={onClickLock}>
@@ -54,8 +54,6 @@ export default function MyProfilePage() {
 					</Button>
 				</ButtonGroup>
 			</Column>
-			<MyProfileChangeName />
-			<MyProfileResetConfirm />
 		</>
 	);
 }

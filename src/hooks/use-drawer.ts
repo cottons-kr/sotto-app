@@ -1,22 +1,6 @@
-import { useContext } from 'react';
-import { DrawerContext } from '../components/ui/drawer/context';
+import type { Renderer } from '@/components/ui/overlay/context';
+import { useOverlay } from './use-overlay';
 
-export function useDrawer(id: string) {
-	const { currentDrawer, openDrawer, closeDrawer } = useContext(DrawerContext);
-	const isOpen = currentDrawer === id;
-
-	const toggleDrawer = () => {
-		if (isOpen) {
-			closeDrawer();
-		} else {
-			openDrawer(id);
-		}
-	};
-
-	return {
-		isOpen,
-		openDrawer,
-		closeDrawer,
-		toggleDrawer,
-	};
+export function useDrawer(renderer: Renderer) {
+	return useOverlay(renderer, {});
 }
