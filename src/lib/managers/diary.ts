@@ -91,6 +91,12 @@ class DiaryManager {
 			});
 	}
 
+	getAllDiaries() {
+		return Array.from(this.data.values()).sort((a, b) => {
+			return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+		});
+	}
+
 	getDiary(uuid: string) {
 		return this.data.get(uuid);
 	}

@@ -14,11 +14,13 @@ import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
 import { ChevronRight } from 'lucide-react';
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { avatarContainer, stat } from './page.css';
 
 export default function MyProfilePage() {
 	const { show: openChangeName } = useDrawer(MyProfileChangeNameDrawer);
 	const { show: openResetConfirm } = useDrawer(MyProfileResetConfirmDrawer);
+	const navigate = useNavigate();
 
 	const onClickLock = useCallback(() => {
 		location.reload();
@@ -42,8 +44,16 @@ export default function MyProfilePage() {
 				</Container>
 				<Container vertical='none'>
 					<Row gap={8}>
-						<Stat name='Diary' value={diaryManager.getDiaries().length} />
-						<Stat name='Friend' value={friendManager.getFriends().length} />
+						<Stat
+							name='Diary'
+							value={diaryManager.getDiaries().length}
+							onClick={() => navigate('/explorer/diaries')}
+						/>
+						<Stat
+							name='Friend'
+							value={friendManager.getFriends().length}
+							onClick={() => navigate('/explorer/friends')}
+						/>
 					</Row>
 				</Container>
 				<ButtonGroup direction='vertical' float>
@@ -66,10 +76,10 @@ interface StatProps {
 }
 
 function Stat(props: StatProps) {
-	const { name, value } = props;
+	const { name, value, onClick } = props;
 
 	return (
-		<Container className={stat}>
+		<Container className={stat} onClick={onClick}>
 			<Column gap={8}>
 				<Row justify='space-between' align='center'>
 					<Typo.Body weight='medium'>{name}</Typo.Body>
