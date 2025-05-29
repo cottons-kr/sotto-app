@@ -78,7 +78,9 @@ class APIClient {
 }
 
 export const apiClient = new APIClient(
-	import.meta.env.VITE_API_URL || DEFAULT_API_URL,
+	import.meta.env.TAURI_ENV_DEBUG
+		? DEFAULT_API_URL
+		: import.meta.env.VITE_API_URL || DEFAULT_API_URL,
 );
 
 function isBodyContainable(method: string): boolean {

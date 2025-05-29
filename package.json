@@ -11,7 +11,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc && vite build",
-		"preview": "tauri ios dev \"iPhone 16 Pro\"",
+		"ios": "tauri ios dev \"iPhone 16 Pro\"",
+		"android": "tauri android dev",
 		"tauri": "tauri",
 		"format": "biome check --fix",
 		"build:sim": "cross-env VITE_API_URL=https://sotto-api.tapie.kr rimraf ./src-tauri/gen/apple/build/arm64-sim && tauri ios build --target aarch64-sim",
