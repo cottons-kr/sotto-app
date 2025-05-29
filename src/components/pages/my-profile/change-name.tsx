@@ -22,6 +22,14 @@ export function MyProfileChangeNameDrawer(props: OverlayProps) {
 			return;
 		}
 
+		if (!/^[a-zA-Z\s]+$/.test(name)) {
+			await message('Name can only contain letters and spaces.', {
+				kind: 'error',
+			});
+			close();
+			return;
+		}
+
 		try {
 			await apiClient.patch('/users/me', {
 				name,
