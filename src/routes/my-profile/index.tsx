@@ -3,6 +3,7 @@ import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
 import { MyProfileChangeNameDrawer } from '@/components/pages/my-profile/change-name';
 import { MyProfileImage } from '@/components/pages/my-profile/image';
+import { MyProfileResetConfirmDrawer } from '@/components/pages/my-profile/reset-confirm';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { TopNavigator } from '@/components/ui/top-navigator';
@@ -11,12 +12,15 @@ import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
+import { ChevronRight } from 'lucide-react';
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { avatarContainer, stat } from './page.css';
 
 export default function MyProfilePage() {
 	const { show: openChangeName } = useDrawer(MyProfileChangeNameDrawer);
-	// const { show: openResetConfirm } = useDrawer(MyProfileResetConfirmDrawer);
+	const navigate = useNavigate();
+	const { show: openResetConfirm } = useDrawer(MyProfileResetConfirmDrawer);
 
 	const onClickLock = useCallback(() => {
 		location.reload();
@@ -53,9 +57,9 @@ export default function MyProfilePage() {
 					</Row>
 				</Container>
 				<ButtonGroup direction='vertical' float>
-					{/* <Button variant='text' fill onClick={openResetConfirm}>
+					<Button variant='text' fill onClick={openResetConfirm}>
 						Reset
-					</Button> */}
+					</Button>
 					<Button fill variant='secondary' onClick={onClickLock}>
 						Lock the app
 					</Button>
@@ -75,11 +79,14 @@ function Stat(props: StatProps) {
 	const { name, value, onClick } = props;
 
 	return (
-		<Column className={stat} align='center' gap={8}>
-			<Row justify='space-between' align='center'>
-				<Typo.Body weight='medium'>{name}</Typo.Body>
-			</Row>
-			<Typo.Title weight='strong'>{value.toString()}</Typo.Title>
-		</Column>
+		<Container className={stat} onClick={onClick}>
+			<Column gap={8}>
+				<Row justify='space-between' align='center'>
+					<Typo.Body weight='medium'>{name}</Typo.Body>
+					<ChevronRight size={20} />
+				</Row>
+				<Typo.Title weight='strong'>{value.toString()}</Typo.Title>
+			</Column>
+		</Container>
 	);
 }
