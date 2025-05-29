@@ -16,7 +16,8 @@ export const card = uiStyle({
 });
 
 export const content = uiStyle({
-	height: 100,
+	width: '100%',
+	height: 120,
 });
 
 export const preventOverflow = uiStyle({
@@ -34,7 +35,3 @@ export const preview = uiStyle([
 		opacity: 0.7,
 	},
 ]);
-
-export const date = uiStyle({
-	textAlign: 'right',
-});
