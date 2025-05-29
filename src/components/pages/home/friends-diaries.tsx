@@ -167,7 +167,7 @@ function BanUserDrawer(props: BanUserDrawerProps & OverlayProps) {
 	}, [user.uuid, close]);
 
 	return (
-		<Drawer>
+		<Drawer close={close}>
 			<Container horizontal='none'>
 				<Container vertical='regular' className={center}>
 					<Avatar size={56} src={user.profileUrl} />

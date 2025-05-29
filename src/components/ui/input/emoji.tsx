@@ -57,7 +57,7 @@ function EmojiSelectorDrawer(props: EmojiSelectorDrawerProps & OverlayProps) {
 	const { onValue, setValue, close } = props;
 
 	return (
-		<Drawer>
+		<Drawer close={close}>
 			<Container vertical='small' horizontal='large'>
 				<Typo.Lead weight='strong'>How about your feeling?</Typo.Lead>
 			</Container>

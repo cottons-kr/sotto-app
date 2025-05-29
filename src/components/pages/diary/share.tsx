@@ -84,7 +84,7 @@ export function DiaryShareDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 	const onClickShareViaUrl = useCallback(async () => {}, []);
 
 	return (
-		<Drawer preventBackdropClose={isSharing}>
+		<Drawer preventBackdropClose={isSharing} close={close}>
 			<Container vertical='small' horizontal='large'>
 				<Typo.Lead weight='strong'>Share with your friends</Typo.Lead>
 			</Container>

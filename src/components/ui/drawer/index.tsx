@@ -3,16 +3,16 @@ import { Row } from '@/components/layout/row';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
 import { type PanInfo, motion } from 'motion/react';
 import { useCallback } from 'react';
-import type { OverlayProps } from '../overlay/context';
+import type { OverlayProps } from '../overlay/types';
 import { drawerVariants } from './animation';
 import { drawer, handle } from './styles.css';
 
-interface DrawerProps extends BaseProps<HAS_CHILDREN>, OverlayProps {
+interface DrawerProps extends BaseProps<HAS_CHILDREN> {
 	preventBackdropClose?: boolean;
 }
 
-export function Drawer(props: DrawerProps) {
-	const { preventBackdropClose, children: drawerContent, close } = props;
+export function Drawer(props: DrawerProps & OverlayProps) {
+	const { children: drawerContent, close } = props;
 
 	const onDragEnd = useCallback(
 		(_: unknown, info: PanInfo) => {
