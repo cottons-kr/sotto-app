@@ -3,7 +3,6 @@ import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
 import { MyProfileChangeNameDrawer } from '@/components/pages/my-profile/change-name';
 import { MyProfileImage } from '@/components/pages/my-profile/image';
-import { MyProfileResetConfirmDrawer } from '@/components/pages/my-profile/reset-confirm';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { TopNavigator } from '@/components/ui/top-navigator';
@@ -17,7 +16,7 @@ import { avatarContainer, stat } from './page.css';
 
 export default function MyProfilePage() {
 	const { show: openChangeName } = useDrawer(MyProfileChangeNameDrawer);
-	const { show: openResetConfirm } = useDrawer(MyProfileResetConfirmDrawer);
+	// const { show: openResetConfirm } = useDrawer(MyProfileResetConfirmDrawer);
 
 	const onClickLock = useCallback(() => {
 		location.reload();
@@ -46,9 +45,9 @@ export default function MyProfilePage() {
 					</Row>
 				</Container>
 				<ButtonGroup direction='vertical' float>
-					<Button variant='text' fill onClick={openResetConfirm}>
+					{/* <Button variant='text' fill onClick={openResetConfirm}>
 						Reset
-					</Button>
+					</Button> */}
 					<Button fill variant='secondary' onClick={onClickLock}>
 						Lock the app
 					</Button>
