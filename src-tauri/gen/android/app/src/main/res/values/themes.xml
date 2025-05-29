@@ -2,5 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme.sotto_app" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
+      <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+      <item name="android:statusBarColor">#F3EEEA</item>
     </style>
 </resources>
