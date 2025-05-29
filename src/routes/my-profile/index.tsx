@@ -12,6 +12,7 @@ import { useDrawer } from '@/hooks/use-drawer';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { avatarContainer, stat } from './page.css';
 
 export default function MyProfilePage() {
@@ -40,8 +41,16 @@ export default function MyProfilePage() {
 				</Container>
 				<Container vertical='none'>
 					<Row gap={8}>
-						<Stat name='Diary' value={diaryManager.getDiaries().length} />
-						<Stat name='Friend' value={friendManager.getFriends().length} />
+						<Stat
+							name='Diary'
+							value={diaryManager.getDiaries().length}
+							onClick={() => navigate('/explorer/diaries')}
+						/>
+						<Stat
+							name='Friend'
+							value={friendManager.getFriends().length}
+							onClick={() => navigate('/explorer/friends')}
+						/>
 					</Row>
 				</Container>
 				<ButtonGroup direction='vertical' float>
@@ -64,7 +73,7 @@ interface StatProps {
 }
 
 function Stat(props: StatProps) {
-	const { name, value } = props;
+	const { name, value, onClick } = props;
 
 	return (
 		<Column className={stat} align='center' gap={8}>

@@ -9,6 +9,8 @@ import SignInForgotPinPage from './routes/auth/sign-in/forgot-pin';
 import SignInPinPage from './routes/auth/sign-in/pin';
 import SignUpPage from './routes/auth/sign-up';
 import DiaryPage from './routes/diary';
+import ExplorerDiariesPage from './routes/explorer/diaries';
+import ExplorerDiariesDetailPage from './routes/explorer/diaries/detail';
 import HomePage from './routes/home';
 import IndexPage from './routes/index';
 import MyProfilePage from './routes/my-profile';
@@ -34,6 +36,11 @@ export default function App() {
 				<Route path='/home' element={<HomePage />} />
 				<Route path='/diary' element={<DiaryPage />} />
 				<Route path='/my-profile' element={<MyProfilePage />} />
+				<Route path='/explorer/diaries' element={<ExplorerDiariesPage />} />
+				<Route
+					path='/explorer/diaries/:uuid'
+					element={<ExplorerDiariesDetailPage />}
+				/>
 			</Routes>
 		</BrowserRouter>
 	);
