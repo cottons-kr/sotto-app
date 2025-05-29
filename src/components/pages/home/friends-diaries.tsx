@@ -12,11 +12,13 @@ import { Drawer } from '@/components/ui/drawer';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
+import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
 import { type User, friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
 import { banWarning } from '@/routes/home/page.css';
+import { message } from '@tauri-apps/plugin-dialog';
 import { Ban, SmilePlus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { center } from './styles/friends-diaries.css';
@@ -113,13 +115,18 @@ function FriendDiaries(props: FriendDiariesProps) {
 	const { show } = useDrawer(BanUserDrawer);
 	const user = friendManager.getFriend(userUUID);
 	const diaries = diaryManager.getFriendDiaries(userUUID);
+
+	const showBanDrawer = useCallback(() => {
+		if (user) {
+			show({ user });
+		} else {
+			log('error', 'User not found for ban drawer');
+		}
+	}, [show, user]);
+
 	if (!user) {
 		return null;
 	}
-
-	const showBanDrawer = useCallback(() => {
-		show({ user });
-	}, [show, user]);
 
 	return (
 		<>
@@ -154,14 +161,19 @@ function BanUserDrawer(props: BanUserDrawerProps & OverlayProps) {
 	const { user, close } = props;
 
 	const onClickBlock = useCallback(async () => {
-		for (const diary of diaryManager.getFriendDiaries(user.uuid)) {
-			diaryManager.removeDiary(diary.uuid);
-		}
-		friendManager.removeFriend(user.uuid);
+		try {
+			for (const diary of diaryManager.getFriendDiaries(user.uuid)) {
+				diaryManager.removeDiary(diary.uuid);
+			}
+			friendManager.removeFriend(user.uuid);
 
-		await apiClient.post('/users/ban', {
-			uuid: user.uuid,
-		});
+			await apiClient.post('/users/ban', {
+				uuid: user.uuid,
+			});
+		} catch (error) {
+			log('error', 'Failed to block user', error);
+			await message('Failed to block user');
+		}
 
 		close();
 	}, [user.uuid, close]);

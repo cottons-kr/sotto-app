@@ -23,5 +23,6 @@ export async function resetApp() {
 			'Failed to delete all diaries and log out. Please try again.',
 		);
 		log('error', 'Failed to delete all diaries and log out', error);
+		throw error;
 	}
 }
