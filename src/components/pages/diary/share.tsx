@@ -81,10 +81,8 @@ export function DiaryShareDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 		close();
 	}, [diary, setDiary, selectedUsers, close]);
 
-	const onClickShareViaUrl = useCallback(async () => {}, []);
-
 	return (
-		<Drawer preventBackdropClose={isSharing}>
+		<Drawer preventBackdropClose={isSharing} close={close}>
 			<Container vertical='small' horizontal='large'>
 				<Typo.Lead weight='strong'>Share with your friends</Typo.Lead>
 			</Container>
@@ -131,9 +129,6 @@ export function DiaryShareDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 				</Column>
 			)}
 			<ButtonGroup direction='horizontal'>
-				<Button fill variant='secondary' onClick={onClickShareViaUrl}>
-					Share via URL
-				</Button>
 				<Button fill onClick={onClickShare} loading={isSharing}>
 					Apply
 				</Button>

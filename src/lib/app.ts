@@ -14,14 +14,15 @@ export async function processSignIn(pin: string) {
 
 export async function resetApp() {
 	try {
-		await apiClient.delete('/users/me');
 		friendManager.clear();
 		await diaryManager.clear();
 		await storageClient.clear();
+		await apiClient.delete('/users/me');
 	} catch (error) {
 		await message(
 			'Failed to delete all diaries and log out. Please try again.',
 		);
 		log('error', 'Failed to delete all diaries and log out', error);
+		throw error;
 	}
 }

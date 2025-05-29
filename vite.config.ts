@@ -27,4 +27,7 @@ export default defineConfig(async () => ({
 			ignored: ['**/src-tauri/**'],
 		},
 	},
+	envPrefix: ['VITE_', 'TAURI_ENV_'],
+	minify: !process.env.TAURI_ENV_DEBUG ? 'esbuild' : false,
+	sourcemap: !!process.env.TAURI_ENV_DEBUG,
 }));
