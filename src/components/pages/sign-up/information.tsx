@@ -36,8 +36,33 @@ export function SignUpInformationSection() {
 			await message('Please enter your name.', { kind: 'error' });
 			return;
 		}
+		if (name.length < 1 || name.length > 50) {
+			await message('Name must be between 1 and 50 characters long.', {
+				kind: 'error',
+			});
+			return;
+		}
+		if (!/^[a-zA-Z\s]+$/.test(name)) {
+			await message('Name can only contain letters and spaces.', {
+				kind: 'error',
+			});
+			return;
+		}
+
 		if (!username) {
 			await message('Please enter your username.', { kind: 'error' });
+			return;
+		}
+		if (username.length < 6 || username.length > 24) {
+			await message('Username must be between 6 and 24 characters long.', {
+				kind: 'error',
+			});
+			return;
+		}
+		if (!/^[a-zA-Z0-9.]+$/.test(username)) {
+			await message('Username must contain only letters, numbers, and dots.', {
+				kind: 'error',
+			});
 			return;
 		}
 
