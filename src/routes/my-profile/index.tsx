@@ -12,7 +12,6 @@ import { useDrawer } from '@/hooks/use-drawer';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { avatarContainer, stat } from './page.css';
 
 export default function MyProfilePage() {
