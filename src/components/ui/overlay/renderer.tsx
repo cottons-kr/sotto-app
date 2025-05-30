@@ -45,7 +45,7 @@ export function OverlayRenderer(props: OverlayRendererProps) {
 				exit='hidden'
 				onClick={onClickBackdrop}
 			/>
-			<Render close={close} />
+			<Render key={content.id} close={close} />
 		</>
 	);
 }

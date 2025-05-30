@@ -19,8 +19,8 @@ import { avatarContainer, stat } from './page.css';
 
 export default function MyProfilePage() {
 	const { show: openChangeName } = useDrawer(MyProfileChangeNameDrawer);
-	const navigate = useNavigate();
 	const { show: openResetConfirm } = useDrawer(MyProfileResetConfirmDrawer);
+	const navigate = useNavigate();
 
 	const onClickLock = useCallback(() => {
 		location.reload();

@@ -1,17 +1,17 @@
 import { OverlayContext } from '@/components/ui/overlay/context';
 import type { OverlayOptions, Renderer } from '@/components/ui/overlay/types';
 import { nanoid } from 'nanoid';
-import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useContext, useEffect, useMemo } from 'react';
 
 export function useOverlay<T extends object>(
 	renderer: Renderer<T>,
 	options: OverlayOptions = {},
 ) {
-	const id = useRef(nanoid());
+	const id = useMemo(nanoid, []);
 	const { contents, setContents } = useContext(OverlayContext);
 	const targetContent = useMemo(
-		() => contents.find((c) => c.id === id.current),
-		[contents],
+		() => contents.find((c) => c.id === id),
+		[id, contents],
 	);
 
 	const show = useCallback(
@@ -20,7 +20,7 @@ export function useOverlay<T extends object>(
 				setContents((prev) => [
 					...prev,
 					{
-						id: id.current,
+						id,
 						render: (prevProps) =>
 							renderer({
 								...prevProps,
@@ -29,22 +29,39 @@ export function useOverlay<T extends object>(
 						options,
 					},
 				]);
+			} else {
+				setContents((prev) =>
+					prev.map((content) =>
+						content.id === id
+							? {
+									...content,
+									render: (prevProps) =>
+										renderer({
+											...prevProps,
+											...props,
+										}),
+								}
+							: content,
+					),
+				);
 			}
 		},
-		[targetContent, renderer, options, setContents],
+		[id, targetContent, renderer, options, setContents],
 	);
 
 	const hide = useCallback(() => {
 		if (targetContent) {
-			setContents((prev) =>
-				prev.filter((content) => content.id !== id.current),
-			);
+			setContents((prev) => prev.filter((content) => content.id !== id));
 		}
-	}, [targetContent, setContents]);
+	}, [id, targetContent, setContents]);
 
 	useEffect(() => {
-		return hide;
-	}, [hide]);
+		if (!targetContent) return;
+
+		return () => {
+			hide();
+		};
+	}, [targetContent, hide]);
 
 	return {
 		show,

@@ -18,18 +18,6 @@ export function OverlayProvider(props: OverlayProviderProps) {
 		setContents((prev) => prev.filter((content) => content.id !== id));
 	}, []);
 
-	const children = (
-		<AnimatePresence>
-			{contents.map((c) => (
-				<OverlayRenderer
-					key={c.id}
-					content={c}
-					close={() => hideContent(c.id)}
-				/>
-			))}
-		</AnimatePresence>
-	);
-
 	const overlayRoot = document.getElementById('overlay-root');
 	if (!overlayRoot) {
 		throw new Error('Overlay root element not found.');
@@ -38,7 +26,18 @@ export function OverlayProvider(props: OverlayProviderProps) {
 	return (
 		<OverlayContext value={{ contents, setContents }}>
 			{providerChildren}
-			{createPortal(children, overlayRoot)}
+			{createPortal(
+				<AnimatePresence>
+					{contents.map((c) => (
+						<OverlayRenderer
+							key={c.id}
+							content={c}
+							close={() => hideContent(c.id)}
+						/>
+					))}
+				</AnimatePresence>,
+				overlayRoot,
+			)}
 		</OverlayContext>
 	);
 }
