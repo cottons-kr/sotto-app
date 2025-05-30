@@ -7,11 +7,13 @@ import {
 	bottomSafeAreaPaddingStyle,
 	buttonGroup,
 	floatStyle,
+	smallPaddingStyle,
 } from './styles/group.css';
 
 interface ButtonGroupProps extends BaseProps<HAS_CHILDREN> {
 	direction?: 'horizontal' | 'vertical';
 	float?: boolean;
+	smallPadding?: boolean;
 	bottomSafeAreaPadding?: boolean;
 }
 
@@ -20,6 +22,7 @@ export function ButtonGroup(props: ButtonGroupProps) {
 		children,
 		direction = 'horizontal',
 		float = false,
+		smallPadding = false,
 		bottomSafeAreaPadding,
 	} = props;
 	const [height, setHeight] = useState(0);
@@ -49,6 +52,7 @@ export function ButtonGroup(props: ButtonGroupProps) {
 		buttonGroup,
 		{
 			[floatStyle]: float,
+			[smallPaddingStyle]: smallPadding,
 			[bottomSafeAreaPaddingStyle]: bottomSafeAreaPadding,
 		},
 	];

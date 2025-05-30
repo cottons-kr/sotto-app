@@ -7,6 +7,10 @@ export const buttonGroup = uiStyle({
 	backgroundColor: color.milk,
 });
 
+export const smallPaddingStyle = uiStyle({
+	padding: 8,
+});
+
 export const bottomSafeAreaPaddingStyle = uiStyle({
 	paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)',
 });
