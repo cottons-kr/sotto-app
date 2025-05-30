@@ -15,6 +15,7 @@
 		"android": "tauri android dev \"Pixel_7_Pro\"",
 		"tauri": "tauri",
 		"format": "biome check --fix",
+		"repomix": "repomix -c ./repomix.config.json",
 		"build:ios-sim": "rimraf ./src-tauri/gen/apple/build/arm64-sim && tauri ios build --target aarch64-sim",
 		"build:android": "tauri android build",
 		"commit": "bun format && git add . && cz"
@@ -53,6 +54,7 @@
 		"@vitejs/plugin-react": "^4.4.1",
 		"commitizen": "^4.3.1",
 		"cz-conventional-changelog": "^3.3.0",
+		"repomix": "^0.3.7",
 		"rimraf": "^6.0.1",
 		"typescript": "~5.8.3",
 		"vite": "^6.3.5"

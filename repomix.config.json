@@ -1,0 +1,18 @@
+{
+	"$schema": "https://repomix.com/schemas/latest/schema.json",
+	"output": {
+		"filePath": "./repomix-output.md",
+		"style": "markdown",
+		"compress": true,
+		"removeEmptyLines": true
+	},
+	"ignore": {
+		"useGitignore": true,
+		"useDefaultPatterns": true,
+		"customPatterns": [
+			"src-tauri/gen/android/app/src/main/res/**/*.*",
+			"src-tauri/gen/android/app/build/**/*.*",
+			"**/*.pbxproj"
+		]
+	}
+}
