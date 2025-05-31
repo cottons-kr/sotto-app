@@ -44,7 +44,7 @@ export default function ExplorerDiariesDetailPage() {
 				<Row align='center' justify='start' gap={8}>
 					<Avatar size={32} src={localStorage.getItem('profileImage')} />
 					<Typo.Body weight='medium'>
-						{diaryManager.isSharedDiary(diary)
+						{diary.sharedBy
 							? `Shared by ${diary.sharedBy}`
 							: `by ${localStorage.getItem('name')}`}
 					</Typo.Body>
@@ -61,6 +61,10 @@ export default function ExplorerDiariesDetailPage() {
 				content={diary.nonce?.toString() || 'No data available'}
 			/>
 			<PaddingDivider />
+			<ExplorerContent
+				label='Encrypted Key'
+				content={diary.encryptedKey?.toString() || 'No data available'}
+			/>
 			{/* <Container vertical='small'>
 				<Typo.Body>Share via URL is enabled</Typo.Body>
 			</Container> */}

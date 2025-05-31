@@ -10,6 +10,7 @@ export const popup = uiStyle({
 	backgroundColor: color.milk,
 	borderRadius: 24,
 	textAlign: 'center',
+	boxShadow: '0px 0px 24px 8px rgba(0, 0, 0, 0.10)',
 });
 
 export const iconWrapper = uiStyle({

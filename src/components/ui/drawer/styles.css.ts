@@ -10,6 +10,7 @@ export const drawer = uiStyle({
 	backgroundColor: color.milk,
 	paddingBottom: 'env(safe-area-inset-bottom)',
 	borderRadius: '32px 32px 0px 0px',
+	boxShadow: '0px 0px 24px 8px rgba(0, 0, 0, 0.10)',
 	'::after': {
 		content: '""',
 		position: 'absolute',
