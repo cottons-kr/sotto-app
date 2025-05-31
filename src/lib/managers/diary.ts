@@ -121,7 +121,10 @@ class DiaryManager {
 	}
 
 	async addDiary(newDiary: DiaryEditable | Diary) {
-		const uuid = 'uuid' in newDiary ? newDiary.uuid : v4();
+		const uuid =
+			'uuid' in newDiary && newDiary.uuid !== 'NOT_SAVED'
+				? newDiary.uuid
+				: v4();
 		const diary: Diary = {
 			...this.createDiary(),
 			...newDiary,
