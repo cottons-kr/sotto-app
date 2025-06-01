@@ -1,3 +1,4 @@
+import { BanFriendDrawer } from '@/components/features/friend/ban';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { ExplorerContent } from '@/components/pages/explorer/shared/content';
@@ -8,6 +9,7 @@ import { PaddingDivider } from '@/components/ui/divider/padding';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
+import { useDrawer } from '@/hooks/use-drawer';
 import { friendManager } from '@/lib/managers/friend';
 import { color } from '@/styles/color.css';
 import { useCallback, useMemo, useState } from 'react';
@@ -18,12 +20,17 @@ export default function ExplorerFriendsDetailPage() {
 	const navigate = useNavigate();
 	const friend = useMemo(() => friendManager.getFriend(uuid || ''), [uuid]);
 	const [showPublicKey, setShowPublicKey] = useState(false);
+	const { show: openBanFriend } = useDrawer(BanFriendDrawer);
 
 	const onClickPublicKey = useCallback(() => {
 		setShowPublicKey(true);
 	}, []);
 
-	const onClockBlock = useCallback(() => {}, []);
+	const onClockBlock = useCallback(() => {
+		if (friend) {
+			openBanFriend({ friend, callback: () => navigate(-1) });
+		}
+	}, [friend, openBanFriend, navigate]);
 
 	if (!friend) {
 		console.error('Friend not found:', uuid);

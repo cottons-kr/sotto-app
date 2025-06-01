@@ -23,6 +23,8 @@ type SharedDiariesResponse = Array<{
 			name: string;
 			profileUrl: string;
 			publicKey: string;
+			createdAt: string;
+			updatedAt: string;
 		};
 		createdAt: string;
 		updatedAt: string;

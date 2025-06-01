@@ -27,15 +27,16 @@ import {
 	emptyIcon,
 	friendList,
 	item,
-} from './styles/share.css';
+} from './styles/share-drawer.css';
 
 interface DiaryShareDrawerProps {
+	title?: string;
 	diary: Diary;
 	setDiary: Dispatch<SetStateAction<Diary>>;
 }
 
-export function DiaryShareDrawer(props: DiaryShareDrawerProps & OverlayProps) {
-	const { diary, setDiary, close } = props;
+export function ShareDiaryDrawer(props: DiaryShareDrawerProps & OverlayProps) {
+	const { title = 'Share with your friends', diary, setDiary, close } = props;
 	const [isSearching, setIsSearching] = useState(false);
 	const [isSharing, setIsSharing] = useState(false);
 	const [searchedUsers, setSearchedUsers] = useState<Array<User>>([]);
@@ -84,7 +85,7 @@ export function DiaryShareDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 	return (
 		<Drawer preventBackdropClose={isSharing} close={close}>
 			<Container vertical='small' horizontal='large'>
-				<Typo.Lead weight='strong'>Share with your friends</Typo.Lead>
+				<Typo.Lead weight='strong'>{title}</Typo.Lead>
 			</Container>
 			<Container vertical='small' horizontal='medium'>
 				<Input placeholder='Search username' onValue={onSearch} />

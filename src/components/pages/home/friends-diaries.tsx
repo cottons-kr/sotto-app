@@ -1,27 +1,21 @@
 import { decryptDiary } from '@/binding/function/decrypt-diary';
+import { BanFriendDrawer } from '@/components/features/friend/ban';
 import { Container } from '@/components/layout/container';
 import { Grid } from '@/components/layout/grid';
 import { Row } from '@/components/layout/row';
 import { Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
 import { DiaryCard } from '@/components/ui/card/diary';
 import { Content } from '@/components/ui/content';
 import { Divider } from '@/components/ui/divider';
-import { Drawer } from '@/components/ui/drawer';
-import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
 import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
-import { type User, friendManager } from '@/lib/managers/friend';
+import { friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
-import { banWarning } from '@/routes/home/page.css';
-import { message } from '@tauri-apps/plugin-dialog';
 import { Ban, SmilePlus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { center } from './styles/friends-diaries.css';
 
 export function HomeFriendsDiariesSection() {
 	const [friendList, setFriendList] = useState<Array<string>>(
@@ -117,13 +111,13 @@ interface FriendDiariesProps {
 function FriendDiaries(props: FriendDiariesProps) {
 	const { userUUID } = props;
 
-	const { show } = useDrawer(BanUserDrawer);
+	const { show } = useDrawer(BanFriendDrawer);
 	const user = friendManager.getFriend(userUUID);
 	const diaries = diaryManager.getFriendDiaries(userUUID);
 
 	const showBanDrawer = useCallback(() => {
 		if (user) {
-			show({ user });
+			show({ friend: user });
 		} else {
 			log('error', 'User not found for ban drawer');
 		}
@@ -155,57 +149,5 @@ function FriendDiaries(props: FriendDiariesProps) {
 				<Divider />
 			</Container>
 		</>
-	);
-}
-
-interface BanUserDrawerProps {
-	user: User;
-}
-
-function BanUserDrawer(props: BanUserDrawerProps & OverlayProps) {
-	const { user, close } = props;
-
-	const onClickBlock = useCallback(async () => {
-		try {
-			for (const diary of diaryManager.getFriendDiaries(user.uuid)) {
-				diaryManager.removeDiary(diary.uuid);
-			}
-			friendManager.removeFriend(user.uuid);
-
-			await apiClient.post('/users/ban', {
-				uuid: user.uuid,
-			});
-		} catch (error) {
-			log('error', 'Failed to block user', error);
-			await message('Failed to block user');
-		}
-
-		close();
-	}, [user.uuid, close]);
-
-	return (
-		<Drawer close={close}>
-			<Container horizontal='none'>
-				<Container vertical='regular' className={center}>
-					<Avatar size={56} src={user.profileUrl} />
-				</Container>
-				<Container className={center} vertical='small'>
-					<Typo.Lead weight='strong'>Block “{user.name}”?</Typo.Lead>
-				</Container>
-				<Container className={center} vertical='none'>
-					<Typo.Body className={banWarning}>
-						You will never receive friends diary from “{user.name}”
-					</Typo.Body>
-				</Container>
-			</Container>
-			<ButtonGroup direction='horizontal'>
-				<Button fill onClick={onClickBlock}>
-					Block
-				</Button>
-				<Button variant='secondary' fill onClick={close}>
-					Cancel
-				</Button>
-			</ButtonGroup>
-		</Drawer>
 	);
 }

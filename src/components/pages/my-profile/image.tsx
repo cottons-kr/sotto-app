@@ -6,8 +6,7 @@ import { color } from '@/styles/color.css';
 import { message } from '@tauri-apps/plugin-dialog';
 import { Pencil } from 'lucide-react';
 import { type ChangeEvent, useState } from 'react';
-import { avatar } from '../diary/styles/share.css';
-import { edit } from './styles/image.css';
+import { avatar, edit } from './styles/image.css';
 
 export function MyProfileImage() {
 	const [profileImage, setProfileImage] = useState<string | null>(

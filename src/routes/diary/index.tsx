@@ -1,7 +1,7 @@
+import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
-import { DiaryShareDrawer } from '@/components/pages/diary/share';
 import { Divider } from '@/components/ui/divider';
 import { EmojiInput } from '@/components/ui/input/emoji';
 import { TopNavigator } from '@/components/ui/top-navigator';
@@ -27,7 +27,7 @@ export default function DiaryPage() {
 	const [diary, { setEmoji, setTitle, setContent, setDiary }] =
 		useDiary(diaryUUID);
 	const [isSaving, setIsSaving] = useState(false);
-	const { show: showShareDrawer } = useDrawer(DiaryShareDrawer);
+	const { show: showShareDrawer } = useDrawer(ShareDiaryDrawer);
 
 	const saveDiary = useCallback(async () => {
 		if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {

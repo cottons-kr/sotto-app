@@ -50,6 +50,13 @@ src/
     types/
       diary-data.d.ts
   components/
+    features/
+      diary/
+        styles/
+          share-drawer.css.ts
+        share-drawer.tsx
+      friend/
+        ban.tsx
     layout/
       column/
         index.tsx
@@ -73,9 +80,7 @@ src/
       diary/
         styles/
           saving-popup.css.ts
-          share.css.ts
         saving-popup.tsx
-        share.tsx
       explorer/
         diaries/
           delete.tsx
@@ -219,6 +224,9 @@ src/
       page.css.ts
     explorer/
       diaries/
+        detail.tsx
+        index.tsx
+      friends/
         detail.tsx
         index.tsx
     home/
@@ -370,6 +378,76 @@ vite.config.ts
 </svg>
 ````
 
+## File: src/components/features/diary/styles/share-drawer.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { style } from '@vanilla-extract/css';
+````
+
+## File: src/components/features/diary/share-drawer.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Drawer } from '@/components/ui/drawer';
+import { Input } from '@/components/ui/input';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { type Diary, diaryManager } from '@/lib/managers/diary';
+import { type User, friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
+import { message } from '@tauri-apps/plugin-dialog';
+import { Check, Search, UserRoundX } from 'lucide-react';
+import {
+	type Dispatch,
+	type SetStateAction,
+	useCallback,
+	useMemo,
+	useState,
+} from 'react';
+import { useDebouncedCallback } from 'use-debounce';
+import {
+	avatar,
+	check,
+	empty,
+	emptyIcon,
+	friendList,
+	item,
+} from './styles/share-drawer.css';
+interface DiaryShareDrawerProps {
+	title?: string;
+	diary: Diary;
+	setDiary: Dispatch<SetStateAction<Diary>>;
+}
+⋮----
+onClick=
+````
+
+## File: src/components/features/friend/ban.tsx
+````typescript
+import { Container } from '@/components/layout/container';
+import { center } from '@/components/pages/home/styles/friends-diaries.css';
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Drawer } from '@/components/ui/drawer';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { log } from '@/lib/log';
+import { diaryManager } from '@/lib/managers/diary';
+import { type User, friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
+import { banWarning } from '@/routes/home/page.css';
+import { message } from '@tauri-apps/plugin-dialog';
+import { useCallback } from 'react';
+interface BanUserDrawerProps {
+	friend: User;
+	callback?: (friend: User) => unknown;
+}
+````
+
 ## File: src/components/layout/column/index.tsx
 ````typescript
 import { Flex } from '../flex';
@@ -435,6 +513,37 @@ export interface FlexProps
 import { Flex } from '../flex';
 import type { FlexProps } from '../flex/shared';
 export function Row(props: FlexProps)
+````
+
+## File: src/components/ui/avatar/styles.css.ts
+````typescript
+import { uiStyle } from '@/styles/layer.css';
+````
+
+## File: src/components/ui/tabs/styles/item.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { style } from '@vanilla-extract/css';
+````
+
+## File: src/components/ui/tabs/content.tsx
+````typescript
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { useContext } from 'react';
+import { TabsContext } from './context';
+interface TabsContentProps extends BaseProps<HAS_CHILDREN> {
+	value: string;
+}
+export function TabsContent(props: TabsContentProps)
+````
+
+## File: src/components/ui/tabs/context.ts
+````typescript
+import { createContext } from 'react';
+type TabsContextType = {
+	currentValue: string | null;
+	setCurrentValue: (value: string) => unknown;
+};
 ````
 
 ## File: src/components/ui/top-navigator/index.tsx
@@ -1524,6 +1633,18 @@ apply from: 'tauri.settings.gradle'
 void start_app();
 ````
 
+## File: src-tauri/gen/apple/Sources/sotto-app/main.mm
+````
+#include "bindings/bindings.h"
+#include <unistd.h>
+
+int main(int argc, char * argv[]) {
+    sleep(1);
+	ffi::start_app();
+	return 0;
+}
+````
+
 ## File: src-tauri/gen/apple/.gitignore
 ````
 xcuserdata/
@@ -1541,6 +1662,54 @@ Externals/
     <string>debugging</string>
 </dict>
 </plist>
+````
+
+## File: src-tauri/gen/apple/LaunchScreen.storyboard
+````
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Y6W-OH-hqX">
+    <device id="retina6_3" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="s0d-6b-0kx">
+            <objects>
+                <viewController id="Y6W-OH-hqX" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="5EZ-qb-Rvc">
+                        <rect key="frame" x="0.0" y="0.0" width="402" height="874"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Symbol" translatesAutoresizingMaskIntoConstraints="NO" id="9eN-px-pK0">
+                                <rect key="frame" x="159.66666666666666" y="389" width="83" height="96"/>
+                            </imageView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="vDu-zF-Fre"/>
+                        <color key="backgroundColor" name="Background"/>
+                        <constraints>
+                            <constraint firstItem="9eN-px-pK0" firstAttribute="centerY" secondItem="5EZ-qb-Rvc" secondAttribute="centerY" id="6QP-5g-iP9"/>
+                            <constraint firstItem="9eN-px-pK0" firstAttribute="centerX" secondItem="5EZ-qb-Rvc" secondAttribute="centerX" id="l73-ei-okR"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="90" y="-2"/>
+        </scene>
+    </scenes>
+    <color key="tintColor" name="Background"/>
+    <resources>
+        <image name="Symbol" width="83" height="96"/>
+        <namedColor name="Background">
+            <color red="0.95294117647058818" green="0.93333333333333335" blue="0.91764705882352937" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>
 ````
 
 ## File: src-tauri/gen/apple/Podfile
@@ -1888,8 +2057,7 @@ import { color } from '@/styles/color.css';
 import { message } from '@tauri-apps/plugin-dialog';
 import { Pencil } from 'lucide-react';
 import { type ChangeEvent, useState } from 'react';
-import { avatar } from '../diary/styles/share.css';
-import { edit } from './styles/image.css';
+import { avatar, edit } from './styles/image.css';
 export function MyProfileImage()
 ⋮----
 const onChange = async (e: ChangeEvent<HTMLInputElement>) =>
@@ -1954,11 +2122,6 @@ import { fillHeight, title } from './styles/styles.css';
 export function SignUpSetPinSection()
 ````
 
-## File: src/components/ui/avatar/styles.css.ts
-````typescript
-import { uiStyle } from '@/styles/layer.css';
-````
-
 ## File: src/components/ui/button/styles/button.css.ts
 ````typescript
 import { color } from '@/styles/color.css';
@@ -1985,12 +2148,6 @@ export function PaddingDivider()
 ````
 
 ## File: src/components/ui/divider/styles.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
-````
-
-## File: src/components/ui/drawer/styles.css.ts
 ````typescript
 import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
@@ -2045,6 +2202,18 @@ import { uiStyle } from '@/styles/layer.css';
 import { body } from '../../typography/styles/typography.css';
 ````
 
+## File: src/components/ui/input/field.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { Typo } from '../typography';
+import { labelStyle } from './styles/field.css';
+interface InputFieldProps extends BaseProps<HAS_CHILDREN> {
+	label?: string;
+}
+````
+
 ## File: src/components/ui/list-item/index.tsx
 ````typescript
 import { Container } from '@/components/layout/container';
@@ -2084,12 +2253,6 @@ import { style } from '@vanilla-extract/css';
 import { resetGlobalStyle } from '@/styles/layer.css';
 ````
 
-## File: src/components/ui/popup/animation.ts
-````typescript
-import { getTransition } from '@/lib/animation';
-import type { Variants } from 'motion/react';
-````
-
 ## File: src/components/ui/popup/content.tsx
 ````typescript
 import { Column } from '@/components/layout/column';
@@ -2105,12 +2268,6 @@ interface PopupContentProps {
 export function PopupContent(props: PopupContentProps)
 ````
 
-## File: src/components/ui/popup/styles.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
-````
-
 ## File: src/components/ui/sotto-symbol/index.tsx
 ````typescript
 interface SymbolProps {
@@ -2120,30 +2277,32 @@ interface SymbolProps {
 export function SottoSymbol(props: SymbolProps)
 ````
 
-## File: src/components/ui/tabs/styles/item.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { style } from '@vanilla-extract/css';
-````
-
-## File: src/components/ui/tabs/content.tsx
+## File: src/components/ui/tabs/index.tsx
 ````typescript
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { useContext } from 'react';
+import { useQueryState } from 'nuqs';
 import { TabsContext } from './context';
-interface TabsContentProps extends BaseProps<HAS_CHILDREN> {
-	value: string;
+interface TabsProps extends BaseProps<HAS_CHILDREN> {
+	defaultValue?: string;
 }
-export function TabsContent(props: TabsContentProps)
+export function Tabs(props: TabsProps)
 ````
 
-## File: src/components/ui/tabs/context.ts
+## File: src/components/ui/tabs/item.tsx
 ````typescript
-import { createContext } from 'react';
-type TabsContextType = {
-	currentValue: string | null;
-	setCurrentValue: (value: string) => unknown;
-};
+import { Row } from '@/components/layout/row';
+import { cn } from '@/lib/common';
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { useContext } from 'react';
+import { Typo } from '../typography';
+import { TabsContext } from './context';
+import { group, item, itemActive } from './styles/item.css';
+export function TabsGroup(props: BaseProps<HAS_CHILDREN>)
+interface TabRailItemProps extends BaseProps<HAS_CHILDREN> {
+	value: string;
+}
+⋮----
+const handleClick = () =>
 ````
 
 ## File: src/components/ui/typography/base.tsx
@@ -2280,6 +2439,27 @@ const onPin = async (pin: string) =>
 import { style } from '@vanilla-extract/css';
 ````
 
+## File: src/routes/explorer/friends/index.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { ExplorerHeader } from '@/components/pages/explorer/shared/header';
+import { Avatar } from '@/components/ui/avatar';
+import { ListItem } from '@/components/ui/list-item';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { friendManager } from '@/lib/managers/friend';
+import { ChevronRight, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+````
+
+## File: src/routes/home/page.css.ts
+````typescript
+import { style } from '@vanilla-extract/css';
+````
+
 ## File: src/styles/font.css.ts
 ````typescript
 import { fontFace, globalFontFace } from '@vanilla-extract/css';
@@ -2399,66 +2579,6 @@ class MainActivity : TauriActivity()
 	</array>
 </dict>
 </plist>
-````
-
-## File: src-tauri/gen/apple/Sources/sotto-app/main.mm
-````
-#include "bindings/bindings.h"
-#include <unistd.h>
-
-int main(int argc, char * argv[]) {
-    sleep(1);
-	ffi::start_app();
-	return 0;
-}
-````
-
-## File: src-tauri/gen/apple/LaunchScreen.storyboard
-````
-<?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Y6W-OH-hqX">
-    <device id="retina6_3" orientation="portrait" appearance="light"/>
-    <dependencies>
-        <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
-        <capability name="Named colors" minToolsVersion="9.0"/>
-        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
-    </dependencies>
-    <scenes>
-        <!--View Controller-->
-        <scene sceneID="s0d-6b-0kx">
-            <objects>
-                <viewController id="Y6W-OH-hqX" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="5EZ-qb-Rvc">
-                        <rect key="frame" x="0.0" y="0.0" width="402" height="874"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Symbol" translatesAutoresizingMaskIntoConstraints="NO" id="9eN-px-pK0">
-                                <rect key="frame" x="159.66666666666666" y="389" width="83" height="96"/>
-                            </imageView>
-                        </subviews>
-                        <viewLayoutGuide key="safeArea" id="vDu-zF-Fre"/>
-                        <color key="backgroundColor" name="Background"/>
-                        <constraints>
-                            <constraint firstItem="9eN-px-pK0" firstAttribute="centerY" secondItem="5EZ-qb-Rvc" secondAttribute="centerY" id="6QP-5g-iP9"/>
-                            <constraint firstItem="9eN-px-pK0" firstAttribute="centerX" secondItem="5EZ-qb-Rvc" secondAttribute="centerX" id="l73-ei-okR"/>
-                        </constraints>
-                    </view>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="90" y="-2"/>
-        </scene>
-    </scenes>
-    <color key="tintColor" name="Background"/>
-    <resources>
-        <image name="Symbol" width="83" height="96"/>
-        <namedColor name="Background">
-            <color red="0.95294117647058818" green="0.93333333333333335" blue="0.91764705882352937" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </namedColor>
-    </resources>
-</document>
 ````
 
 ## File: src-tauri/tauri.conf.json
@@ -2691,6 +2811,12 @@ import { fillHeight, title } from './styles/styles.css';
 export function SignUpInformationSection()
 ````
 
+## File: src/components/ui/button/styles/group.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
+````
+
 ## File: src/components/ui/button/index.tsx
 ````typescript
 import { cn } from '@/lib/common';
@@ -2720,16 +2846,10 @@ interface ContentProps {
 }
 ````
 
-## File: src/components/ui/input/field.tsx
+## File: src/components/ui/drawer/styles.css.ts
 ````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { Typo } from '../typography';
-import { labelStyle } from './styles/field.css';
-interface InputFieldProps extends BaseProps<HAS_CHILDREN> {
-	label?: string;
-}
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
 ````
 
 ## File: src/components/ui/input/image.tsx
@@ -2746,6 +2866,18 @@ interface ImageInputProps extends InputHTMLAttributes<HTMLInputElement> {
 	preview?: string;
 	onImage?: (image: File | null) => void;
 }
+````
+
+## File: src/components/ui/input/index.tsx
+````typescript
+import type { ChangeEvent, InputHTMLAttributes } from 'react';
+import { input } from './styles/text.css';
+interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+	onValue?: (value: string) => void;
+}
+export function Input(props: InputFieldProps)
+⋮----
+const onChange = (e: ChangeEvent<HTMLInputElement>) =>
 ````
 
 ## File: src/components/ui/input/pin.tsx
@@ -2816,32 +2948,16 @@ import type { OverlayContent } from './types';
 export function isContentSaved(id: string, contents: Array<OverlayContent>)
 ````
 
-## File: src/components/ui/tabs/index.tsx
+## File: src/components/ui/popup/animation.ts
 ````typescript
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { useQueryState } from 'nuqs';
-import { TabsContext } from './context';
-interface TabsProps extends BaseProps<HAS_CHILDREN> {
-	defaultValue?: string;
-}
-export function Tabs(props: TabsProps)
+import { getTransition } from '@/lib/animation';
+import type { Variants } from 'motion/react';
 ````
 
-## File: src/components/ui/tabs/item.tsx
+## File: src/components/ui/popup/styles.css.ts
 ````typescript
-import { Row } from '@/components/layout/row';
-import { cn } from '@/lib/common';
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { useContext } from 'react';
-import { Typo } from '../typography';
-import { TabsContext } from './context';
-import { group, item, itemActive } from './styles/item.css';
-export function TabsGroup(props: BaseProps<HAS_CHILDREN>)
-interface TabRailItemProps extends BaseProps<HAS_CHILDREN> {
-	value: string;
-}
-⋮----
-const handleClick = () =>
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
 ````
 
 ## File: src/components/ui/top-navigator/go-back.tsx
@@ -2902,12 +3018,30 @@ private checkInitialized()
 	 */
 ````
 
-## File: src/routes/explorer/diaries/detail.tsx
+## File: src/routes/auth/sign-up/index.tsx
 ````typescript
+import { generateKeyPair } from '@/binding/function/generate-key-pair';
+import { SignUpBiometricSection } from '@/components/pages/sign-up/biometric';
+import { SignUpConfirmPinSection } from '@/components/pages/sign-up/confirm-pin';
+import { SignUpFlowContext } from '@/components/pages/sign-up/context';
+import { SignUpInformationSection } from '@/components/pages/sign-up/information';
+import { SignUpSetPinSection } from '@/components/pages/sign-up/set-pin';
+import { Flow } from '@/components/ui/flow';
+import { processSignIn } from '@/lib/app';
+import { log } from '@/lib/log';
+import { apiClient } from '@/lib/managers/http';
+import { storageClient } from '@/lib/managers/storage';
+import { message } from '@tauri-apps/plugin-dialog';
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { saveItem } from 'tauri-plugin-keychain';
+````
+
+## File: src/routes/explorer/friends/detail.tsx
+````typescript
+import { BanFriendDrawer } from '@/components/features/friend/ban';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
-import { Row } from '@/components/layout/row';
-import { ExplorerDiariesDeletePopup } from '@/components/pages/explorer/diaries/delete';
 import { ExplorerContent } from '@/components/pages/explorer/shared/content';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -2916,41 +3050,13 @@ import { PaddingDivider } from '@/components/ui/divider/padding';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
-import { useOverlay } from '@/hooks/use-overlay';
-import { diaryManager } from '@/lib/managers/diary';
+import { useDrawer } from '@/hooks/use-drawer';
+import { friendManager } from '@/lib/managers/friend';
 import { color } from '@/styles/color.css';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 ⋮----
-<Avatar size=
-⋮----
-: `by $
-⋮----
-{/* <Container vertical='small'>
-				<Typo.Body>Share via URL is enabled</Typo.Body>
-			</Container> */}
-````
-
-## File: src/routes/explorer/diaries/index.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { Row } from '@/components/layout/row';
-import { ExplorerHeader } from '@/components/pages/explorer/shared/header';
-import { ListItem } from '@/components/ui/list-item';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { diaryManager } from '@/lib/managers/diary';
-import { ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-⋮----
-onClick=
-````
-
-## File: src/routes/home/page.css.ts
-````typescript
-import { style } from '@vanilla-extract/css';
+Created :
 ````
 
 ## File: src-tauri/gen/android/app/build.gradle.kts
@@ -3120,28 +3226,22 @@ import { useCallback } from 'react';
 import { centered, iconWrapper } from './styles/reset-confirm.css';
 ````
 
-## File: src/components/ui/button/styles/group.css.ts
+## File: src/components/ui/avatar/index.tsx
 ````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
+import { cn } from '@/lib/common';
+import type { BaseProps } from '@/types/props';
+import { avatar } from './styles.css';
+interface AvatarProps extends BaseProps {
+	size?: number;
+	src?: string | null;
+	onClick?: () => unknown;
+}
 ````
 
 ## File: src/components/ui/drawer/animation.ts
 ````typescript
 import { getTransition } from '@/lib/animation';
 import type { Variants } from 'motion/react';
-````
-
-## File: src/components/ui/input/index.tsx
-````typescript
-import type { ChangeEvent, InputHTMLAttributes } from 'react';
-import { input } from './styles/text.css';
-interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-	onValue?: (value: string) => void;
-}
-export function Input(props: InputFieldProps)
-⋮----
-const onChange = (e: ChangeEvent<HTMLInputElement>) =>
 ````
 
 ## File: src/components/ui/overlay/context.ts
@@ -3185,25 +3285,6 @@ export async function resizeImage(image: File, size = 256)
 export async function wait(ms: number)
 ````
 
-## File: src/routes/auth/sign-up/index.tsx
-````typescript
-import { generateKeyPair } from '@/binding/function/generate-key-pair';
-import { SignUpBiometricSection } from '@/components/pages/sign-up/biometric';
-import { SignUpConfirmPinSection } from '@/components/pages/sign-up/confirm-pin';
-import { SignUpFlowContext } from '@/components/pages/sign-up/context';
-import { SignUpInformationSection } from '@/components/pages/sign-up/information';
-import { SignUpSetPinSection } from '@/components/pages/sign-up/set-pin';
-import { Flow } from '@/components/ui/flow';
-import { processSignIn } from '@/lib/app';
-import { log } from '@/lib/log';
-import { apiClient } from '@/lib/managers/http';
-import { storageClient } from '@/lib/managers/storage';
-import { message } from '@tauri-apps/plugin-dialog';
-import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { saveItem } from 'tauri-plugin-keychain';
-````
-
 ## File: src/routes/diary/page.css.ts
 ````typescript
 import {
@@ -3215,21 +3296,25 @@ import { weightStyles } from '@/components/ui/typography/styles/weight.css';
 import { style } from '@vanilla-extract/css';
 ````
 
+## File: src/routes/explorer/diaries/index.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { ExplorerHeader } from '@/components/pages/explorer/shared/header';
+import { ListItem } from '@/components/ui/list-item';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+````
+
 ## File: src/routes/index/page.css.ts
 ````typescript
 import { style } from '@vanilla-extract/css';
-````
-
-## File: src/components/ui/avatar/index.tsx
-````typescript
-import { cn } from '@/lib/common';
-import type { BaseProps } from '@/types/props';
-import { avatar } from './styles.css';
-interface AvatarProps extends BaseProps {
-	size?: number;
-	src?: string | null;
-	onClick?: () => unknown;
-}
 ````
 
 ## File: src/components/ui/button/group.tsx
@@ -3276,6 +3361,44 @@ export function useOverlay<T extends object>(
 )
 ````
 
+## File: src/routes/explorer/diaries/detail.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { ExplorerDiariesDeletePopup } from '@/components/pages/explorer/diaries/delete';
+import { ExplorerContent } from '@/components/pages/explorer/shared/content';
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { PaddingDivider } from '@/components/ui/divider/padding';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { useOverlay } from '@/hooks/use-overlay';
+import { diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { color } from '@/styles/color.css';
+import { useCallback, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+⋮----
+<Typo.Title weight='strong'>
+⋮----
+? friendManager.getFriend(diary.sharedBy)?.profileUrl
+⋮----
+: `by $
+⋮----
+{/* <Container vertical='small'>
+				<Typo.Body>Share via URL is enabled</Typo.Body>
+			</Container> */}
+````
+
+## File: src/styles/reset.css.ts
+````typescript
+import { color } from './color.css';
+import { resetGlobalStyle } from './layer.css';
+````
+
 ## File: src/types/response.d.ts
 ````typescript
 interface SignUpResponse {
@@ -3301,6 +3424,8 @@ type SharedDiariesResponse = Array<{
 			name: string;
 			profileUrl: string;
 			publicKey: string;
+			createdAt: string;
+			updatedAt: string;
 		};
 		createdAt: string;
 		updatedAt: string;
@@ -3308,6 +3433,33 @@ type SharedDiariesResponse = Array<{
 	recipient: unknown;
 	createdAt: string;
 }>;
+````
+
+## File: src/main.tsx
+````typescript
+import { NuqsAdapter } from 'nuqs/adapters/react';
+import { Suspense } from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { OverlayProvider } from './components/ui/overlay/provider';
+````
+
+## File: index.html
+````html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Sotto</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="overlay-root"></div>
+    <div id="popup-root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
 ````
 
 ## File: src/components/pages/sign-up/biometric.tsx
@@ -3350,29 +3502,6 @@ import type { OverlayContent } from './types';
 interface OverlayProviderProps extends BaseProps<HAS_CHILDREN> {}
 ````
 
-## File: src/lib/managers/friend.ts
-````typescript
-export interface User {
-	uuid: string;
-	name: string;
-	username: string;
-	profileUrl: string;
-	publicKey: string;
-}
-class FriendManager
-⋮----
-constructor()
-private save()
-isFriend(uuid: string)
-cacheUser(user: User)
-getFriends()
-getFriend(uuid: string)
-addFriend(user: User)
-updateFriend(uuid: string, user: User)
-removeFriend(uuid: string)
-clear()
-````
-
 ## File: src/lib/managers/http.ts
 ````typescript
 import { fetch } from '@tauri-apps/plugin-http';
@@ -3412,21 +3541,6 @@ import { apiClient } from './managers/http';
 import { storageClient } from './managers/storage';
 export async function processSignIn(pin: string)
 export async function resetApp()
-````
-
-## File: src/styles/reset.css.ts
-````typescript
-import { color } from './color.css';
-import { resetGlobalStyle } from './layer.css';
-````
-
-## File: src/main.tsx
-````typescript
-import { NuqsAdapter } from 'nuqs/adapters/react';
-import { Suspense } from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import { OverlayProvider } from './components/ui/overlay/provider';
 ````
 
 ## File: src-tauri/src/crypto.rs
@@ -3495,30 +3609,6 @@ let decrypted_data = cipher.decrypt(nonce, encrypted_data.as_ref())
 Ok(diary)
 ````
 
-## File: index.html
-````html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>Sotto</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <div id="overlay-root"></div>
-    <div id="popup-root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
-````
-
-## File: src/components/pages/diary/styles/share.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { style } from '@vanilla-extract/css';
-````
-
 ## File: src/components/pages/my-profile/change-name.tsx
 ````typescript
 import { Container } from '@/components/layout/container';
@@ -3564,6 +3654,31 @@ interface EmojiInputProps {
 }
 ⋮----
 close();
+````
+
+## File: src/lib/managers/friend.ts
+````typescript
+export interface User {
+	uuid: string;
+	name: string;
+	username: string;
+	profileUrl: string;
+	publicKey: string;
+	createdAt: string;
+	updatedAt: string;
+}
+class FriendManager
+⋮----
+constructor()
+private save()
+isFriend(uuid: string)
+cacheUser(user: User)
+getFriends()
+getFriend(uuid: string)
+addFriend(user: User)
+updateFriend(uuid: string, user: User)
+removeFriend(uuid: string)
+clear()
 ````
 
 ## File: src/routes/my-profile/page.css.ts
@@ -3702,85 +3817,33 @@ Ok(())
 .expect("error while running tauri application");
 ````
 
-## File: src/components/pages/diary/share.tsx
+## File: src/routes/home/index.tsx
 ````typescript
 import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { Drawer } from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
-import type { OverlayProps } from '@/components/ui/overlay/types';
-import { Typo } from '@/components/ui/typography';
-import { type Diary, diaryManager } from '@/lib/managers/diary';
-import { type User, friendManager } from '@/lib/managers/friend';
-import { apiClient } from '@/lib/managers/http';
-import { message } from '@tauri-apps/plugin-dialog';
-import { Check, Search, UserRoundX } from 'lucide-react';
-import {
-	type Dispatch,
-	type SetStateAction,
-	useCallback,
-	useMemo,
-	useState,
-} from 'react';
-import { useDebouncedCallback } from 'use-debounce';
-import {
-	avatar,
-	check,
-	empty,
-	emptyIcon,
-	friendList,
-	item,
-} from './styles/share.css';
-interface DiaryShareDrawerProps {
-	diary: Diary;
-	setDiary: Dispatch<SetStateAction<Diary>>;
-}
-⋮----
-onClick=
-````
-
-## File: src/components/pages/home/friends-diaries.tsx
-````typescript
-import { decryptDiary } from '@/binding/function/decrypt-diary';
-import { Container } from '@/components/layout/container';
-import { Grid } from '@/components/layout/grid';
 import { Row } from '@/components/layout/row';
+import { HomeFriendsDiariesSection } from '@/components/pages/home/friends-diaries';
+import { HomeMyDiariesSection } from '@/components/pages/home/my-diaries';
 import { Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { DiaryCard } from '@/components/ui/card/diary';
-import { Content } from '@/components/ui/content';
-import { Divider } from '@/components/ui/divider';
-import { Drawer } from '@/components/ui/drawer';
-import type { OverlayProps } from '@/components/ui/overlay/types';
+import { SottoSymbol } from '@/components/ui/sotto-symbol';
+import { Tabs } from '@/components/ui/tabs';
+import { TabsContent } from '@/components/ui/tabs/content';
+import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
+import { TopNavigator } from '@/components/ui/top-navigator';
 import { Typo } from '@/components/ui/typography';
-import { useDrawer } from '@/hooks/use-drawer';
-import { log } from '@/lib/log';
-import { diaryManager } from '@/lib/managers/diary';
-import { type User, friendManager } from '@/lib/managers/friend';
-import { apiClient } from '@/lib/managers/http';
-import { storageClient } from '@/lib/managers/storage';
-import { banWarning } from '@/routes/home/page.css';
-import { message } from '@tauri-apps/plugin-dialog';
-import { Ban, SmilePlus } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { center } from './styles/friends-diaries.css';
+import { fullHeight } from '@/styles/utils.css';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { left, right } from './page.css';
 ⋮----
-function FriendDiaries(props: FriendDiariesProps)
-⋮----
-const diaries = diaryManager.getFriendDiaries(userUUID);
-const showBanDrawer = useCallback(() =>
+src=
 ````
 
 ## File: src/routes/diary/index.tsx
 ````typescript
+import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
-import { DiaryShareDrawer } from '@/components/pages/diary/share';
 import { Divider } from '@/components/ui/divider';
 import { EmojiInput } from '@/components/ui/input/emoji';
 import { TopNavigator } from '@/components/ui/top-navigator';
@@ -3795,6 +3858,33 @@ import { Share } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { page, textArea, textAreaContainer, titleInput } from './page.css';
+````
+
+## File: src/components/pages/home/friends-diaries.tsx
+````typescript
+import { decryptDiary } from '@/binding/function/decrypt-diary';
+import { BanFriendDrawer } from '@/components/features/friend/ban';
+import { Container } from '@/components/layout/container';
+import { Grid } from '@/components/layout/grid';
+import { Row } from '@/components/layout/row';
+import { Avatar } from '@/components/ui/avatar';
+import { DiaryCard } from '@/components/ui/card/diary';
+import { Content } from '@/components/ui/content';
+import { Divider } from '@/components/ui/divider';
+import { Typo } from '@/components/ui/typography';
+import { useDrawer } from '@/hooks/use-drawer';
+import { log } from '@/lib/log';
+import { diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
+import { storageClient } from '@/lib/managers/storage';
+import { Ban, SmilePlus } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+⋮----
+function FriendDiaries(props: FriendDiariesProps)
+⋮----
+const diaries = diaryManager.getFriendDiaries(userUUID);
+const showBanDrawer = useCallback(() =>
 ````
 
 ## File: src/routes/my-profile/index.tsx
@@ -3821,27 +3911,6 @@ import { avatarContainer, stat } from './page.css';
 <Typo.Lead weight='strong'>
 ````
 
-## File: src/routes/home/index.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Row } from '@/components/layout/row';
-import { HomeFriendsDiariesSection } from '@/components/pages/home/friends-diaries';
-import { HomeMyDiariesSection } from '@/components/pages/home/my-diaries';
-import { Avatar } from '@/components/ui/avatar';
-import { SottoSymbol } from '@/components/ui/sotto-symbol';
-import { Tabs } from '@/components/ui/tabs';
-import { TabsContent } from '@/components/ui/tabs/content';
-import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { Typo } from '@/components/ui/typography';
-import { fullHeight } from '@/styles/utils.css';
-import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { left, right } from './page.css';
-⋮----
-src=
-````
-
 ## File: src/App.tsx
 ````typescript
 import { useEffect } from 'react';
@@ -3855,6 +3924,8 @@ import SignUpPage from './routes/auth/sign-up';
 import DiaryPage from './routes/diary';
 import ExplorerDiariesPage from './routes/explorer/diaries';
 import ExplorerDiariesDetailPage from './routes/explorer/diaries/detail';
+import ExplorerFriendsPage from './routes/explorer/friends';
+import ExplorerFriendsDetailPage from './routes/explorer/friends/detail';
 import HomePage from './routes/home';
 import IndexPage from './routes/index';
 import MyProfilePage from './routes/my-profile';
@@ -3904,7 +3975,7 @@ getAllDiaries()
 getDiary(uuid: string)
 createDiary(): Diary
 async addDiary(newDiary: DiaryEditable | Diary)
-async updateDiary(uuid: string, updatedData: DiaryEditable)
+async updateDiary(uuid: string, updatedData: Diary | DiaryEditable)
 async shareDiary(uuid: string, targetUsers: Array<User>)
 isSharedDiary(diary: Diary)
 removeDiary(uuid: string)
