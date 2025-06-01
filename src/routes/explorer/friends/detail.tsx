@@ -10,15 +10,18 @@ import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { friendManager } from '@/lib/managers/friend';
 import { color } from '@/styles/color.css';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function ExplorerFriendsDetailPage() {
 	const { uuid } = useParams();
 	const navigate = useNavigate();
 	const friend = useMemo(() => friendManager.getFriend(uuid || ''), [uuid]);
+	const [showPublicKey, setShowPublicKey] = useState(false);
 
-	console.log('Friend Detail Page', { uuid, friend });
+	const onClickPublicKey = useCallback(() => {
+		setShowPublicKey(true);
+	}, []);
 
 	const onClockBlock = useCallback(() => {}, []);
 
@@ -41,7 +44,15 @@ export default function ExplorerFriendsDetailPage() {
 				</Column>
 			</Container>
 			<PaddingDivider />
-			<ExplorerContent label='Public Key' content={friend.publicKey} />
+			{showPublicKey ? (
+				<ExplorerContent label='Public Key' content={friend.publicKey} />
+			) : (
+				<Container>
+					<Button fill variant='secondary' onClick={onClickPublicKey}>
+						Click to reveal public key
+					</Button>
+				</Container>
+			)}
 			<Container>
 				<Column gap={8}>
 					<Typo.Caption color={color.sand}>
