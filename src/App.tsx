@@ -11,6 +11,8 @@ import SignUpPage from './routes/auth/sign-up';
 import DiaryPage from './routes/diary';
 import ExplorerDiariesPage from './routes/explorer/diaries';
 import ExplorerDiariesDetailPage from './routes/explorer/diaries/detail';
+import ExplorerFriendsPage from './routes/explorer/friends';
+import ExplorerFriendsDetailPage from './routes/explorer/friends/detail';
 import HomePage from './routes/home';
 import IndexPage from './routes/index';
 import MyProfilePage from './routes/my-profile';
@@ -40,6 +42,11 @@ export default function App() {
 				<Route
 					path='/explorer/diaries/:uuid'
 					element={<ExplorerDiariesDetailPage />}
+				/>
+				<Route path='/explorer/friends' element={<ExplorerFriendsPage />} />
+				<Route
+					path='/explorer/friends/:uuid'
+					element={<ExplorerFriendsDetailPage />}
 				/>
 			</Routes>
 		</BrowserRouter>

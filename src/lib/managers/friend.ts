@@ -4,6 +4,8 @@ export interface User {
 	username: string;
 	profileUrl: string;
 	publicKey: string;
+	createdAt: string;
+	updatedAt: string;
 }
 
 class FriendManager {
