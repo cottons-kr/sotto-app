@@ -1,3 +1,4 @@
+import packageJson from '@/../package.json';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
@@ -12,6 +13,7 @@ import { Typo } from '@/components/ui/typography';
 import { useDrawer } from '@/hooks/use-drawer';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
+import { color } from '@/styles/color.css';
 import { ChevronRight } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -55,6 +57,13 @@ export default function MyProfilePage() {
 							onClick={() => navigate('/explorer/friends')}
 						/>
 					</Row>
+				</Container>
+				<Container vertical='large'>
+					<Column align='center'>
+						<Typo.Caption color={color.sand}>
+							Version {packageJson.version}
+						</Typo.Caption>
+					</Column>
 				</Container>
 				<ButtonGroup direction='vertical' float>
 					<Button variant='text' fill onClick={openResetConfirm}>
