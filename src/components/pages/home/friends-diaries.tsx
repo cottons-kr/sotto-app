@@ -63,6 +63,8 @@ export function HomeFriendsDiariesSection() {
 							content,
 							shareUUID: sharedDiary.diary.uuid,
 							sharedBy: sharedDiary.diary.owner.uuid,
+							encryptedData: sharedDiary.diary.data,
+							nonce: sharedDiary.diary.nonce,
 							encryptedKey: sharedDiary.encryptedKey,
 							readonly: true,
 						});
@@ -71,6 +73,9 @@ export function HomeFriendsDiariesSection() {
 							emoji,
 							title,
 							content,
+							encryptedData: sharedDiary.diary.data,
+							nonce: sharedDiary.diary.nonce,
+							encryptedKey: sharedDiary.encryptedKey,
 						});
 					}
 				}

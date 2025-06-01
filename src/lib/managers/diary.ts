@@ -135,7 +135,7 @@ class DiaryManager {
 		return diary;
 	}
 
-	async updateDiary(uuid: string, updatedData: DiaryEditable) {
+	async updateDiary(uuid: string, updatedData: Diary | DiaryEditable) {
 		this.checkInitialized();
 		const diary = this.data.get(uuid);
 		if (!diary) {

@@ -12,6 +12,7 @@ import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { useOverlay } from '@/hooks/use-overlay';
 import { diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
 import { color } from '@/styles/color.css';
 import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -42,10 +43,17 @@ export default function ExplorerDiariesDetailPage() {
 			</Container>
 			<Container vertical='small'>
 				<Row align='center' justify='start' gap={8}>
-					<Avatar size={32} src={localStorage.getItem('profileImage')} />
+					<Avatar
+						size={32}
+						src={
+							diary.sharedBy
+								? friendManager.getFriend(diary.sharedBy)?.profileUrl
+								: localStorage.getItem('profileImage')
+						}
+					/>
 					<Typo.Body weight='medium'>
 						{diary.sharedBy
-							? `Shared by ${diary.sharedBy}`
+							? `Shared by ${friendManager.getFriend(diary.sharedBy)?.name}`
 							: `by ${localStorage.getItem('name')}`}
 					</Typo.Body>
 				</Row>
@@ -61,10 +69,12 @@ export default function ExplorerDiariesDetailPage() {
 				content={diary.nonce?.toString() || 'No data available'}
 			/>
 			<PaddingDivider />
-			<ExplorerContent
-				label='Encrypted Key'
-				content={diary.encryptedKey?.toString() || 'No data available'}
-			/>
+			{diary.encryptedKey && (
+				<ExplorerContent
+					label='Encrypted Key'
+					content={diary.encryptedKey?.toString() || 'No data available'}
+				/>
+			)}
 			{/* <Container vertical='small'>
 				<Typo.Body>Share via URL is enabled</Typo.Body>
 			</Container> */}

@@ -46,7 +46,7 @@ export default function MyProfilePage() {
 					<Row gap={8}>
 						<Stat
 							name='Diary'
-							value={diaryManager.getDiaries().length}
+							value={diaryManager.getAllDiaries().length}
 							onClick={() => navigate('/explorer/diaries')}
 						/>
 						<Stat
