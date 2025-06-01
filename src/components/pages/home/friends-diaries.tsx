@@ -1,5 +1,5 @@
 import { decryptDiary } from '@/binding/function/decrypt-diary';
-import { BanFriendDrawer } from '@/components/features/friend/ban';
+import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
 import { Container } from '@/components/layout/container';
 import { Grid } from '@/components/layout/grid';
 import { Row } from '@/components/layout/row';

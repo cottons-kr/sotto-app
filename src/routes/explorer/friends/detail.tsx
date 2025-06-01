@@ -1,4 +1,4 @@
-import { BanFriendDrawer } from '@/components/features/friend/ban';
+import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { ExplorerContent } from '@/components/pages/explorer/shared/content';
