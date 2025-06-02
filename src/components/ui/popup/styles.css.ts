@@ -5,12 +5,16 @@ export const popup = uiStyle({
 	position: 'fixed',
 	top: '50%',
 	left: '50%',
-	width: 'calc(100% - 32px)',
+	width: 'fit-content',
 	padding: 16,
 	backgroundColor: color.milk,
 	borderRadius: 24,
 	textAlign: 'center',
 	boxShadow: '0px 0px 24px 8px rgba(0, 0, 0, 0.10)',
+});
+
+export const fillPopup = uiStyle({
+	width: 'calc(100% - 32px)',
 });
 
 export const iconWrapper = uiStyle({
