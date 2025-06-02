@@ -1,3 +1,4 @@
+import { AddFriendDrawer } from '@/components/features/friend/add-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
@@ -7,19 +8,21 @@ import { ListItem } from '@/components/ui/list-item';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
+import { useDrawer } from '@/hooks/use-drawer';
 import { friendManager } from '@/lib/managers/friend';
 import { ChevronRight, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function ExplorerFriendsPage() {
 	const navigate = useNavigate();
+	const { show: openAddFriend } = useDrawer(AddFriendDrawer);
 	const friends = friendManager.getFriends();
 
 	return (
 		<>
 			<TopNavigator
 				leadingArea={<GoBack label='Profile' />}
-				trailingArea={<Plus />}
+				trailingArea={<Plus onClick={openAddFriend} />}
 			/>
 			<ExplorerHeader
 				title='Friends'

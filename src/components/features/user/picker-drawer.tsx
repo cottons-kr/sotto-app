@@ -1,8 +1,9 @@
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
-import { Drawer } from '@/components/ui/drawer';
+import { Drawer, type DrawerProps } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
@@ -20,10 +21,15 @@ import {
 	item,
 } from './styles/picker-drawer.css';
 
-interface UserPickerDrawerProps {
+interface UserPickerDrawerProps extends DrawerProps {
 	title: string;
 	placeholder?: string;
-	buttons: React.ReactNode;
+	buttons: Array<{
+		label: string;
+		onClick?: (selectedUsers: Array<User>) => unknown;
+		variants?: 'primary' | 'secondary' | 'text';
+		loading?: boolean;
+	}>;
 	defaultSelected?: Array<string>;
 }
 
@@ -33,10 +39,10 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 		placeholder = 'Search username',
 		buttons,
 		defaultSelected = [],
+		preventBackdropClose,
 		close,
 	} = props;
 	const [isSearching, setIsSearching] = useState(false);
-	const [isSharing, setIsSharing] = useState(false);
 	const [searchedUsers, setSearchedUsers] = useState<Array<User>>([]);
 	const [selectedUsers, setSelectedUsers] = useState<Array<User>>(
 		defaultSelected
@@ -61,7 +67,7 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 	}, 300);
 
 	return (
-		<Drawer preventBackdropClose={isSharing} close={close}>
+		<Drawer preventBackdropClose={preventBackdropClose} close={close}>
 			<Container vertical='small' horizontal='large'>
 				<Typo.Lead weight='strong'>{title}</Typo.Lead>
 			</Container>
@@ -107,7 +113,19 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 					</Typo.Body>
 				</Column>
 			)}
-			<ButtonGroup direction='horizontal'>{buttons}</ButtonGroup>
+			<ButtonGroup direction='horizontal'>
+				{buttons.map((b, i) => (
+					<Button
+						key={i.toString()}
+						fill
+						variant={b.variants}
+						loading={b.loading}
+						onClick={() => b.onClick?.(selectedUsers)}
+					>
+						{b.label}
+					</Button>
+				))}
+			</ButtonGroup>
 		</Drawer>
 	);
 }

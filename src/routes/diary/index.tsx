@@ -1,4 +1,4 @@
-import { ShareDiaryDrawer } from '@/components/features/user/share-drawer';
+import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
