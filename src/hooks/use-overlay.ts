@@ -8,60 +8,35 @@ export function useOverlay<T extends object>(
 	options: OverlayOptions = {},
 ) {
 	const id = useMemo(nanoid, []);
-	const { contents, setContents } = useContext(OverlayContext);
-	const targetContent = useMemo(
-		() => contents.find((c) => c.id === id),
-		[id, contents],
-	);
+	const { setContents } = useContext(OverlayContext);
 
 	const show = useCallback(
 		(props: T) => {
-			if (!targetContent) {
-				setContents((prev) => [
-					...prev,
-					{
-						id,
-						render: (prevProps) =>
-							renderer({
-								...prevProps,
-								...props,
-							}),
-						options,
-					},
-				]);
-			} else {
-				setContents((prev) =>
-					prev.map((content) =>
-						content.id === id
-							? {
-									...content,
-									render: (prevProps) =>
-										renderer({
-											...prevProps,
-											...props,
-										}),
-								}
-							: content,
-					),
-				);
-			}
+			setContents((prev) => [
+				...prev,
+				{
+					id,
+					render: (prevProps) =>
+						renderer({
+							...prevProps,
+							...props,
+						}),
+					options,
+				},
+			]);
 		},
-		[id, targetContent, renderer, options, setContents],
+		[id, renderer, options, setContents],
 	);
 
 	const hide = useCallback(() => {
-		if (targetContent) {
-			setContents((prev) => prev.filter((content) => content.id !== id));
-		}
-	}, [id, targetContent, setContents]);
+		setContents((prev) => prev.filter((content) => content.id !== id));
+	}, [id, setContents]);
 
 	useEffect(() => {
-		if (!targetContent) return;
-
 		return () => {
 			hide();
 		};
-	}, [targetContent, hide]);
+	}, [hide]);
 
 	return {
 		show,

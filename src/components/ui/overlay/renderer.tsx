@@ -30,7 +30,9 @@ export function OverlayRenderer(props: OverlayRendererProps) {
 			if (options?.onClickBackdrop) {
 				options.onClickBackdrop();
 			}
-			close();
+			if (!options?.preventBackdropClose) {
+				close();
+			}
 		},
 		[close, options],
 	);

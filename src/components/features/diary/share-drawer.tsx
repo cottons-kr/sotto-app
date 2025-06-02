@@ -45,7 +45,6 @@ export function ShareDiaryDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 	return (
 		<UserPickerDrawer
 			title='Share with your friends'
-			preventBackdropClose={isSharing}
 			buttons={[{ label: 'Apply', loading: isSharing, onClick: onClickShare }]}
 			close={close}
 		/>

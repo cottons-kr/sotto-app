@@ -7,9 +7,7 @@ import type { OverlayProps } from '../overlay/types';
 import { drawerVariants } from './animation';
 import { drawer, handle } from './styles.css';
 
-export interface DrawerProps extends BaseProps<HAS_CHILDREN> {
-	preventBackdropClose?: boolean;
-}
+export interface DrawerProps extends BaseProps<HAS_CHILDREN> {}
 
 export function Drawer(props: DrawerProps & OverlayProps) {
 	const { children: drawerContent, close } = props;

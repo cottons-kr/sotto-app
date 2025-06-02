@@ -9,11 +9,11 @@ interface PopupProps extends BaseProps<HAS_CHILDREN> {
 }
 
 export function Popup(props: PopupProps) {
-	const { fill = true, children } = props;
+	const { fill = true, className, children } = props;
 
 	return (
 		<motion.div
-			className={cn(popup, { [fillPopup]: fill })}
+			className={cn(popup, className, { [fillPopup]: fill })}
 			variants={variants}
 			initial='hidden'
 			animate='visible'

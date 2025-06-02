@@ -39,7 +39,6 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 		placeholder = 'Search username',
 		buttons,
 		defaultSelected = [],
-		preventBackdropClose,
 		close,
 	} = props;
 	const [isSearching, setIsSearching] = useState(false);
@@ -67,7 +66,7 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 	}, 300);
 
 	return (
-		<Drawer preventBackdropClose={preventBackdropClose} close={close}>
+		<Drawer close={close}>
 			<Container vertical='small' horizontal='large'>
 				<Typo.Lead weight='strong'>{title}</Typo.Lead>
 			</Container>

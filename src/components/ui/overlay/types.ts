@@ -14,6 +14,7 @@ export type OverlayContent = {
 
 export type OverlayOptions = {
 	onClickBackdrop?: () => unknown;
+	preventBackdropClose?: boolean;
 };
 
 export type PropsOf<Component> = Component extends ComponentType<infer P>

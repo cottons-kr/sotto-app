@@ -30,7 +30,6 @@ export function AddFriendDrawer(props: OverlayProps) {
 		<UserPickerDrawer
 			title='Add friends'
 			defaultSelected={friends.map((f) => f.uuid)}
-			preventBackdropClose={isAdding}
 			buttons={[{ label: 'Add', loading: isAdding, onClick: onClickAdd }]}
 			close={close}
 		/>

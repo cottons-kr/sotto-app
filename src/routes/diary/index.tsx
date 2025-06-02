@@ -8,7 +8,6 @@ import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { useDiary } from '@/hooks/use-diary';
-import { useDrawer } from '@/hooks/use-drawer';
 import { useOverlay } from '@/hooks/use-overlay';
 import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
@@ -28,9 +27,13 @@ export default function DiaryPage() {
 	const [diary, { setEmoji, setTitle, setContent, setDiary }] =
 		useDiary(diaryUUID);
 	const [isSaving, setIsSaving] = useState(false);
-	const { show: openShareDrawer } = useDrawer(ShareDiaryDrawer);
-	const { show: openSavingPopup, hide: closeSavingPopup } =
-		useOverlay(DiarySavingPopup);
+	const { show: openShareDrawer } = useOverlay(ShareDiaryDrawer, {
+		preventBackdropClose: isSaving,
+	});
+	const { show: openSavingPopup, hide: closeSavingPopup } = useOverlay(
+		DiarySavingPopup,
+		{ preventBackdropClose: true },
+	);
 
 	const saveDiary = useCallback(async () => {
 		if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {
