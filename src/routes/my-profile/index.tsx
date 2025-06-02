@@ -61,7 +61,7 @@ export default function MyProfilePage() {
 				<Container vertical='large'>
 					<Column align='center'>
 						<Typo.Caption color={color.sand}>
-							Version {packageJson.version}
+							Version {packageJson.version} {import.meta.env.MODE}
 						</Typo.Caption>
 					</Column>
 				</Container>
