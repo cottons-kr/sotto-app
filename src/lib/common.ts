@@ -32,3 +32,11 @@ export async function wait(ms: number) {
 		setTimeout(resolve, ms);
 	});
 }
+
+export function calculateDiffDays(createdAt: Date) {
+	const now = new Date();
+	const diff = Math.abs(now.getTime() - createdAt.getTime());
+	const diffDays = Math.floor(diff / (1000 * 3600 * 24));
+
+	return diffDays;
+}

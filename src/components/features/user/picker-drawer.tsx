@@ -1,6 +1,6 @@
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
-import { Avatar } from '@/components/ui/avatar';
+import { AvatarItem } from '@/components/ui/avatar/item';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Drawer, type DrawerProps } from '@/components/ui/drawer';
@@ -9,17 +9,10 @@ import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import { type User, friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
-import { Check, Search, UserRoundX } from 'lucide-react';
+import { Search, UserRoundX } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import {
-	avatar,
-	check,
-	empty,
-	emptyIcon,
-	friendList,
-	item,
-} from './styles/picker-drawer.css';
+import { empty, emptyIcon, friendList } from './styles/picker-drawer.css';
 
 interface UserPickerDrawerProps extends DrawerProps {
 	title: string;
@@ -81,7 +74,7 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 								index === self.findIndex((u) => u.uuid === user.uuid),
 						)
 						.map((user) => (
-							<UserItem
+							<AvatarItem
 								key={user.uuid}
 								user={user}
 								selected={selectedUsers.map((u) => u.uuid).includes(user.uuid)}
@@ -126,29 +119,5 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 				))}
 			</ButtonGroup>
 		</Drawer>
-	);
-}
-
-interface UserItemProps {
-	user: User;
-	selected?: boolean;
-	onClick?: () => unknown;
-}
-
-function UserItem(props: UserItemProps) {
-	const { user, selected, onClick } = props;
-
-	return (
-		<Column className={item} gap={8} align='center' onClick={onClick}>
-			<div className={avatar}>
-				<Avatar size={48} src={user.profileUrl} />
-				{selected && (
-					<div className={check}>
-						<Check size={16} />
-					</div>
-				)}
-			</div>
-			<Typo.Caption>{user.name}</Typo.Caption>
-		</Column>
 	);
 }

@@ -1,8 +1,8 @@
+import { DeleteDiaryPopup } from '@/components/features/diary/delete-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
-import { ExplorerDiariesDeletePopup } from '@/components/pages/explorer/diaries/delete';
-import { ExplorerContent } from '@/components/pages/explorer/shared/content';
+import { ExplorerContent } from '@/components/pages/explorer/content';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
@@ -21,11 +21,11 @@ export default function ExplorerDiariesDetailPage() {
 	const { uuid } = useParams();
 	const navigate = useNavigate();
 	const diary = useMemo(() => diaryManager.getDiary(uuid || ''), [uuid]);
-	const { show: openDiaryDelete } = useOverlay(ExplorerDiariesDeletePopup);
+	const { show: openDiaryDelete } = useOverlay(DeleteDiaryPopup);
 
 	const onClickDeleteDiary = useCallback(() => {
 		if (diary) {
-			openDiaryDelete({ diary, back: () => navigate(-1) });
+			openDiaryDelete({ diary, callback: () => navigate(-1) });
 		}
 	}, [diary, navigate, openDiaryDelete]);
 

@@ -10,22 +10,20 @@ import { message } from '@tauri-apps/plugin-dialog';
 import { TriangleAlert } from 'lucide-react';
 import { useCallback } from 'react';
 
-interface ExplorerDiariesDeleteDrawerProps {
+interface DeleteDiaryPopupProps {
 	diary: Diary;
-	back: () => void;
+	callback: () => unknown;
 }
 
-export function ExplorerDiariesDeletePopup(
-	props: ExplorerDiariesDeleteDrawerProps & OverlayProps,
-) {
-	const { diary, back, close } = props;
+export function DeleteDiaryPopup(props: DeleteDiaryPopupProps & OverlayProps) {
+	const { diary, callback, close } = props;
 	const authenticate = useAuth();
 
 	const onClickDelete = useCallback(() => {
 		authenticate(async () => {
 			try {
 				diaryManager.removeDiary(diary.uuid);
-				back();
+				await callback();
 			} catch (error) {
 				log('error', 'Failed to delete diary:', error);
 				await message('Failed to delete diary.');
@@ -33,7 +31,7 @@ export function ExplorerDiariesDeletePopup(
 				close();
 			}
 		});
-	}, [authenticate, diary, close, back]);
+	}, [authenticate, diary, close, callback]);
 
 	return (
 		<Popup>

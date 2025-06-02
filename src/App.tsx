@@ -1,6 +1,6 @@
 import '@/styles/reset.css';
 import '@/styles/font.css';
-import { useEffect } from 'react';
+import { createContext, useEffect, useReducer } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { diaryManager } from './lib/managers/diary';
 import { storageClient } from './lib/managers/storage';
@@ -17,7 +17,15 @@ import HomePage from './routes/home';
 import IndexPage from './routes/index';
 import MyProfilePage from './routes/my-profile';
 
+export const AppContext = createContext(
+	{} as {
+		forceUpdate: () => unknown;
+	},
+);
+
 export default function App() {
+	const [, forceUpdate] = useReducer((x) => x + 1, 0);
+
 	useEffect(() => {
 		if (
 			location.pathname !== '/' &&
@@ -28,27 +36,29 @@ export default function App() {
 	}, []);
 
 	return (
-		<BrowserRouter>
-			<Routes>
-				<Route path='/' element={<IndexPage />} />
-				<Route path='/sign-up' element={<SignUpPage />} />
-				<Route path='/sign-in/biometric' element={<SignInBiometricPage />} />
-				<Route path='/sign-in/pin' element={<SignInPinPage />} />
-				<Route path='/sign-in/forgot-pin' element={<SignInForgotPinPage />} />
-				<Route path='/home' element={<HomePage />} />
-				<Route path='/diary' element={<DiaryPage />} />
-				<Route path='/my-profile' element={<MyProfilePage />} />
-				<Route path='/explorer/diaries' element={<ExplorerDiariesPage />} />
-				<Route
-					path='/explorer/diaries/:uuid'
-					element={<ExplorerDiariesDetailPage />}
-				/>
-				<Route path='/explorer/friends' element={<ExplorerFriendsPage />} />
-				<Route
-					path='/explorer/friends/:uuid'
-					element={<ExplorerFriendsDetailPage />}
-				/>
-			</Routes>
-		</BrowserRouter>
+		<AppContext value={{ forceUpdate }}>
+			<BrowserRouter>
+				<Routes>
+					<Route path='/' element={<IndexPage />} />
+					<Route path='/sign-up' element={<SignUpPage />} />
+					<Route path='/sign-in/biometric' element={<SignInBiometricPage />} />
+					<Route path='/sign-in/pin' element={<SignInPinPage />} />
+					<Route path='/sign-in/forgot-pin' element={<SignInForgotPinPage />} />
+					<Route path='/home' element={<HomePage />} />
+					<Route path='/diary' element={<DiaryPage />} />
+					<Route path='/my-profile' element={<MyProfilePage />} />
+					<Route path='/explorer/diaries' element={<ExplorerDiariesPage />} />
+					<Route
+						path='/explorer/diaries/:uuid'
+						element={<ExplorerDiariesDetailPage />}
+					/>
+					<Route path='/explorer/friends' element={<ExplorerFriendsPage />} />
+					<Route
+						path='/explorer/friends/:uuid'
+						element={<ExplorerFriendsDetailPage />}
+					/>
+				</Routes>
+			</BrowserRouter>
+		</AppContext>
 	);
 }

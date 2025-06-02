@@ -2,7 +2,7 @@ import { AddFriendDrawer } from '@/components/features/friend/add-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
-import { ExplorerHeader } from '@/components/pages/explorer/shared/header';
+import { ExplorerHeader } from '@/components/pages/explorer/header';
 import { Avatar } from '@/components/ui/avatar';
 import { ListItem } from '@/components/ui/list-item';
 import { TopNavigator } from '@/components/ui/top-navigator';

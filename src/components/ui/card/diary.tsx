@@ -1,7 +1,11 @@
+import { AppContext } from '@/App';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
+import { HomeMyDiaryDrawer } from '@/components/pages/home/my-diary-drawer';
+import { useOverlay } from '@/hooks/use-overlay';
+import { calculateDiffDays } from '@/lib/common';
 import type { Diary } from '@/lib/managers/diary';
-import { useCallback } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typo } from '../typography';
 import { card, content, preventOverflow, preview, title } from './styles.css';
@@ -13,17 +17,25 @@ interface DiaryCardProps {
 export function DiaryCard(props: DiaryCardProps) {
 	const { diary } = props;
 	const navigate = useNavigate();
-	const now = new Date();
-	const createdAt = new Date(diary.createdAt);
-	const diff = Math.abs(now.getTime() - createdAt.getTime());
-	const diffDays = Math.floor(diff / (1000 * 3600 * 24));
+	const { forceUpdate } = useContext(AppContext);
+	const diffDays = useMemo(
+		() => calculateDiffDays(new Date(diary.createdAt)),
+		[diary.createdAt],
+	);
+	const { show } = useOverlay(HomeMyDiaryDrawer);
 
 	const onClick = useCallback(() => {
 		navigate(`/diary?uuid=${diary.uuid}&readonly=${diary.readonly ?? false}`);
 	}, [diary, navigate]);
 
 	return (
-		<Container className={card} onClick={onClick}>
+		<Container
+			className={card}
+			onClick={onClick}
+			onLongPress={() => {
+				show({ diary, onDelete: forceUpdate });
+			}}
+		>
 			<Column className={content} align='end' justify='space-between'>
 				<Typo.Caption>
 					{diffDays === 0

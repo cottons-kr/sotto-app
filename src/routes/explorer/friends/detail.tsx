@@ -1,7 +1,7 @@
 import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
-import { ExplorerContent } from '@/components/pages/explorer/shared/content';
+import { ExplorerContent } from '@/components/pages/explorer/content';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';

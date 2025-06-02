@@ -1,11 +1,12 @@
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import type { JSX } from 'react';
+import { type JSX, useRef } from 'react';
 
 interface ContainerProps extends BaseProps<HAS_CHILDREN> {
 	as?: keyof JSX.IntrinsicElements;
 	vertical?: Padding;
 	horizontal?: Padding;
 	onClick?: () => unknown;
+	onLongPress?: () => unknown;
 }
 
 type Padding = 'none' | 'small' | 'regular' | 'medium' | 'large';
@@ -23,12 +24,41 @@ export function Container(props: ContainerProps) {
 		as: Component = 'div',
 		vertical = 'medium',
 		horizontal = 'medium',
+		onClick,
+		onLongPress,
 		...rest
 	} = props;
+
+	const timeoutRef = useRef<number | null>(null);
+	const longPressedRef = useRef(false);
+
+	const handlePressStart = () => {
+		longPressedRef.current = false;
+		timeoutRef.current = window.setTimeout(() => {
+			longPressedRef.current = true;
+			onLongPress?.();
+		}, 350);
+	};
+
+	const handlePressEnd = () => {
+		if (timeoutRef.current !== null) {
+			clearTimeout(timeoutRef.current);
+		}
+		if (!longPressedRef.current) {
+			onClick?.();
+		}
+		longPressedRef.current = false;
+	};
 
 	return (
 		<Component
 			{...rest}
+			onMouseDown={handlePressStart}
+			onTouchStart={handlePressStart}
+			onMouseUp={handlePressEnd}
+			onMouseLeave={handlePressEnd}
+			onTouchEnd={handlePressEnd}
+			onTouchCancel={handlePressEnd}
 			style={{
 				padding: `${paddingMap[vertical]} ${paddingMap[horizontal]}`,
 			}}

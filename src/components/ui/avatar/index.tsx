@@ -1,6 +1,6 @@
 import { cn } from '@/lib/common';
 import type { BaseProps } from '@/types/props';
-import { avatar } from './styles.css';
+import { avatar } from './styles/avatar.css';
 
 interface AvatarProps extends BaseProps {
 	size?: number;
