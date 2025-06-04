@@ -18,6 +18,7 @@ export interface Diary {
 	encryptedKey: string | null;
 	nonce: string | null;
 	readonly: boolean;
+	isSharedViaURL: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -115,6 +116,7 @@ class DiaryManager {
 			encryptedKey: null,
 			nonce: null,
 			readonly: false,
+			isSharedViaURL: false,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
@@ -167,7 +169,11 @@ class DiaryManager {
 		return updatedDiary;
 	}
 
-	async shareDiary(uuid: string, targetUsers: Array<User>) {
+	async shareDiary(
+		uuid: string,
+		targetUsers: Array<User>,
+		preventDelete = false,
+	) {
 		this.checkInitialized();
 		const diary = this.data.get(uuid);
 		if (!diary) {
@@ -175,7 +181,7 @@ class DiaryManager {
 		}
 
 		if (diary.shareUUID) {
-			if (targetUsers.length === 0) {
+			if (targetUsers.length === 0 && !preventDelete) {
 				await apiClient.delete(`/diaries/${diary.shareUUID}`);
 
 				diary.shareUUID = null;
@@ -230,6 +236,83 @@ class DiaryManager {
 		this.data.set(uuid, diary);
 		await this.saveData();
 
+		return diary;
+	}
+
+	async shareDiaryViaURL(uuid: string) {
+		this.checkInitialized();
+		const diary = this.data.get(uuid);
+		if (!diary) {
+			throw new Error('Diary not found');
+		}
+
+		let shareUUID = diary.shareUUID;
+		let aesKey = diary.aesKey;
+		if (!shareUUID || !aesKey) {
+			const sharedDiary = await this.shareDiary(uuid, [], true);
+			shareUUID = sharedDiary.shareUUID;
+			aesKey = sharedDiary.aesKey;
+		}
+
+		if (!shareUUID || !aesKey) {
+			throw new Error('Diary is not shared or missing encryption key');
+		}
+
+		diary.isSharedViaURL = true;
+		diary.shareUUID = shareUUID;
+		diary.aesKey = aesKey;
+		diary.updatedAt = new Date();
+
+		this.data.set(uuid, diary);
+		await this.saveData();
+
+		return `https://sotto.tyeongk.im/viewer/${shareUUID}?key=${aesKey}`;
+	}
+
+	async stopURLSharingAndReEncrypt(uuid: string) {
+		this.checkInitialized();
+		const diary = this.data.get(uuid);
+		if (!diary) {
+			throw new Error('Diary not found');
+		}
+
+		if (!diary.isSharedViaURL) {
+			throw new Error('Diary is not shared via URL');
+		}
+
+		await apiClient.delete(`/diaries/${diary.shareUUID}`);
+
+		const [encryptedData, aesKey, nonce] = await encryptDiary(diary);
+
+		diary.encryptedData = encryptedData;
+		diary.aesKey = aesKey;
+		diary.nonce = nonce;
+
+		const targets = await Promise.all(
+			diary.sharedWith.map(async (uuid) => {
+				const user = friendManager.getFriend(uuid);
+				if (!user) {
+					return null;
+				}
+				return {
+					uuid: user.uuid,
+					encryptedKey: await encryptKeyForRecipient(user.publicKey, aesKey),
+				};
+			}),
+		).then((targets) => targets.filter((target) => target !== null));
+
+		const res = await apiClient.post<ShareDiaryResponse>('/diaries', {
+			data: encryptedData,
+			nonce,
+			targets,
+		});
+
+		diary.shareUUID = res.uuid;
+		diary.isSharedViaURL = false;
+		diary.updatedAt = new Date();
+
+		this.data.set(uuid, diary);
+		await this.saveData();
 		return diary;
 	}
 

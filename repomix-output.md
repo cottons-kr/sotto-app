@@ -63,9 +63,11 @@ src/
         styles/
           detail-drawer.css.ts
           share-drawer.css.ts
-        delete-drawer.tsx
+        delete-popup.tsx
         detail-drawer.tsx
         share-drawer.tsx
+        stop-url-sharing-popup.tsx
+        url-copied-popup.tsx
       friend/
         add-drawer.tsx
       user/
@@ -397,6 +399,55 @@ vite.config.ts
 </svg>
 ````
 
+## File: src/binding/function/generate-key-pair.ts
+````typescript
+import { invoke } from '@tauri-apps/api/core';
+export async function generateKeyPair()
+````
+
+## File: src/components/features/diary/delete-popup.tsx
+````typescript
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Popup } from '@/components/ui/popup';
+import { PopupContent } from '@/components/ui/popup/content';
+import { useAuth } from '@/hooks/use-auth';
+import { log } from '@/lib/log';
+import { type Diary, diaryManager } from '@/lib/managers/diary';
+import { message } from '@tauri-apps/plugin-dialog';
+import { TriangleAlert } from 'lucide-react';
+import { useCallback } from 'react';
+interface DeleteDiaryPopupProps {
+	diary: Diary;
+	callback: () => unknown;
+}
+````
+
+## File: src/components/features/diary/stop-url-sharing-popup.tsx
+````typescript
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Popup } from '@/components/ui/popup';
+import { PopupContent } from '@/components/ui/popup/content';
+import { TriangleAlert } from 'lucide-react';
+import { useCallback } from 'react';
+interface DiaryStopURLSharingPopupProps {
+	onStopUrlSharingClick: () => unknown;
+}
+````
+
+## File: src/components/features/diary/url-copied-popup.tsx
+````typescript
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Popup } from '@/components/ui/popup';
+import { PopupContent } from '@/components/ui/popup/content';
+import { ClipboardCheck } from 'lucide-react';
+````
+
 ## File: src/components/layout/column/index.tsx
 ````typescript
 import { Flex } from '../flex';
@@ -491,30 +542,6 @@ import type { FlexProps } from '../flex/shared';
 export function Row(props: FlexProps)
 ````
 
-## File: src/components/pages/home/friend-diary-drawer.tsx
-````typescript
-import { DiaryDetailDrawer } from '@/components/features/diary/detail-drawer';
-import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
-import { Container } from '@/components/layout/container';
-import { Row } from '@/components/layout/row';
-import { Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import type { OverlayProps } from '@/components/ui/overlay/types';
-import { Typo } from '@/components/ui/typography';
-import { useOverlay } from '@/hooks/use-overlay';
-import type { Diary } from '@/lib/managers/diary';
-import { friendManager } from '@/lib/managers/friend';
-import { useCallback } from 'react';
-interface HomeFriendDiaryDrawerProps {
-	diary: Diary;
-	onDelete?: () => void;
-}
-export function HomeFriendDiaryDrawer(
-	props: HomeFriendDiaryDrawerProps & OverlayProps,
-)
-````
-
 ## File: src/components/ui/divider/index.tsx
 ````typescript
 import { divider } from './styles.css';
@@ -538,6 +565,34 @@ import { uiStyle } from '@/styles/layer.css';
 import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
 import { body } from '../../typography/styles/typography.css';
+````
+
+## File: src/components/ui/input/image.tsx
+````typescript
+import { Plus } from 'lucide-react';
+import {
+	type ChangeEvent,
+	type InputHTMLAttributes,
+	useCallback,
+	useState,
+} from 'react';
+import { image, input, wrapper } from './styles/image.css';
+interface ImageInputProps extends InputHTMLAttributes<HTMLInputElement> {
+	preview?: string;
+	onImage?: (image: File | null) => void;
+}
+````
+
+## File: src/components/ui/input/index.tsx
+````typescript
+import type { ChangeEvent, InputHTMLAttributes } from 'react';
+import { input } from './styles/text.css';
+interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+	onValue?: (value: string) => void;
+}
+export function Input(props: InputFieldProps)
+⋮----
+const onChange = (e: ChangeEvent<HTMLInputElement>) =>
 ````
 
 ## File: src/components/ui/sotto-symbol/index.tsx
@@ -2045,12 +2100,6 @@ export async function encryptKeyForRecipient(
 )
 ````
 
-## File: src/binding/function/generate-key-pair.ts
-````typescript
-import { invoke } from '@tauri-apps/api/core';
-export async function generateKeyPair()
-````
-
 ## File: src/components/features/auth/styles/biometric.css.ts
 ````typescript
 import { color } from '@/styles/color.css';
@@ -2116,25 +2165,6 @@ import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
 ````
 
-## File: src/components/features/diary/delete-drawer.tsx
-````typescript
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import type { OverlayProps } from '@/components/ui/overlay/types';
-import { Popup } from '@/components/ui/popup';
-import { PopupContent } from '@/components/ui/popup/content';
-import { useAuth } from '@/hooks/use-auth';
-import { log } from '@/lib/log';
-import { type Diary, diaryManager } from '@/lib/managers/diary';
-import { message } from '@tauri-apps/plugin-dialog';
-import { TriangleAlert } from 'lucide-react';
-import { useCallback } from 'react';
-interface DeleteDiaryPopupProps {
-	diary: Diary;
-	callback: () => unknown;
-}
-````
-
 ## File: src/components/features/diary/detail-drawer.tsx
 ````typescript
 import { Column } from '@/components/layout/column';
@@ -2193,9 +2223,33 @@ import { style } from '@vanilla-extract/css';
 import { style } from '@vanilla-extract/css';
 ````
 
+## File: src/components/pages/home/friend-diary-drawer.tsx
+````typescript
+import { DiaryDetailDrawer } from '@/components/features/diary/detail-drawer';
+import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { useOverlay } from '@/hooks/use-overlay';
+import type { Diary } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { useCallback } from 'react';
+interface HomeFriendDiaryDrawerProps {
+	diary: Diary;
+	onDelete?: () => void;
+}
+export function HomeFriendDiaryDrawer(
+	props: HomeFriendDiaryDrawerProps & OverlayProps,
+)
+````
+
 ## File: src/components/pages/home/my-diary-drawer.tsx
 ````typescript
-import { DeleteDiaryPopup } from '@/components/features/diary/delete-drawer';
+import { DeleteDiaryPopup } from '@/components/features/diary/delete-popup';
 import { DiaryDetailDrawer } from '@/components/features/diary/detail-drawer';
 import { Container } from '@/components/layout/container';
 import { AvatarItem } from '@/components/ui/avatar/item';
@@ -2406,34 +2460,6 @@ import { labelStyle } from './styles/field.css';
 interface InputFieldProps extends BaseProps<HAS_CHILDREN> {
 	label?: string;
 }
-````
-
-## File: src/components/ui/input/image.tsx
-````typescript
-import { Plus } from 'lucide-react';
-import {
-	type ChangeEvent,
-	type InputHTMLAttributes,
-	useCallback,
-	useState,
-} from 'react';
-import { image, input, wrapper } from './styles/image.css';
-interface ImageInputProps extends InputHTMLAttributes<HTMLInputElement> {
-	preview?: string;
-	onImage?: (image: File | null) => void;
-}
-````
-
-## File: src/components/ui/input/index.tsx
-````typescript
-import type { ChangeEvent, InputHTMLAttributes } from 'react';
-import { input } from './styles/text.css';
-interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-	onValue?: (value: string) => void;
-}
-export function Input(props: InputFieldProps)
-⋮----
-const onChange = (e: ChangeEvent<HTMLInputElement>) =>
 ````
 
 ## File: src/components/ui/list-item/index.tsx
@@ -2911,6 +2937,15 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 ````
 
+## File: src/binding/types/diary-data.d.ts
+````typescript
+interface DiaryData {
+	emoji: string;
+	title: string;
+	content: string;
+}
+````
+
 ## File: src/components/features/diary/styles/share-drawer.css.ts
 ````typescript
 import { color } from '@/styles/color.css';
@@ -3170,6 +3205,13 @@ private checkInitialized()
 	 */
 ````
 
+## File: src/lib/common.ts
+````typescript
+export async function resizeImage(image: File, size = 256)
+export async function wait(ms: number)
+export function calculateDiffDays(createdAt: Date)
+````
+
 ## File: src/routes/index/page.css.ts
 ````typescript
 import { style } from '@vanilla-extract/css';
@@ -3292,6 +3334,72 @@ apply(from = "tauri.build.gradle.kts")
 </plist>
 ````
 
+## File: src-tauri/src/crypto.rs
+````rust
+pub struct DiaryData {
+⋮----
+pub fn generate_key_pair() -> Result<(String, String), String> {
+⋮----
+.map_err(|e| format!("Key generation failed: {:?}", e))?;
+⋮----
+let private_key_pem = private_key.to_pkcs1_pem(Default::default())
+.map_err(|e| format!("Private key PEM encoding failed: {:?}", e))?
+.to_string();
+let public_key_pem = public_key.to_pkcs1_pem(Default::default())
+.map_err(|e| format!("Public key PEM encoding failed: {:?}", e))?
+⋮----
+Ok((private_key_pem, public_key_pem))
+⋮----
+pub fn encrypt_diary(diary: DiaryData, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
+let json = serde_json::to_string(&diary).map_err(|e| e.to_string())?;
+⋮----
+.decode(b64)
+.map_err(|e| format!("Failed to decode provided AES key: {:?}", e))?
+.try_into()
+.map_err(|_| "Invalid AES key length".to_string())?
+⋮----
+rng.fill_bytes(&mut key);
+⋮----
+.encrypt(nonce, json.as_bytes())
+.map_err(|e| format!("AES encryption failed: {:?}", e))?;
+Ok((
+BASE64_STANDARD.encode(&encrypted_data),
+BASE64_STANDARD.encode(&aes_key),
+BASE64_STANDARD.encode(&nonce_bytes),
+⋮----
+pub fn encrypt_key_for_recipient(
+⋮----
+.map_err(|e| format!("Invalid public key: {:?}", e))?;
+⋮----
+.decode(&aes_key)
+.map_err(|e| format!("Failed to decode AES key: {:?}", e))?;
+⋮----
+.encrypt(&mut rng, rsa::pkcs1v15::Pkcs1v15Encrypt, &aes_key)
+.map_err(|e| format!("RSA encryption failed: {:?}", e))?;
+Ok(BASE64_STANDARD.encode(&encrypted_key))
+⋮----
+pub fn decrypt_diary(
+⋮----
+.map_err(|e| format!("Invalid private key: {:?}", e))?;
+let encrypted_data = BASE64_STANDARD.decode(encrypted_data_b64)
+.map_err(|e| format!("encrypted_data decode error: {:?}", e))?;
+let encrypted_key = BASE64_STANDARD.decode(encrypted_key_b64)
+.map_err(|e| format!("encrypted_key decode error: {:?}", e))?;
+let nonce_bytes = BASE64_STANDARD.decode(nonce_b64)
+.map_err(|e| format!("nonce decode error: {:?}", e))?;
+⋮----
+let aes_key = decryptor.decrypt(&encrypted_key)
+.map_err(|e| format!("RSA decryption failed: {:?}", e))?;
+⋮----
+let decrypted_data = cipher.decrypt(nonce, encrypted_data.as_ref())
+.map_err(|e| format!("AES decryption failed: {:?}", e))?;
+⋮----
+.map_err(|e| format!("UTF-8 decode error: {:?}", e))?;
+⋮----
+.map_err(|e| format!("JSON parse error: {:?}", e))?;
+Ok(diary)
+````
+
 ## File: .gitignore
 ````
 # Logs
@@ -3324,28 +3432,24 @@ keystore.properties
 *.sw?
 ````
 
-## File: src/binding/types/diary-data.d.ts
-````typescript
-interface DiaryData {
-	emoji: string;
-	title: string;
-	content: string;
-}
-````
-
 ## File: src/components/features/diary/share-drawer.tsx
 ````typescript
 import type { OverlayProps } from '@/components/ui/overlay/types';
+import { useOverlay } from '@/hooks/use-overlay';
 import { type Diary, diaryManager } from '@/lib/managers/diary';
 import type { User } from '@/lib/managers/friend';
+import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { message } from '@tauri-apps/plugin-dialog';
 import {
 	type Dispatch,
 	type SetStateAction,
 	useCallback,
+	useMemo,
 	useState,
 } from 'react';
 import { UserPickerDrawer } from '../user/picker-drawer';
+import { DiaryStopURLSharingPopup } from './stop-url-sharing-popup';
+import { DiaryURLCopiedPopup } from './url-copied-popup';
 interface DiaryShareDrawerProps {
 	diary: Diary;
 	setDiary: Dispatch<SetStateAction<Diary>>;
@@ -3450,13 +3554,6 @@ import { useOverlay } from './use-overlay';
 export function useDrawer<T extends object>(renderer: Renderer<T>)
 ````
 
-## File: src/lib/common.ts
-````typescript
-export async function resizeImage(image: File, size = 256)
-export async function wait(ms: number)
-export function calculateDiffDays(createdAt: Date)
-````
-
 ## File: src/routes/diary/page.css.ts
 ````typescript
 import {
@@ -3486,72 +3583,6 @@ import { ChevronRight, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 ````
 
-## File: src-tauri/src/crypto.rs
-````rust
-pub struct DiaryData {
-⋮----
-pub fn generate_key_pair() -> Result<(String, String), String> {
-⋮----
-.map_err(|e| format!("Key generation failed: {:?}", e))?;
-⋮----
-let private_key_pem = private_key.to_pkcs1_pem(Default::default())
-.map_err(|e| format!("Private key PEM encoding failed: {:?}", e))?
-.to_string();
-let public_key_pem = public_key.to_pkcs1_pem(Default::default())
-.map_err(|e| format!("Public key PEM encoding failed: {:?}", e))?
-⋮----
-Ok((private_key_pem, public_key_pem))
-⋮----
-pub fn encrypt_diary(diary: DiaryData, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
-let json = serde_json::to_string(&diary).map_err(|e| e.to_string())?;
-⋮----
-.decode(b64)
-.map_err(|e| format!("Failed to decode provided AES key: {:?}", e))?
-.try_into()
-.map_err(|_| "Invalid AES key length".to_string())?
-⋮----
-rng.fill_bytes(&mut key);
-⋮----
-.encrypt(nonce, json.as_bytes())
-.map_err(|e| format!("AES encryption failed: {:?}", e))?;
-Ok((
-BASE64_STANDARD.encode(&encrypted_data),
-BASE64_STANDARD.encode(&aes_key),
-BASE64_STANDARD.encode(&nonce_bytes),
-⋮----
-pub fn encrypt_key_for_recipient(
-⋮----
-.map_err(|e| format!("Invalid public key: {:?}", e))?;
-⋮----
-.decode(&aes_key)
-.map_err(|e| format!("Failed to decode AES key: {:?}", e))?;
-⋮----
-.encrypt(&mut rng, rsa::pkcs1v15::Pkcs1v15Encrypt, &aes_key)
-.map_err(|e| format!("RSA encryption failed: {:?}", e))?;
-Ok(BASE64_STANDARD.encode(&encrypted_key))
-⋮----
-pub fn decrypt_diary(
-⋮----
-.map_err(|e| format!("Invalid private key: {:?}", e))?;
-let encrypted_data = BASE64_STANDARD.decode(encrypted_data_b64)
-.map_err(|e| format!("encrypted_data decode error: {:?}", e))?;
-let encrypted_key = BASE64_STANDARD.decode(encrypted_key_b64)
-.map_err(|e| format!("encrypted_key decode error: {:?}", e))?;
-let nonce_bytes = BASE64_STANDARD.decode(nonce_b64)
-.map_err(|e| format!("nonce decode error: {:?}", e))?;
-⋮----
-let aes_key = decryptor.decrypt(&encrypted_key)
-.map_err(|e| format!("RSA decryption failed: {:?}", e))?;
-⋮----
-let decrypted_data = cipher.decrypt(nonce, encrypted_data.as_ref())
-.map_err(|e| format!("AES decryption failed: {:?}", e))?;
-⋮----
-.map_err(|e| format!("UTF-8 decode error: {:?}", e))?;
-⋮----
-.map_err(|e| format!("JSON parse error: {:?}", e))?;
-Ok(diary)
-````
-
 ## File: src/components/features/user/picker-drawer.tsx
 ````typescript
 import { Column } from '@/components/layout/column';
@@ -3575,7 +3606,7 @@ interface UserPickerDrawerProps extends DrawerProps {
 	buttons: Array<{
 		label: string;
 		onClick?: (selectedUsers: Array<User>) => unknown;
-		variants?: 'primary' | 'secondary' | 'text';
+		variant?: 'primary' | 'secondary' | 'text';
 		loading?: boolean;
 	}>;
 	defaultSelected?: Array<string>;
@@ -3719,7 +3750,7 @@ export async function resetApp()
 
 ## File: src/routes/explorer/diaries/detail.tsx
 ````typescript
-import { DeleteDiaryPopup } from '@/components/features/diary/delete-drawer';
+import { DeleteDiaryPopup } from '@/components/features/diary/delete-popup';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
@@ -3820,6 +3851,37 @@ type SharedDiariesResponse = Array<{
 }>;
 ````
 
+## File: src-tauri/capabilities/default.json
+````json
+{
+	"$schema": "../gen/schemas/desktop-schema.json",
+	"identifier": "default",
+	"description": "Capability for the main window",
+	"windows": ["main"],
+	"permissions": [
+		"core:default",
+		"opener:default",
+		"dialog:default",
+		"fs:default",
+		"keychain:default",
+		"stronghold:default",
+		"log:default",
+		"clipboard-manager:allow-write-text",
+		{
+			"identifier": "http:default",
+			"allow": [
+				{
+					"url": "http://localhost:3000"
+				},
+				{
+					"url": "https://sotto-api.tapie.kr"
+				}
+			]
+		}
+	]
+}
+````
+
 ## File: index.html
 ````html
 <!doctype html>
@@ -3851,28 +3913,6 @@ import { apiClient } from '@/lib/managers/http';
 import { message } from '@tauri-apps/plugin-dialog';
 import { useCallback, useState } from 'react';
 export function MyProfileChangeNameDrawer(props: OverlayProps)
-````
-
-## File: src/components/ui/card/diary.tsx
-````typescript
-import { AppContext } from '@/App';
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { HomeFriendDiaryDrawer } from '@/components/pages/home/friend-diary-drawer';
-import { HomeMyDiaryDrawer } from '@/components/pages/home/my-diary-drawer';
-import { useOverlay } from '@/hooks/use-overlay';
-import { calculateDiffDays } from '@/lib/common';
-import type { Diary } from '@/lib/managers/diary';
-import { useCallback, useContext, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Typo } from '../typography';
-import { card, content, preventOverflow, preview, title } from './styles.css';
-interface DiaryCardProps {
-	diary: Diary;
-}
-export function DiaryCard(props: DiaryCardProps)
-⋮----
-onLongPress=
 ````
 
 ## File: src/components/ui/input/emoji.tsx
@@ -3937,49 +3977,6 @@ import { color } from '@/styles/color.css';
 import { style } from '@vanilla-extract/css';
 ````
 
-## File: src-tauri/capabilities/default.json
-````json
-{
-	"$schema": "../gen/schemas/desktop-schema.json",
-	"identifier": "default",
-	"description": "Capability for the main window",
-	"windows": ["main"],
-	"permissions": [
-		"core:default",
-		"opener:default",
-		"dialog:default",
-		"fs:default",
-		"keychain:default",
-		"stronghold:default",
-		"log:default",
-		{
-			"identifier": "http:default",
-			"allow": [
-				{
-					"url": "http://localhost:3000"
-				},
-				{
-					"url": "https://sotto-api.tapie.kr"
-				}
-			]
-		}
-	]
-}
-````
-
-## File: src/components/ui/drawer/index.tsx
-````typescript
-import { Container } from '@/components/layout/container';
-import { Row } from '@/components/layout/row';
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { type PanInfo, motion } from 'motion/react';
-import { useCallback } from 'react';
-import type { OverlayProps } from '../overlay/types';
-import { drawerVariants } from './animation';
-import { drawer, handle } from './styles.css';
-export interface DrawerProps extends BaseProps<HAS_CHILDREN> {}
-````
-
 ## File: src-tauri/Cargo.toml
 ````toml
 [package]
@@ -4017,30 +4014,45 @@ rust-argon2 = "2.1.0"
 tauri-plugin-keychain = "2.0.2"
 tauri-plugin-fs = "2"
 tauri-plugin-log = "2"
+tauri-plugin-clipboard-manager = "2"
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
 tauri-plugin-biometric = "2"
 ````
 
-## File: src/routes/home/index.tsx
+## File: src/components/ui/card/diary.tsx
 ````typescript
+import { AppContext } from '@/App';
 import { Column } from '@/components/layout/column';
-import { Row } from '@/components/layout/row';
-import { HomeFriendsDiariesSection } from '@/components/pages/home/friends-diaries';
-import { HomeMyDiariesSection } from '@/components/pages/home/my-diaries';
-import { Avatar } from '@/components/ui/avatar';
-import { SottoSymbol } from '@/components/ui/sotto-symbol';
-import { Tabs } from '@/components/ui/tabs';
-import { TabsContent } from '@/components/ui/tabs/content';
-import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { Typo } from '@/components/ui/typography';
-import { fullHeight } from '@/styles/utils.css';
-import { useCallback } from 'react';
+import { Container } from '@/components/layout/container';
+import { HomeFriendDiaryDrawer } from '@/components/pages/home/friend-diary-drawer';
+import { HomeMyDiaryDrawer } from '@/components/pages/home/my-diary-drawer';
+import { useOverlay } from '@/hooks/use-overlay';
+import { calculateDiffDays } from '@/lib/common';
+import type { Diary } from '@/lib/managers/diary';
+import { useCallback, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { left, right } from './page.css';
+import { Typo } from '../typography';
+import { card, content, preventOverflow, preview, title } from './styles.css';
+interface DiaryCardProps {
+	diary: Diary;
+}
+export function DiaryCard(props: DiaryCardProps)
 ⋮----
-src=
+onLongPress=
+````
+
+## File: src/components/ui/drawer/index.tsx
+````typescript
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { type PanInfo, motion } from 'motion/react';
+import { useCallback } from 'react';
+import type { OverlayProps } from '../overlay/types';
+import { drawerVariants } from './animation';
+import { drawer, handle } from './styles.css';
+export interface DrawerProps extends BaseProps<HAS_CHILDREN> {}
 ````
 
 ## File: src-tauri/src/lib.rs
@@ -4050,6 +4062,7 @@ mod crypto;
 ⋮----
 pub fn run() {
 ⋮----
+.plugin(tauri_plugin_clipboard_manager::init())
 .plugin(tauri_plugin_log::Builder::new().build())
 .plugin(tauri_plugin_fs::init())
 .plugin(tauri_plugin_http::init())
@@ -4071,6 +4084,27 @@ Ok(())
 ⋮----
 .run(tauri::generate_context!())
 .expect("error while running tauri application");
+````
+
+## File: src/routes/home/index.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Row } from '@/components/layout/row';
+import { HomeFriendsDiariesSection } from '@/components/pages/home/friends-diaries';
+import { HomeMyDiariesSection } from '@/components/pages/home/my-diaries';
+import { Avatar } from '@/components/ui/avatar';
+import { SottoSymbol } from '@/components/ui/sotto-symbol';
+import { Tabs } from '@/components/ui/tabs';
+import { TabsContent } from '@/components/ui/tabs/content';
+import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { Typo } from '@/components/ui/typography';
+import { fullHeight } from '@/styles/utils.css';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { left, right } from './page.css';
+⋮----
+src=
 ````
 
 ## File: src/components/pages/home/friends-diaries.tsx
@@ -4121,6 +4155,7 @@ export interface Diary {
 	encryptedKey: string | null;
 	nonce: string | null;
 	readonly: boolean;
+	isSharedViaURL: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -4144,7 +4179,13 @@ getDiary(uuid: string)
 createDiary(): Diary
 async addDiary(newDiary: DiaryEditable | Diary)
 async updateDiary(uuid: string, updatedData: Diary | DiaryEditable)
-async shareDiary(uuid: string, targetUsers: Array<User>)
+async shareDiary(
+		uuid: string,
+		targetUsers: Array<User>,
+		preventDelete = false,
+)
+async shareDiaryViaURL(uuid: string)
+async stopURLSharingAndReEncrypt(uuid: string)
 isSharedDiary(diary: Diary)
 removeDiary(uuid: string)
 async clear()
@@ -4199,28 +4240,6 @@ import {
 export default function App()
 ````
 
-## File: src/routes/diary/index.tsx
-````typescript
-import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
-import { Divider } from '@/components/ui/divider';
-import { EmojiInput } from '@/components/ui/input/emoji';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { useDiary } from '@/hooks/use-diary';
-import { useOverlay } from '@/hooks/use-overlay';
-import { log } from '@/lib/log';
-import { diaryManager } from '@/lib/managers/diary';
-import { color } from '@/styles/color.css';
-import { Share } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { page, textArea, textAreaContainer, titleInput } from './page.css';
-````
-
 ## File: package.json
 ````json
 {
@@ -4248,6 +4267,7 @@ import { page, textArea, textAreaContainer, titleInput } from './page.css';
 	"dependencies": {
 		"@tauri-apps/api": "^2.5.0",
 		"@tauri-apps/plugin-biometric": "~2",
+		"@tauri-apps/plugin-clipboard-manager": "~2",
 		"@tauri-apps/plugin-dialog": "~2",
 		"@tauri-apps/plugin-fs": "~2",
 		"@tauri-apps/plugin-http": "~2",
@@ -4285,4 +4305,26 @@ import { page, textArea, textAreaContainer, titleInput } from './page.css';
 		"vite": "^6.3.5"
 	}
 }
+````
+
+## File: src/routes/diary/index.tsx
+````typescript
+import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
+import { Divider } from '@/components/ui/divider';
+import { EmojiInput } from '@/components/ui/input/emoji';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { useDiary } from '@/hooks/use-diary';
+import { useOverlay } from '@/hooks/use-overlay';
+import { log } from '@/lib/log';
+import { diaryManager } from '@/lib/managers/diary';
+import { color } from '@/styles/color.css';
+import { Share } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { page, textArea, textAreaContainer, titleInput } from './page.css';
 ````

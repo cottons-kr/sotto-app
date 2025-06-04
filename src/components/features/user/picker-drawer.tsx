@@ -20,7 +20,7 @@ interface UserPickerDrawerProps extends DrawerProps {
 	buttons: Array<{
 		label: string;
 		onClick?: (selectedUsers: Array<User>) => unknown;
-		variants?: 'primary' | 'secondary' | 'text';
+		variant?: 'primary' | 'secondary' | 'text';
 		loading?: boolean;
 	}>;
 	defaultSelected?: Array<string>;
@@ -110,7 +110,7 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 					<Button
 						key={i.toString()}
 						fill
-						variant={b.variants}
+						variant={b.variant}
 						loading={b.loading}
 						onClick={() => b.onClick?.(selectedUsers)}
 					>

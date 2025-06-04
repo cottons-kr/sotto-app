@@ -1,4 +1,4 @@
-import { DeleteDiaryPopup } from '@/components/features/diary/delete-drawer';
+import { DeleteDiaryPopup } from '@/components/features/diary/delete-popup';
 import { DiaryDetailDrawer } from '@/components/features/diary/detail-drawer';
 import { Container } from '@/components/layout/container';
 import { AvatarItem } from '@/components/ui/avatar/item';
