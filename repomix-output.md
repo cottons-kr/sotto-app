@@ -51,12 +51,28 @@ src/
       diary-data.d.ts
   components/
     features/
+      auth/
+        styles/
+          biometric.css.ts
+          pin.css.ts
+          popup.css.ts
+        biometric.tsx
+        pin.tsx
+        shared.ts
       diary/
         styles/
+          detail-drawer.css.ts
           share-drawer.css.ts
+        delete-drawer.tsx
+        detail-drawer.tsx
         share-drawer.tsx
       friend/
-        ban.tsx
+        add-drawer.tsx
+      user/
+        styles/
+          picker-drawer.css.ts
+        ban-drawer.tsx
+        picker-drawer.tsx
     layout/
       column/
         index.tsx
@@ -78,22 +94,20 @@ src/
         index.tsx
     pages/
       diary/
-        styles/
-          saving-popup.css.ts
         saving-popup.tsx
       explorer/
-        diaries/
-          delete.tsx
-        shared/
-          styles/
-            content.css.ts
-          content.tsx
-          header.tsx
+        styles/
+          content.css.ts
+        content.tsx
+        header.tsx
       home/
         styles/
           friends-diaries.css.ts
+          my-diary-drawer.css.ts
+        friend-diary-drawer.tsx
         friends-diaries.tsx
         my-diaries.tsx
+        my-diary-drawer.tsx
       my-profile/
         styles/
           image.css.ts
@@ -112,8 +126,11 @@ src/
         set-pin.tsx
     ui/
       avatar/
+        styles/
+          avatar.css.ts
+          item.css.ts
         index.tsx
-        styles.css.ts
+        item.tsx
       button/
         styles/
           button.css.ts
@@ -189,13 +206,14 @@ src/
         base.tsx
         index.tsx
   hooks/
+    use-auth.ts
+    use-check-initialized.ts
     use-diary.ts
     use-drawer.ts
     use-flow.ts
     use-overlay.ts
   lib/
     managers/
-      auth.ts
       diary.ts
       friend.ts
       http.ts
@@ -238,6 +256,7 @@ src/
     my-profile/
       index.tsx
       page.css.ts
+    index.ts
   styles/
     color.css.ts
     font.css.ts
@@ -378,76 +397,6 @@ vite.config.ts
 </svg>
 ````
 
-## File: src/components/features/diary/styles/share-drawer.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { style } from '@vanilla-extract/css';
-````
-
-## File: src/components/features/diary/share-drawer.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { Drawer } from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
-import type { OverlayProps } from '@/components/ui/overlay/types';
-import { Typo } from '@/components/ui/typography';
-import { type Diary, diaryManager } from '@/lib/managers/diary';
-import { type User, friendManager } from '@/lib/managers/friend';
-import { apiClient } from '@/lib/managers/http';
-import { message } from '@tauri-apps/plugin-dialog';
-import { Check, Search, UserRoundX } from 'lucide-react';
-import {
-	type Dispatch,
-	type SetStateAction,
-	useCallback,
-	useMemo,
-	useState,
-} from 'react';
-import { useDebouncedCallback } from 'use-debounce';
-import {
-	avatar,
-	check,
-	empty,
-	emptyIcon,
-	friendList,
-	item,
-} from './styles/share-drawer.css';
-interface DiaryShareDrawerProps {
-	title?: string;
-	diary: Diary;
-	setDiary: Dispatch<SetStateAction<Diary>>;
-}
-⋮----
-onClick=
-````
-
-## File: src/components/features/friend/ban.tsx
-````typescript
-import { Container } from '@/components/layout/container';
-import { center } from '@/components/pages/home/styles/friends-diaries.css';
-import { Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { Drawer } from '@/components/ui/drawer';
-import type { OverlayProps } from '@/components/ui/overlay/types';
-import { Typo } from '@/components/ui/typography';
-import { log } from '@/lib/log';
-import { diaryManager } from '@/lib/managers/diary';
-import { type User, friendManager } from '@/lib/managers/friend';
-import { apiClient } from '@/lib/managers/http';
-import { banWarning } from '@/routes/home/page.css';
-import { message } from '@tauri-apps/plugin-dialog';
-import { useCallback } from 'react';
-interface BanUserDrawerProps {
-	friend: User;
-	callback?: (friend: User) => unknown;
-}
-````
-
 ## File: src/components/layout/column/index.tsx
 ````typescript
 import { Flex } from '../flex';
@@ -480,6 +429,19 @@ import { layoutStyle } from '@/styles/layer.css';
 import { layoutStyle } from '@/styles/layer.css';
 ````
 
+## File: src/components/layout/flex/index.tsx
+````typescript
+import { cn } from '@/lib/common';
+import { createElement } from 'react';
+import type { FlexProps } from './shared';
+import { alignStyles } from './styles/align.css';
+import { directionStyles } from './styles/direction.css';
+import { flex, noGrow, noShrink } from './styles/flex.css';
+import { justifyStyles } from './styles/justify.css';
+import { wrapStyles } from './styles/wrap.css';
+export function Flex(props: FlexProps)
+````
+
 ## File: src/components/layout/flex/shared.ts
 ````typescript
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
@@ -508,6 +470,20 @@ export interface FlexProps
 }
 ````
 
+## File: src/components/layout/grid/index.tsx
+````typescript
+import { cn } from '@/lib/common';
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { grid } from './styles.css';
+interface GridProps extends BaseProps<HAS_CHILDREN> {}
+export function Grid(props: GridProps)
+````
+
+## File: src/components/layout/grid/styles.css.ts
+````typescript
+import { layoutStyle } from '@/styles/layer.css';
+````
+
 ## File: src/components/layout/row/index.tsx
 ````typescript
 import { Flex } from '../flex';
@@ -515,9 +491,62 @@ import type { FlexProps } from '../flex/shared';
 export function Row(props: FlexProps)
 ````
 
-## File: src/components/ui/avatar/styles.css.ts
+## File: src/components/pages/home/friend-diary-drawer.tsx
 ````typescript
+import { DiaryDetailDrawer } from '@/components/features/diary/detail-drawer';
+import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { useOverlay } from '@/hooks/use-overlay';
+import type { Diary } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { useCallback } from 'react';
+interface HomeFriendDiaryDrawerProps {
+	diary: Diary;
+	onDelete?: () => void;
+}
+export function HomeFriendDiaryDrawer(
+	props: HomeFriendDiaryDrawerProps & OverlayProps,
+)
+````
+
+## File: src/components/ui/divider/index.tsx
+````typescript
+import { divider } from './styles.css';
+export function Divider()
+````
+
+## File: src/components/ui/divider/styles.css.ts
+````typescript
+import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
+````
+
+## File: src/components/ui/input/styles/image.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
+````
+
+## File: src/components/ui/input/styles/text.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
+import { body } from '../../typography/styles/typography.css';
+````
+
+## File: src/components/ui/sotto-symbol/index.tsx
+````typescript
+interface SymbolProps {
+	size?: number;
+	className?: string;
+}
+export function SottoSymbol(props: SymbolProps)
 ````
 
 ## File: src/components/ui/tabs/styles/item.css.ts
@@ -546,6 +575,23 @@ type TabsContextType = {
 };
 ````
 
+## File: src/components/ui/tabs/item.tsx
+````typescript
+import { Row } from '@/components/layout/row';
+import { cn } from '@/lib/common';
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { useContext } from 'react';
+import { Typo } from '../typography';
+import { TabsContext } from './context';
+import { group, item, itemActive } from './styles/item.css';
+export function TabsGroup(props: BaseProps<HAS_CHILDREN>)
+interface TabRailItemProps extends BaseProps<HAS_CHILDREN> {
+	value: string;
+}
+⋮----
+const handleClick = () =>
+````
+
 ## File: src/components/ui/top-navigator/index.tsx
 ````typescript
 import { Column } from '@/components/layout/column';
@@ -559,6 +605,12 @@ interface TopNavigatorProps extends BaseProps<HAS_CHILDREN> {
 export function TopNavigator(props: TopNavigatorProps)
 ````
 
+## File: src/components/ui/top-navigator/styles.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
+````
+
 ## File: src/components/ui/typography/styles/typography.css.ts
 ````typescript
 import { uiStyle } from '@/styles/layer.css';
@@ -570,9 +622,71 @@ import { weightStyles } from './weight.css';
 import { uiStyle } from '@/styles/layer.css';
 ````
 
+## File: src/components/ui/typography/base.tsx
+````typescript
+import { cn } from '@/lib/common';
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { type JSX, createElement } from 'react';
+import { typography, typographyFill } from './styles/typography.css';
+import { weightStyles } from './styles/weight.css';
+type TypographyWeight = 'regular' | 'medium' | 'strong';
+export interface TypographyBaseProps extends BaseProps<HAS_CHILDREN> {
+	as?: keyof JSX.IntrinsicElements;
+	weight?: TypographyWeight;
+	color?: string;
+	fill?: boolean;
+}
+export function TypographyBase(props: TypographyBaseProps)
+````
+
+## File: src/components/ui/typography/index.tsx
+````typescript
+import { cn } from '@/lib/common';
+import { TypographyBase, type TypographyBaseProps } from './base';
+import { body, caption, lead, title } from './styles/typography.css';
+````
+
+## File: src/lib/animation.ts
+````typescript
+export function getTransition(duration = 0.2, delay = 0)
+````
+
+## File: src/lib/style.ts
+````typescript
+import {
+	type StyleRule,
+	globalStyle as _globalStyle,
+	style as _style,
+} from '@vanilla-extract/css';
+type StyleFunction = typeof _style;
+type GlobalStyleFunction = typeof _globalStyle;
+type ClassNames = string | Array<ClassNames>;
+export function getLayerApplier(layer: string)
+⋮----
+function style(...args: Parameters<StyleFunction>)
+function globalStyle(...args: Parameters<GlobalStyleFunction>)
+⋮----
+export function applyLayer(layer: string, rule: StyleRule)
+function isLayerApplicable(rule: StyleRule | ClassNames): rule is StyleRule
+export function addOpacity(hex: string, opacity: number)
+⋮----
+export function calculateScaleFactor(size: number)
+````
+
+## File: src/routes/home/page.css.ts
+````typescript
+import { style } from '@vanilla-extract/css';
+````
+
 ## File: src/styles/color.css.ts
 ````typescript
 import { createGlobalTheme } from '@vanilla-extract/css';
+````
+
+## File: src/styles/layer.css.ts
+````typescript
+import { getLayerApplier } from '@/lib/style';
+import { globalLayer } from '@vanilla-extract/css';
 ````
 
 ## File: src/types/props.d.ts
@@ -1937,102 +2051,169 @@ import { invoke } from '@tauri-apps/api/core';
 export async function generateKeyPair()
 ````
 
-## File: src/components/layout/container/index.tsx
+## File: src/components/features/auth/styles/biometric.css.ts
 ````typescript
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import type { JSX } from 'react';
-interface ContainerProps extends BaseProps<HAS_CHILDREN> {
-	as?: keyof JSX.IntrinsicElements;
-	vertical?: Padding;
-	horizontal?: Padding;
-	onClick?: () => unknown;
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
+````
+
+## File: src/components/features/auth/styles/pin.css.ts
+````typescript
+import { uiStyle } from '@/styles/layer.css';
+````
+
+## File: src/components/features/auth/styles/popup.css.ts
+````typescript
+import { uiStyle } from '@/styles/layer.css';
+````
+
+## File: src/components/features/auth/biometric.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Popup } from '@/components/ui/popup';
+import { authenticate } from '@tauri-apps/plugin-biometric';
+import { LockKeyhole } from 'lucide-react';
+import { useCallback, useEffect } from 'react';
+import type { AuthPopupProps } from './shared';
+import { icon, iconWrapper } from './styles/biometric.css';
+import { popup } from './styles/popup.css';
+export function AuthBiometricPopup(props: AuthPopupProps)
+````
+
+## File: src/components/features/auth/pin.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { PINInput } from '@/components/ui/input/pin';
+import { Popup } from '@/components/ui/popup';
+import { Typo } from '@/components/ui/typography';
+import { log } from '@/lib/log';
+import { message } from '@tauri-apps/plugin-dialog';
+import { useCallback } from 'react';
+import { getItem } from 'tauri-plugin-keychain';
+import type { AuthPopupProps } from './shared';
+import { pinInput } from './styles/pin.css';
+import { popup } from './styles/popup.css';
+export function AuthPINPopup(props: AuthPopupProps)
+````
+
+## File: src/components/features/auth/shared.ts
+````typescript
+export interface AuthPopupProps {
+	close: () => void;
+	openAlternative: () => void;
+	callback: () => unknown;
 }
-type Padding = 'none' | 'small' | 'regular' | 'medium' | 'large';
 ````
 
-## File: src/components/layout/flex/index.tsx
+## File: src/components/features/diary/styles/detail-drawer.css.ts
 ````typescript
-import { cn } from '@/lib/common';
-import { createElement } from 'react';
-import type { FlexProps } from './shared';
-import { alignStyles } from './styles/align.css';
-import { directionStyles } from './styles/direction.css';
-import { flex, noGrow, noShrink } from './styles/flex.css';
-import { justifyStyles } from './styles/justify.css';
-import { wrapStyles } from './styles/wrap.css';
-export function Flex(props: FlexProps)
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
 ````
 
-## File: src/components/layout/grid/index.tsx
-````typescript
-import { cn } from '@/lib/common';
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { grid } from './styles.css';
-interface GridProps extends BaseProps<HAS_CHILDREN> {}
-export function Grid(props: GridProps)
-````
-
-## File: src/components/layout/grid/styles.css.ts
-````typescript
-import { layoutStyle } from '@/styles/layer.css';
-````
-
-## File: src/components/pages/explorer/diaries/delete.tsx
+## File: src/components/features/diary/delete-drawer.tsx
 ````typescript
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Popup } from '@/components/ui/popup';
 import { PopupContent } from '@/components/ui/popup/content';
+import { useAuth } from '@/hooks/use-auth';
 import { log } from '@/lib/log';
 import { type Diary, diaryManager } from '@/lib/managers/diary';
 import { message } from '@tauri-apps/plugin-dialog';
 import { TriangleAlert } from 'lucide-react';
 import { useCallback } from 'react';
-interface ExplorerDiariesDeleteDrawerProps {
+interface DeleteDiaryPopupProps {
 	diary: Diary;
-	back: () => void;
+	callback: () => unknown;
 }
 ````
 
-## File: src/components/pages/explorer/shared/styles/content.css.ts
+## File: src/components/features/diary/detail-drawer.tsx
 ````typescript
-import { color } from '@/styles/color.css';
-import { FIRA_CODE } from '@/styles/font.css';
-import { uiStyle } from '@/styles/layer.css';
-````
-
-## File: src/components/pages/explorer/shared/content.tsx
-````typescript
-import { Container } from '@/components/layout/container';
-import { Typo } from '@/components/ui/typography';
-import { contentStyle } from './styles/content.css';
-interface ExplorerContentProps {
-	label: string;
-	content: string;
-}
-export function ExplorerContent(props: ExplorerContentProps)
-````
-
-## File: src/components/pages/explorer/shared/header.tsx
-````typescript
+import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
-import { Divider } from '@/components/ui/divider';
-import { Input } from '@/components/ui/input';
+import { Drawer } from '@/components/ui/drawer';
+import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
-interface ExplorerHeaderProps {
-	title: string;
-	count: number;
-	placeholder: string;
-	onSearch?: (query: string) => void;
+import { calculateDiffDays } from '@/lib/common';
+import type { Diary } from '@/lib/managers/diary';
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import {
+	card,
+	preventOverflow,
+	preview,
+	title,
+} from './styles/detail-drawer.css';
+interface DiaryDetailDrawerProps extends BaseProps<HAS_CHILDREN> {
+	diary: Diary;
 }
-export function ExplorerHeader(props: ExplorerHeaderProps)
+export function DiaryDetailDrawer(
+	props: DiaryDetailDrawerProps & OverlayProps,
+)
+````
+
+## File: src/components/features/user/ban-drawer.tsx
+````typescript
+import { Container } from '@/components/layout/container';
+import { center } from '@/components/pages/home/styles/friends-diaries.css';
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Drawer } from '@/components/ui/drawer';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { log } from '@/lib/log';
+import { diaryManager } from '@/lib/managers/diary';
+import { type User, friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
+import { banWarning } from '@/routes/home/page.css';
+import { message } from '@tauri-apps/plugin-dialog';
+import { useCallback } from 'react';
+interface BanUserDrawerProps {
+	friend: User;
+	callback?: (friend: User) => unknown;
+}
 ````
 
 ## File: src/components/pages/home/styles/friends-diaries.css.ts
 ````typescript
 import { style } from '@vanilla-extract/css';
+````
+
+## File: src/components/pages/home/styles/my-diary-drawer.css.ts
+````typescript
+import { style } from '@vanilla-extract/css';
+````
+
+## File: src/components/pages/home/my-diary-drawer.tsx
+````typescript
+import { DeleteDiaryPopup } from '@/components/features/diary/delete-drawer';
+import { DiaryDetailDrawer } from '@/components/features/diary/detail-drawer';
+import { Container } from '@/components/layout/container';
+import { AvatarItem } from '@/components/ui/avatar/item';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { useOverlay } from '@/hooks/use-overlay';
+import { log } from '@/lib/log';
+import { type Diary, diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { message } from '@tauri-apps/plugin-dialog';
+import { useCallback } from 'react';
+import { list } from './styles/my-diary-drawer.css';
+interface HomeMyDiaryDrawerProps {
+	diary: Diary;
+	onDelete?: () => void;
+}
 ````
 
 ## File: src/components/pages/my-profile/styles/image.css.ts
@@ -2045,22 +2226,6 @@ import { style } from '@vanilla-extract/css';
 ````typescript
 import { color } from '@/styles/color.css';
 import { style } from '@vanilla-extract/css';
-````
-
-## File: src/components/pages/my-profile/image.tsx
-````typescript
-import { Avatar } from '@/components/ui/avatar';
-import { resizeImage } from '@/lib/common';
-import { log } from '@/lib/log';
-import { apiClient } from '@/lib/managers/http';
-import { color } from '@/styles/color.css';
-import { message } from '@tauri-apps/plugin-dialog';
-import { Pencil } from 'lucide-react';
-import { type ChangeEvent, useState } from 'react';
-import { avatar, edit } from './styles/image.css';
-export function MyProfileImage()
-⋮----
-const onChange = async (e: ChangeEvent<HTMLInputElement>) =>
 ````
 
 ## File: src/components/pages/sign-up/styles/confirm-pin.css.ts
@@ -2122,22 +2287,64 @@ import { fillHeight, title } from './styles/styles.css';
 export function SignUpSetPinSection()
 ````
 
+## File: src/components/ui/avatar/styles/avatar.css.ts
+````typescript
+import { uiStyle } from '@/styles/layer.css';
+````
+
+## File: src/components/ui/avatar/styles/item.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { style } from '@vanilla-extract/css';
+````
+
+## File: src/components/ui/avatar/item.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import type { User } from '@/lib/managers/friend';
+import { Check } from 'lucide-react';
+import { Avatar } from '.';
+import { Typo } from '../typography';
+import { avatar, check, item } from './styles/item.css';
+interface AvatarItemProps {
+	user: User;
+	selected?: boolean;
+	onClick?: () => unknown;
+}
+````
+
 ## File: src/components/ui/button/styles/button.css.ts
 ````typescript
 import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
 ````
 
-## File: src/components/ui/content/styles.css.ts
+## File: src/components/ui/button/styles/group.css.ts
 ````typescript
 import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
 ````
 
-## File: src/components/ui/divider/index.tsx
+## File: src/components/ui/button/index.tsx
 ````typescript
-import { divider } from './styles.css';
-export function Divider()
+import { cn } from '@/lib/common';
+import type { ButtonHTMLAttributes } from 'react';
+import { LoadingCircle } from '../loading-circle';
+import { Typo } from '../typography';
+import { button, fillStyle, variantStyles } from './styles/button.css';
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+	variant?: ButtonVariant;
+	fill?: boolean;
+	loading?: boolean;
+}
+type ButtonVariant = 'primary' | 'secondary' | 'text';
+export function Button(props: ButtonProps)
+````
+
+## File: src/components/ui/content/styles.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
 ````
 
 ## File: src/components/ui/divider/padding.tsx
@@ -2147,10 +2354,10 @@ import { Divider } from '.';
 export function PaddingDivider()
 ````
 
-## File: src/components/ui/divider/styles.css.ts
+## File: src/components/ui/drawer/animation.ts
 ````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
+import { getTransition } from '@/lib/animation';
+import type { Variants } from 'motion/react';
 ````
 
 ## File: src/components/ui/flow/context.ts
@@ -2183,23 +2390,10 @@ import { uiStyle } from '@/styles/layer.css';
 import { uiStyle } from '@/styles/layer.css';
 ````
 
-## File: src/components/ui/input/styles/image.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
-````
-
 ## File: src/components/ui/input/styles/pin.css.ts
 ````typescript
 import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
-````
-
-## File: src/components/ui/input/styles/text.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
-import { body } from '../../typography/styles/typography.css';
 ````
 
 ## File: src/components/ui/input/field.tsx
@@ -2212,6 +2406,34 @@ import { labelStyle } from './styles/field.css';
 interface InputFieldProps extends BaseProps<HAS_CHILDREN> {
 	label?: string;
 }
+````
+
+## File: src/components/ui/input/image.tsx
+````typescript
+import { Plus } from 'lucide-react';
+import {
+	type ChangeEvent,
+	type InputHTMLAttributes,
+	useCallback,
+	useState,
+} from 'react';
+import { image, input, wrapper } from './styles/image.css';
+interface ImageInputProps extends InputHTMLAttributes<HTMLInputElement> {
+	preview?: string;
+	onImage?: (image: File | null) => void;
+}
+````
+
+## File: src/components/ui/input/index.tsx
+````typescript
+import type { ChangeEvent, InputHTMLAttributes } from 'react';
+import { input } from './styles/text.css';
+interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+	onValue?: (value: string) => void;
+}
+export function Input(props: InputFieldProps)
+⋮----
+const onChange = (e: ChangeEvent<HTMLInputElement>) =>
 ````
 
 ## File: src/components/ui/list-item/index.tsx
@@ -2268,15 +2490,6 @@ interface PopupContentProps {
 export function PopupContent(props: PopupContentProps)
 ````
 
-## File: src/components/ui/sotto-symbol/index.tsx
-````typescript
-interface SymbolProps {
-	size?: number;
-	className?: string;
-}
-export function SottoSymbol(props: SymbolProps)
-````
-
 ## File: src/components/ui/tabs/index.tsx
 ````typescript
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
@@ -2288,45 +2501,26 @@ interface TabsProps extends BaseProps<HAS_CHILDREN> {
 export function Tabs(props: TabsProps)
 ````
 
-## File: src/components/ui/tabs/item.tsx
+## File: src/hooks/use-auth.ts
 ````typescript
-import { Row } from '@/components/layout/row';
-import { cn } from '@/lib/common';
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { useContext } from 'react';
-import { Typo } from '../typography';
-import { TabsContext } from './context';
-import { group, item, itemActive } from './styles/item.css';
-export function TabsGroup(props: BaseProps<HAS_CHILDREN>)
-interface TabRailItemProps extends BaseProps<HAS_CHILDREN> {
-	value: string;
-}
+import { AuthBiometricPopup } from '@/components/features/auth/biometric';
+import { AuthPINPopup } from '@/components/features/auth/pin';
+import { checkStatus } from '@tauri-apps/plugin-biometric';
+import { useMemo } from 'react';
+import { useOverlay } from './use-overlay';
+export function useAuth()
 ⋮----
-const handleClick = () =>
+const openBiometric = (callback: () => unknown) =>
+const openPIN = (callback: () => unknown) =>
+const authenticate = async (callback: () => unknown) =>
 ````
 
-## File: src/components/ui/typography/base.tsx
+## File: src/hooks/use-check-initialized.ts
 ````typescript
-import { cn } from '@/lib/common';
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { type JSX, createElement } from 'react';
-import { typography, typographyFill } from './styles/typography.css';
-import { weightStyles } from './styles/weight.css';
-type TypographyWeight = 'regular' | 'medium' | 'strong';
-export interface TypographyBaseProps extends BaseProps<HAS_CHILDREN> {
-	as?: keyof JSX.IntrinsicElements;
-	weight?: TypographyWeight;
-	color?: string;
-	fill?: boolean;
-}
-export function TypographyBase(props: TypographyBaseProps)
-````
-
-## File: src/components/ui/typography/index.tsx
-````typescript
-import { cn } from '@/lib/common';
-import { TypographyBase, type TypographyBaseProps } from './base';
-import { body, caption, lead, title } from './styles/typography.css';
+import { diaryManager } from '@/lib/managers/diary';
+import { storageClient } from '@/lib/managers/storage';
+import { useEffect } from 'react';
+export function useCheckInitialized()
 ````
 
 ## File: src/hooks/use-flow.ts
@@ -2336,44 +2530,10 @@ import { useCallback, useContext } from 'react';
 export function useFlow()
 ````
 
-## File: src/lib/managers/auth.ts
-````typescript
-export async function authenticate()
-⋮----
-// 이 함수를 사용하면 자동으로 biometric 또는 PIN 인증을 진행하며 결과값을 boolean로 반환
-````
-
-## File: src/lib/animation.ts
-````typescript
-export function getTransition(duration = 0.2, delay = 0)
-````
-
 ## File: src/lib/log.ts
 ````typescript
 type Log = 'debug' | 'warn' | 'error';
 export function log(type: Log, ...args: Array<unknown>)
-````
-
-## File: src/lib/style.ts
-````typescript
-import {
-	type StyleRule,
-	globalStyle as _globalStyle,
-	style as _style,
-} from '@vanilla-extract/css';
-type StyleFunction = typeof _style;
-type GlobalStyleFunction = typeof _globalStyle;
-type ClassNames = string | Array<ClassNames>;
-export function getLayerApplier(layer: string)
-⋮----
-function style(...args: Parameters<StyleFunction>)
-function globalStyle(...args: Parameters<GlobalStyleFunction>)
-⋮----
-export function applyLayer(layer: string, rule: StyleRule)
-function isLayerApplicable(rule: StyleRule | ClassNames): rule is StyleRule
-export function addOpacity(hex: string, opacity: number)
-⋮----
-export function calculateScaleFactor(size: number)
 ````
 
 ## File: src/routes/auth/sign-in/biometric/index.tsx
@@ -2439,37 +2599,34 @@ const onPin = async (pin: string) =>
 import { style } from '@vanilla-extract/css';
 ````
 
-## File: src/routes/explorer/friends/index.tsx
+## File: src/routes/auth/sign-up/index.tsx
 ````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { Row } from '@/components/layout/row';
-import { ExplorerHeader } from '@/components/pages/explorer/shared/header';
-import { Avatar } from '@/components/ui/avatar';
-import { ListItem } from '@/components/ui/list-item';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { friendManager } from '@/lib/managers/friend';
-import { ChevronRight, Plus } from 'lucide-react';
+import { generateKeyPair } from '@/binding/function/generate-key-pair';
+import { SignUpBiometricSection } from '@/components/pages/sign-up/biometric';
+import { SignUpConfirmPinSection } from '@/components/pages/sign-up/confirm-pin';
+import { SignUpFlowContext } from '@/components/pages/sign-up/context';
+import { SignUpInformationSection } from '@/components/pages/sign-up/information';
+import { SignUpSetPinSection } from '@/components/pages/sign-up/set-pin';
+import { Flow } from '@/components/ui/flow';
+import { processSignIn } from '@/lib/app';
+import { log } from '@/lib/log';
+import { apiClient } from '@/lib/managers/http';
+import { storageClient } from '@/lib/managers/storage';
+import { message } from '@tauri-apps/plugin-dialog';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { saveItem } from 'tauri-plugin-keychain';
 ````
 
-## File: src/routes/home/page.css.ts
+## File: src/routes/index.ts
 ````typescript
-import { style } from '@vanilla-extract/css';
+import { lazy } from 'react';
 ````
 
 ## File: src/styles/font.css.ts
 ````typescript
 import { fontFace, globalFontFace } from '@vanilla-extract/css';
 import { resetGlobalStyle } from './layer.css';
-````
-
-## File: src/styles/layer.css.ts
-````typescript
-import { getLayerApplier } from '@/lib/style';
-import { globalLayer } from '@vanilla-extract/css';
 ````
 
 ## File: src/styles/utils.css.ts
@@ -2754,26 +2911,78 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 ````
 
-## File: src/components/pages/diary/styles/saving-popup.css.ts
+## File: src/components/features/diary/styles/share-drawer.css.ts
 ````typescript
 import { color } from '@/styles/color.css';
 import { style } from '@vanilla-extract/css';
 ````
 
-## File: src/components/pages/diary/saving-popup.tsx
+## File: src/components/features/friend/add-drawer.tsx
 ````typescript
-import { Column } from '@/components/layout/column';
-import { LoadingCircle } from '@/components/ui/loading-circle';
-import { Typo } from '@/components/ui/typography';
-import { getTransition } from '@/lib/animation';
-import { type Variants, motion } from 'motion/react';
-import { createPortal } from 'react-dom';
-import { backdrop, popup } from './styles/saving-popup.css';
-⋮----
-interface DiarySavingPopupProps {
-	visible: boolean;
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { type User, friendManager } from '@/lib/managers/friend';
+import { useCallback, useState } from 'react';
+import { UserPickerDrawer } from '../user/picker-drawer';
+````
+
+## File: src/components/features/user/styles/picker-drawer.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { style } from '@vanilla-extract/css';
+````
+
+## File: src/components/layout/container/index.tsx
+````typescript
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { type JSX, useRef } from 'react';
+interface ContainerProps extends BaseProps<HAS_CHILDREN> {
+	as?: keyof JSX.IntrinsicElements;
+	vertical?: Padding;
+	horizontal?: Padding;
+	onClick?: () => unknown;
+	onLongPress?: () => unknown;
 }
-export function DiarySavingPopup(props: DiarySavingPopupProps)
+type Padding = 'none' | 'small' | 'regular' | 'medium' | 'large';
+⋮----
+export function Container(props: ContainerProps)
+⋮----
+const handlePressStart = () =>
+const handlePressEnd = () =>
+````
+
+## File: src/components/pages/explorer/styles/content.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { FIRA_CODE } from '@/styles/font.css';
+import { uiStyle } from '@/styles/layer.css';
+````
+
+## File: src/components/pages/explorer/content.tsx
+````typescript
+import { Container } from '@/components/layout/container';
+import { Typo } from '@/components/ui/typography';
+import { contentStyle } from './styles/content.css';
+interface ExplorerContentProps {
+	label: string;
+	content: string;
+}
+export function ExplorerContent(props: ExplorerContentProps)
+````
+
+## File: src/components/pages/explorer/header.tsx
+````typescript
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { Divider } from '@/components/ui/divider';
+import { Input } from '@/components/ui/input';
+import { Typo } from '@/components/ui/typography';
+interface ExplorerHeaderProps {
+	title: string;
+	count: number;
+	placeholder: string;
+	onSearch?: (query: string) => void;
+}
+export function ExplorerHeader(props: ExplorerHeaderProps)
 ````
 
 ## File: src/components/pages/home/my-diaries.tsx
@@ -2788,6 +2997,22 @@ import { diaryManager } from '@/lib/managers/diary';
 import { fullHeight } from '@/styles/utils.css';
 import { BookDashed } from 'lucide-react';
 import { Link } from 'react-router-dom';
+````
+
+## File: src/components/pages/my-profile/image.tsx
+````typescript
+import { Avatar } from '@/components/ui/avatar';
+import { resizeImage } from '@/lib/common';
+import { log } from '@/lib/log';
+import { apiClient } from '@/lib/managers/http';
+import { color } from '@/styles/color.css';
+import { message } from '@tauri-apps/plugin-dialog';
+import { Pencil } from 'lucide-react';
+import { type ChangeEvent, useState } from 'react';
+import { avatar, edit } from './styles/image.css';
+export function MyProfileImage()
+⋮----
+const onChange = async (e: ChangeEvent<HTMLInputElement>) =>
 ````
 
 ## File: src/components/pages/sign-up/information.tsx
@@ -2811,26 +3036,30 @@ import { fillHeight, title } from './styles/styles.css';
 export function SignUpInformationSection()
 ````
 
-## File: src/components/ui/button/styles/group.css.ts
+## File: src/components/ui/button/group.tsx
 ````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
-````
-
-## File: src/components/ui/button/index.tsx
-````typescript
+import { Column } from '@/components/layout/column';
+import { Row } from '@/components/layout/row';
 import { cn } from '@/lib/common';
-import type { ButtonHTMLAttributes } from 'react';
-import { LoadingCircle } from '../loading-circle';
-import { Typo } from '../typography';
-import { button, fillStyle, variantStyles } from './styles/button.css';
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-	variant?: ButtonVariant;
-	fill?: boolean;
-	loading?: boolean;
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { useEffect, useState } from 'react';
+import {
+	bottomSafeAreaPaddingStyle,
+	buttonGroup,
+	floatStyle,
+	smallPaddingStyle,
+} from './styles/group.css';
+interface ButtonGroupProps extends BaseProps<HAS_CHILDREN> {
+	direction?: 'horizontal' | 'vertical';
+	float?: boolean;
+	smallPadding?: boolean;
+	bottomSafeAreaPadding?: boolean;
 }
-type ButtonVariant = 'primary' | 'secondary' | 'text';
-export function Button(props: ButtonProps)
+export function ButtonGroup(props: ButtonGroupProps)
+⋮----
+const handleResize = () =>
+⋮----
+className=
 ````
 
 ## File: src/components/ui/content/index.tsx
@@ -2850,34 +3079,6 @@ interface ContentProps {
 ````typescript
 import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
-````
-
-## File: src/components/ui/input/image.tsx
-````typescript
-import { Plus } from 'lucide-react';
-import {
-	type ChangeEvent,
-	type InputHTMLAttributes,
-	useCallback,
-	useState,
-} from 'react';
-import { image, input, wrapper } from './styles/image.css';
-interface ImageInputProps extends InputHTMLAttributes<HTMLInputElement> {
-	preview?: string;
-	onImage?: (image: File | null) => void;
-}
-````
-
-## File: src/components/ui/input/index.tsx
-````typescript
-import type { ChangeEvent, InputHTMLAttributes } from 'react';
-import { input } from './styles/text.css';
-interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-	onValue?: (value: string) => void;
-}
-export function Input(props: InputFieldProps)
-⋮----
-const onChange = (e: ChangeEvent<HTMLInputElement>) =>
 ````
 
 ## File: src/components/ui/input/pin.tsx
@@ -2905,43 +3106,6 @@ import { uiStyle } from '@/styles/layer.css';
 import { keyframes } from '@vanilla-extract/css';
 ````
 
-## File: src/components/ui/overlay/renderer.tsx
-````typescript
-import { getTransition } from '@/lib/animation';
-import { type Variants, motion } from 'motion/react';
-import { type MouseEvent, useCallback } from 'react';
-import { backdrop } from './styles/backdrop.css';
-import type { OverlayContent } from './types';
-⋮----
-interface OverlayRendererProps {
-	content: OverlayContent;
-	close: () => void;
-}
-export function OverlayRenderer(props: OverlayRendererProps)
-````
-
-## File: src/components/ui/overlay/types.ts
-````typescript
-import type { ComponentType } from 'react';
-export interface OverlayProps {
-	close: () => void;
-}
-export type Renderer<T = object> = (props: T & OverlayProps) => React.ReactNode;
-export type OverlayContent = {
-	id: string;
-	render: Renderer;
-	options?: OverlayOptions;
-};
-export type OverlayOptions = {
-	onClickBackdrop?: () => unknown;
-};
-export type PropsOf<Component> = Component extends ComponentType<infer P>
-	? P extends OverlayProps
-		? P
-		: never
-	: never;
-````
-
 ## File: src/components/ui/overlay/utils.ts
 ````typescript
 import type { OverlayContent } from './types';
@@ -2952,12 +3116,6 @@ export function isContentSaved(id: string, contents: Array<OverlayContent>)
 ````typescript
 import { getTransition } from '@/lib/animation';
 import type { Variants } from 'motion/react';
-````
-
-## File: src/components/ui/popup/styles.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
 ````
 
 ## File: src/components/ui/top-navigator/go-back.tsx
@@ -2972,12 +3130,6 @@ interface GoBackProps {
 	beforeBack?: () => unknown;
 }
 export function GoBack(props: GoBackProps)
-````
-
-## File: src/components/ui/top-navigator/styles.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
 ````
 
 ## File: src/lib/managers/storage.ts
@@ -3018,45 +3170,15 @@ private checkInitialized()
 	 */
 ````
 
-## File: src/routes/auth/sign-up/index.tsx
+## File: src/routes/index/page.css.ts
 ````typescript
-import { generateKeyPair } from '@/binding/function/generate-key-pair';
-import { SignUpBiometricSection } from '@/components/pages/sign-up/biometric';
-import { SignUpConfirmPinSection } from '@/components/pages/sign-up/confirm-pin';
-import { SignUpFlowContext } from '@/components/pages/sign-up/context';
-import { SignUpInformationSection } from '@/components/pages/sign-up/information';
-import { SignUpSetPinSection } from '@/components/pages/sign-up/set-pin';
-import { Flow } from '@/components/ui/flow';
-import { processSignIn } from '@/lib/app';
-import { log } from '@/lib/log';
-import { apiClient } from '@/lib/managers/http';
-import { storageClient } from '@/lib/managers/storage';
-import { message } from '@tauri-apps/plugin-dialog';
-import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { saveItem } from 'tauri-plugin-keychain';
+import { style } from '@vanilla-extract/css';
 ````
 
-## File: src/routes/explorer/friends/detail.tsx
+## File: src/styles/reset.css.ts
 ````typescript
-import { BanFriendDrawer } from '@/components/features/friend/ban';
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { ExplorerContent } from '@/components/pages/explorer/shared/content';
-import { Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { PaddingDivider } from '@/components/ui/divider/padding';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { useDrawer } from '@/hooks/use-drawer';
-import { friendManager } from '@/lib/managers/friend';
-import { color } from '@/styles/color.css';
-import { useCallback, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-⋮----
-Created :
+import { color } from './color.css';
+import { resetGlobalStyle } from './layer.css';
 ````
 
 ## File: src-tauri/gen/android/app/build.gradle.kts
@@ -3211,26 +3333,40 @@ interface DiaryData {
 }
 ````
 
-## File: src/components/pages/my-profile/reset-confirm.tsx
+## File: src/components/features/diary/share-drawer.tsx
 ````typescript
-import { Container } from '@/components/layout/container';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { Drawer } from '@/components/ui/drawer';
 import type { OverlayProps } from '@/components/ui/overlay/types';
+import { type Diary, diaryManager } from '@/lib/managers/diary';
+import type { User } from '@/lib/managers/friend';
+import { message } from '@tauri-apps/plugin-dialog';
+import {
+	type Dispatch,
+	type SetStateAction,
+	useCallback,
+	useState,
+} from 'react';
+import { UserPickerDrawer } from '../user/picker-drawer';
+interface DiaryShareDrawerProps {
+	diary: Diary;
+	setDiary: Dispatch<SetStateAction<Diary>>;
+}
+````
+
+## File: src/components/pages/diary/saving-popup.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { LoadingCircle } from '@/components/ui/loading-circle';
+import { Popup } from '@/components/ui/popup';
 import { Typo } from '@/components/ui/typography';
-import { resetApp } from '@/lib/app';
-import { authenticate, checkStatus } from '@tauri-apps/plugin-biometric';
-import { ShieldQuestion } from 'lucide-react';
-import { useCallback } from 'react';
-import { centered, iconWrapper } from './styles/reset-confirm.css';
+export function DiarySavingPopup()
 ````
 
 ## File: src/components/ui/avatar/index.tsx
 ````typescript
 import { cn } from '@/lib/common';
 import type { BaseProps } from '@/types/props';
-import { avatar } from './styles.css';
+import { avatar } from './styles/avatar.css';
 interface AvatarProps extends BaseProps {
 	size?: number;
 	src?: string | null;
@@ -3238,10 +3374,10 @@ interface AvatarProps extends BaseProps {
 }
 ````
 
-## File: src/components/ui/drawer/animation.ts
+## File: src/components/ui/card/styles.css.ts
 ````typescript
-import { getTransition } from '@/lib/animation';
-import type { Variants } from 'motion/react';
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
 ````
 
 ## File: src/components/ui/overlay/context.ts
@@ -3254,13 +3390,48 @@ type OverlayContextType = {
 };
 ````
 
-## File: src/components/ui/popup/index.tsx
+## File: src/components/ui/overlay/renderer.tsx
 ````typescript
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { motion } from 'motion/react';
-import { variants } from './animation';
-import { popup } from './styles.css';
-export function Popup(props: BaseProps<HAS_CHILDREN>)
+import { getTransition } from '@/lib/animation';
+import { type Variants, motion } from 'motion/react';
+import { type MouseEvent, useCallback } from 'react';
+import { backdrop } from './styles/backdrop.css';
+import type { OverlayContent } from './types';
+⋮----
+interface OverlayRendererProps {
+	content: OverlayContent;
+	close: () => void;
+}
+export function OverlayRenderer(props: OverlayRendererProps)
+````
+
+## File: src/components/ui/overlay/types.ts
+````typescript
+import type { ComponentType } from 'react';
+export interface OverlayProps {
+	close: () => void;
+}
+export type Renderer<T = object> = (props: T & OverlayProps) => React.ReactNode;
+export type OverlayContent = {
+	id: string;
+	render: Renderer;
+	options?: OverlayOptions;
+};
+export type OverlayOptions = {
+	onClickBackdrop?: () => unknown;
+	preventBackdropClose?: boolean;
+};
+export type PropsOf<Component> = Component extends ComponentType<infer P>
+	? P extends OverlayProps
+		? P
+		: never
+	: never;
+````
+
+## File: src/components/ui/popup/styles.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
 ````
 
 ## File: src/hooks/use-diary.ts
@@ -3283,6 +3454,7 @@ export function useDrawer<T extends object>(renderer: Renderer<T>)
 ````typescript
 export async function resizeImage(image: File, size = 256)
 export async function wait(ms: number)
+export function calculateDiffDays(createdAt: Date)
 ````
 
 ## File: src/routes/diary/page.css.ts
@@ -3296,251 +3468,22 @@ import { weightStyles } from '@/components/ui/typography/styles/weight.css';
 import { style } from '@vanilla-extract/css';
 ````
 
-## File: src/routes/explorer/diaries/index.tsx
+## File: src/routes/explorer/friends/index.tsx
 ````typescript
+import { AddFriendDrawer } from '@/components/features/friend/add-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
-import { ExplorerHeader } from '@/components/pages/explorer/shared/header';
+import { ExplorerHeader } from '@/components/pages/explorer/header';
+import { Avatar } from '@/components/ui/avatar';
 import { ListItem } from '@/components/ui/list-item';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
-import { diaryManager } from '@/lib/managers/diary';
+import { useDrawer } from '@/hooks/use-drawer';
 import { friendManager } from '@/lib/managers/friend';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-````
-
-## File: src/routes/index/page.css.ts
-````typescript
-import { style } from '@vanilla-extract/css';
-````
-
-## File: src/components/ui/button/group.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Row } from '@/components/layout/row';
-import { cn } from '@/lib/common';
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { useEffect, useState } from 'react';
-import {
-	bottomSafeAreaPaddingStyle,
-	buttonGroup,
-	floatStyle,
-	smallPaddingStyle,
-} from './styles/group.css';
-interface ButtonGroupProps extends BaseProps<HAS_CHILDREN> {
-	direction?: 'horizontal' | 'vertical';
-	float?: boolean;
-	smallPadding?: boolean;
-	bottomSafeAreaPadding?: boolean;
-}
-export function ButtonGroup(props: ButtonGroupProps)
-⋮----
-const handleResize = () =>
-⋮----
-className=
-````
-
-## File: src/components/ui/card/styles.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
-````
-
-## File: src/hooks/use-overlay.ts
-````typescript
-import { OverlayContext } from '@/components/ui/overlay/context';
-import type { OverlayOptions, Renderer } from '@/components/ui/overlay/types';
-import { nanoid } from 'nanoid';
-import { useCallback, useContext, useEffect, useMemo } from 'react';
-export function useOverlay<T extends object>(
-	renderer: Renderer<T>,
-	options: OverlayOptions = {},
-)
-````
-
-## File: src/routes/explorer/diaries/detail.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { Row } from '@/components/layout/row';
-import { ExplorerDiariesDeletePopup } from '@/components/pages/explorer/diaries/delete';
-import { ExplorerContent } from '@/components/pages/explorer/shared/content';
-import { Avatar } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { PaddingDivider } from '@/components/ui/divider/padding';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { useOverlay } from '@/hooks/use-overlay';
-import { diaryManager } from '@/lib/managers/diary';
-import { friendManager } from '@/lib/managers/friend';
-import { color } from '@/styles/color.css';
-import { useCallback, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-⋮----
-<Typo.Title weight='strong'>
-⋮----
-? friendManager.getFriend(diary.sharedBy)?.profileUrl
-⋮----
-: `by $
-⋮----
-{/* <Container vertical='small'>
-				<Typo.Body>Share via URL is enabled</Typo.Body>
-			</Container> */}
-````
-
-## File: src/styles/reset.css.ts
-````typescript
-import { color } from './color.css';
-import { resetGlobalStyle } from './layer.css';
-````
-
-## File: src/types/response.d.ts
-````typescript
-interface SignUpResponse {
-	accessToken: string;
-	user: {
-		name: string;
-	};
-}
-interface ShareDiaryResponse {
-	uuid: string;
-}
-type SharedDiariesResponse = Array<{
-	uuid: string;
-	diaryId: string;
-	encryptedKey: string;
-	diary: {
-		uuid: string;
-		data: string;
-		nonce: string;
-		owner: {
-			uuid: string;
-			username: string;
-			name: string;
-			profileUrl: string;
-			publicKey: string;
-			createdAt: string;
-			updatedAt: string;
-		};
-		createdAt: string;
-		updatedAt: string;
-	};
-	recipient: unknown;
-	createdAt: string;
-}>;
-````
-
-## File: src/main.tsx
-````typescript
-import { NuqsAdapter } from 'nuqs/adapters/react';
-import { Suspense } from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import { OverlayProvider } from './components/ui/overlay/provider';
-````
-
-## File: index.html
-````html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>Sotto</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <div id="overlay-root"></div>
-    <div id="popup-root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
-````
-
-## File: src/components/pages/sign-up/biometric.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { Content } from '@/components/ui/content';
-import { ScanFace } from 'lucide-react';
-import { fillHeight } from './styles/styles.css';
-interface SignUpBiometricSectionProps {
-	signUp: (biometricLogin: boolean) => void;
-}
-````
-
-## File: src/components/ui/card/diary.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import type { Diary } from '@/lib/managers/diary';
-import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Typo } from '../typography';
-import { card, content, preventOverflow, preview, title } from './styles.css';
-interface DiaryCardProps {
-	diary: Diary;
-}
-export function DiaryCard(props: DiaryCardProps)
-````
-
-## File: src/components/ui/overlay/provider.tsx
-````typescript
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { AnimatePresence } from 'motion/react';
-import { useCallback, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { OverlayContext } from './context';
-import { OverlayRenderer } from './renderer';
-import type { OverlayContent } from './types';
-interface OverlayProviderProps extends BaseProps<HAS_CHILDREN> {}
-````
-
-## File: src/lib/managers/http.ts
-````typescript
-import { fetch } from '@tauri-apps/plugin-http';
-import { log } from '../log';
-interface APIResponse<T> {
-	status: number;
-	message: string;
-	data: T | null;
-	responseAt: string;
-}
-⋮----
-class APIClient
-⋮----
-constructor(private baseUrl: string)
-private async request<T>(
-		path: string,
-		method: string,
-		body?: unknown,
-): Promise<T>
-async get<T>(path: string): Promise<T>
-async post<T>(path: string, data: unknown): Promise<T>
-async put<T>(path: string, data: unknown): Promise<T>
-async patch<T>(path: string, data: unknown): Promise<T>
-async delete<T>(path: string): Promise<T>
-⋮----
-function isBodyContainable(method: string): boolean
-````
-
-## File: src/lib/app.ts
-````typescript
-import { message } from '@tauri-apps/plugin-dialog';
-import { wait } from './common';
-import { log } from './log';
-import { diaryManager } from './managers/diary';
-import { friendManager } from './managers/friend';
-import { apiClient } from './managers/http';
-import { storageClient } from './managers/storage';
-export async function processSignIn(pin: string)
-export async function resetApp()
 ````
 
 ## File: src-tauri/src/crypto.rs
@@ -3609,6 +3552,291 @@ let decrypted_data = cipher.decrypt(nonce, encrypted_data.as_ref())
 Ok(diary)
 ````
 
+## File: src/components/features/user/picker-drawer.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { AvatarItem } from '@/components/ui/avatar/item';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Drawer, type DrawerProps } from '@/components/ui/drawer';
+import { Input } from '@/components/ui/input';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { type User, friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
+import { Search, UserRoundX } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
+import { empty, emptyIcon, friendList } from './styles/picker-drawer.css';
+interface UserPickerDrawerProps extends DrawerProps {
+	title: string;
+	placeholder?: string;
+	buttons: Array<{
+		label: string;
+		onClick?: (selectedUsers: Array<User>) => unknown;
+		variants?: 'primary' | 'secondary' | 'text';
+		loading?: boolean;
+	}>;
+	defaultSelected?: Array<string>;
+}
+⋮----
+onClick=
+⋮----
+key=
+````
+
+## File: src/components/pages/my-profile/reset-confirm.tsx
+````typescript
+import { Container } from '@/components/layout/container';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Drawer } from '@/components/ui/drawer';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { useAuth } from '@/hooks/use-auth';
+import { resetApp } from '@/lib/app';
+import { message } from '@tauri-apps/plugin-dialog';
+import { ShieldQuestion } from 'lucide-react';
+import { useCallback } from 'react';
+import { centered, iconWrapper } from './styles/reset-confirm.css';
+````
+
+## File: src/routes/explorer/diaries/index.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { ExplorerHeader } from '@/components/pages/explorer/header';
+import { ListItem } from '@/components/ui/list-item';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+````
+
+## File: src/main.tsx
+````typescript
+import { NuqsAdapter } from 'nuqs/adapters/react';
+import { Suspense } from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { OverlayProvider } from './components/ui/overlay/provider';
+````
+
+## File: src/components/pages/sign-up/biometric.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Content } from '@/components/ui/content';
+import { ScanFace } from 'lucide-react';
+import { fillHeight } from './styles/styles.css';
+interface SignUpBiometricSectionProps {
+	signUp: (biometricLogin: boolean) => void;
+}
+````
+
+## File: src/components/ui/overlay/provider.tsx
+````typescript
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { AnimatePresence } from 'motion/react';
+import { useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { OverlayContext } from './context';
+import { OverlayRenderer } from './renderer';
+import type { OverlayContent } from './types';
+interface OverlayProviderProps extends BaseProps<HAS_CHILDREN> {}
+````
+
+## File: src/components/ui/popup/index.tsx
+````typescript
+import { cn } from '@/lib/common';
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { motion } from 'motion/react';
+import { variants } from './animation';
+import { fillPopup, popup } from './styles.css';
+interface PopupProps extends BaseProps<HAS_CHILDREN> {
+	fill?: boolean;
+}
+````
+
+## File: src/hooks/use-overlay.ts
+````typescript
+import { OverlayContext } from '@/components/ui/overlay/context';
+import type { OverlayOptions, Renderer } from '@/components/ui/overlay/types';
+import { nanoid } from 'nanoid';
+import { useCallback, useContext, useEffect, useMemo } from 'react';
+export function useOverlay<T extends object>(
+	renderer: Renderer<T>,
+	options: OverlayOptions = {},
+)
+````
+
+## File: src/lib/managers/http.ts
+````typescript
+import { fetch } from '@tauri-apps/plugin-http';
+import { log } from '../log';
+interface APIResponse<T> {
+	status: number;
+	message: string;
+	data: T | null;
+	responseAt: string;
+}
+⋮----
+class APIClient
+⋮----
+constructor(private baseUrl: string)
+private async request<T>(
+		path: string,
+		method: string,
+		body?: unknown,
+): Promise<T>
+async get<T>(path: string): Promise<T>
+async post<T>(path: string, data: unknown): Promise<T>
+async put<T>(path: string, data: unknown): Promise<T>
+async patch<T>(path: string, data: unknown): Promise<T>
+async delete<T>(path: string): Promise<T>
+⋮----
+function isBodyContainable(method: string): boolean
+````
+
+## File: src/lib/app.ts
+````typescript
+import { message } from '@tauri-apps/plugin-dialog';
+import { wait } from './common';
+import { log } from './log';
+import { diaryManager } from './managers/diary';
+import { friendManager } from './managers/friend';
+import { apiClient } from './managers/http';
+import { storageClient } from './managers/storage';
+export async function processSignIn(pin: string)
+export async function resetApp()
+````
+
+## File: src/routes/explorer/diaries/detail.tsx
+````typescript
+import { DeleteDiaryPopup } from '@/components/features/diary/delete-drawer';
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { ExplorerContent } from '@/components/pages/explorer/content';
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { PaddingDivider } from '@/components/ui/divider/padding';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { useOverlay } from '@/hooks/use-overlay';
+import { diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { color } from '@/styles/color.css';
+import { useCallback, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+⋮----
+<Typo.Title weight='strong'>
+⋮----
+? friendManager.getFriend(diary.sharedBy)?.profileUrl
+⋮----
+: `by $
+⋮----
+{/* <Container vertical='small'>
+				<Typo.Body>Share via URL is enabled</Typo.Body>
+			</Container> */}
+````
+
+## File: src/routes/explorer/friends/detail.tsx
+````typescript
+import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { ExplorerContent } from '@/components/pages/explorer/content';
+import { Avatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { PaddingDivider } from '@/components/ui/divider/padding';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { useDrawer } from '@/hooks/use-drawer';
+import { friendManager } from '@/lib/managers/friend';
+import { color } from '@/styles/color.css';
+import { useCallback, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+⋮----
+Created :
+````
+
+## File: src/routes/index/index.tsx
+````typescript
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { LoadingCircle } from '@/components/ui/loading-circle';
+import { SottoSymbol } from '@/components/ui/sotto-symbol';
+import { Typo } from '@/components/ui/typography';
+import { wait } from '@/lib/common';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { centerSymbol } from './page.css';
+````
+
+## File: src/types/response.d.ts
+````typescript
+interface SignUpResponse {
+	accessToken: string;
+	user: {
+		name: string;
+	};
+}
+interface ShareDiaryResponse {
+	uuid: string;
+}
+type SharedDiariesResponse = Array<{
+	uuid: string;
+	diaryId: string;
+	encryptedKey: string;
+	diary: {
+		uuid: string;
+		data: string;
+		nonce: string;
+		owner: {
+			uuid: string;
+			username: string;
+			name: string;
+			profileUrl: string;
+			publicKey: string;
+			createdAt: string;
+			updatedAt: string;
+		};
+		createdAt: string;
+		updatedAt: string;
+	};
+	recipient: unknown;
+	createdAt: string;
+}>;
+````
+
+## File: index.html
+````html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Sotto</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="overlay-root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+````
+
 ## File: src/components/pages/my-profile/change-name.tsx
 ````typescript
 import { Container } from '@/components/layout/container';
@@ -3623,6 +3851,28 @@ import { apiClient } from '@/lib/managers/http';
 import { message } from '@tauri-apps/plugin-dialog';
 import { useCallback, useState } from 'react';
 export function MyProfileChangeNameDrawer(props: OverlayProps)
+````
+
+## File: src/components/ui/card/diary.tsx
+````typescript
+import { AppContext } from '@/App';
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { HomeFriendDiaryDrawer } from '@/components/pages/home/friend-diary-drawer';
+import { HomeMyDiaryDrawer } from '@/components/pages/home/my-diary-drawer';
+import { useOverlay } from '@/hooks/use-overlay';
+import { calculateDiffDays } from '@/lib/common';
+import type { Diary } from '@/lib/managers/diary';
+import { useCallback, useContext, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Typo } from '../typography';
+import { card, content, preventOverflow, preview, title } from './styles.css';
+interface DiaryCardProps {
+	diary: Diary;
+}
+export function DiaryCard(props: DiaryCardProps)
+⋮----
+onLongPress=
 ````
 
 ## File: src/components/ui/input/emoji.tsx
@@ -3727,22 +3977,7 @@ import { useCallback } from 'react';
 import type { OverlayProps } from '../overlay/types';
 import { drawerVariants } from './animation';
 import { drawer, handle } from './styles.css';
-interface DrawerProps extends BaseProps<HAS_CHILDREN> {
-	preventBackdropClose?: boolean;
-}
-````
-
-## File: src/routes/index/index.tsx
-````typescript
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { LoadingCircle } from '@/components/ui/loading-circle';
-import { SottoSymbol } from '@/components/ui/sotto-symbol';
-import { Typo } from '@/components/ui/typography';
-import { wait } from '@/lib/common';
-import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { centerSymbol } from './page.css';
+export interface DrawerProps extends BaseProps<HAS_CHILDREN> {}
 ````
 
 ## File: src-tauri/Cargo.toml
@@ -3787,6 +4022,27 @@ tauri-plugin-log = "2"
 tauri-plugin-biometric = "2"
 ````
 
+## File: src/routes/home/index.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Row } from '@/components/layout/row';
+import { HomeFriendsDiariesSection } from '@/components/pages/home/friends-diaries';
+import { HomeMyDiariesSection } from '@/components/pages/home/my-diaries';
+import { Avatar } from '@/components/ui/avatar';
+import { SottoSymbol } from '@/components/ui/sotto-symbol';
+import { Tabs } from '@/components/ui/tabs';
+import { TabsContent } from '@/components/ui/tabs/content';
+import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { Typo } from '@/components/ui/typography';
+import { fullHeight } from '@/styles/utils.css';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { left, right } from './page.css';
+⋮----
+src=
+````
+
 ## File: src-tauri/src/lib.rs
 ````rust
 use tauri::Manager;
@@ -3817,53 +4073,10 @@ Ok(())
 .expect("error while running tauri application");
 ````
 
-## File: src/routes/home/index.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Row } from '@/components/layout/row';
-import { HomeFriendsDiariesSection } from '@/components/pages/home/friends-diaries';
-import { HomeMyDiariesSection } from '@/components/pages/home/my-diaries';
-import { Avatar } from '@/components/ui/avatar';
-import { SottoSymbol } from '@/components/ui/sotto-symbol';
-import { Tabs } from '@/components/ui/tabs';
-import { TabsContent } from '@/components/ui/tabs/content';
-import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { Typo } from '@/components/ui/typography';
-import { fullHeight } from '@/styles/utils.css';
-import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { left, right } from './page.css';
-⋮----
-src=
-````
-
-## File: src/routes/diary/index.tsx
-````typescript
-import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
-import { Divider } from '@/components/ui/divider';
-import { EmojiInput } from '@/components/ui/input/emoji';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { useDiary } from '@/hooks/use-diary';
-import { useDrawer } from '@/hooks/use-drawer';
-import { log } from '@/lib/log';
-import { diaryManager } from '@/lib/managers/diary';
-import { color } from '@/styles/color.css';
-import { Share } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { page, textArea, textAreaContainer, titleInput } from './page.css';
-````
-
 ## File: src/components/pages/home/friends-diaries.tsx
 ````typescript
 import { decryptDiary } from '@/binding/function/decrypt-diary';
-import { BanFriendDrawer } from '@/components/features/friend/ban';
+import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
 import { Container } from '@/components/layout/container';
 import { Grid } from '@/components/layout/grid';
 import { Row } from '@/components/layout/row';
@@ -3885,51 +4098,6 @@ function FriendDiaries(props: FriendDiariesProps)
 ⋮----
 const diaries = diaryManager.getFriendDiaries(userUUID);
 const showBanDrawer = useCallback(() =>
-````
-
-## File: src/routes/my-profile/index.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { Row } from '@/components/layout/row';
-import { MyProfileChangeNameDrawer } from '@/components/pages/my-profile/change-name';
-import { MyProfileImage } from '@/components/pages/my-profile/image';
-import { MyProfileResetConfirmDrawer } from '@/components/pages/my-profile/reset-confirm';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { useDrawer } from '@/hooks/use-drawer';
-import { diaryManager } from '@/lib/managers/diary';
-import { friendManager } from '@/lib/managers/friend';
-import { ChevronRight } from 'lucide-react';
-import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { avatarContainer, stat } from './page.css';
-⋮----
-<Typo.Lead weight='strong'>
-````
-
-## File: src/App.tsx
-````typescript
-import { useEffect } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { diaryManager } from './lib/managers/diary';
-import { storageClient } from './lib/managers/storage';
-import SignInBiometricPage from './routes/auth/sign-in/biometric';
-import SignInForgotPinPage from './routes/auth/sign-in/forgot-pin';
-import SignInPinPage from './routes/auth/sign-in/pin';
-import SignUpPage from './routes/auth/sign-up';
-import DiaryPage from './routes/diary';
-import ExplorerDiariesPage from './routes/explorer/diaries';
-import ExplorerDiariesDetailPage from './routes/explorer/diaries/detail';
-import ExplorerFriendsPage from './routes/explorer/friends';
-import ExplorerFriendsDetailPage from './routes/explorer/friends/detail';
-import HomePage from './routes/home';
-import IndexPage from './routes/index';
-import MyProfilePage from './routes/my-profile';
-export default function App()
 ````
 
 ## File: src/lib/managers/diary.ts
@@ -3982,12 +4150,83 @@ removeDiary(uuid: string)
 async clear()
 ````
 
+## File: src/routes/my-profile/index.tsx
+````typescript
+import packageJson from '@/../package.json';
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { MyProfileChangeNameDrawer } from '@/components/pages/my-profile/change-name';
+import { MyProfileImage } from '@/components/pages/my-profile/image';
+import { MyProfileResetConfirmDrawer } from '@/components/pages/my-profile/reset-confirm';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { useDrawer } from '@/hooks/use-drawer';
+import { diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { color } from '@/styles/color.css';
+import { ChevronRight } from 'lucide-react';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { avatarContainer, stat } from './page.css';
+⋮----
+<Typo.Lead weight='strong'>
+````
+
+## File: src/App.tsx
+````typescript
+import { Suspense, createContext, useReducer } from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { useCheckInitialized } from './hooks/use-check-initialized';
+import {
+	DiaryPage,
+	ExplorerDiariesDetailPage,
+	ExplorerDiariesPage,
+	ExplorerFriendsDetailPage,
+	ExplorerFriendsPage,
+	HomePage,
+	IndexPage,
+	MyProfilePage,
+	SignInBiometricPage,
+	SignInForgotPinPage,
+	SignInPinPage,
+	SignUpPage,
+} from './routes';
+⋮----
+export default function App()
+````
+
+## File: src/routes/diary/index.tsx
+````typescript
+import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
+import { Divider } from '@/components/ui/divider';
+import { EmojiInput } from '@/components/ui/input/emoji';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { useDiary } from '@/hooks/use-diary';
+import { useOverlay } from '@/hooks/use-overlay';
+import { log } from '@/lib/log';
+import { diaryManager } from '@/lib/managers/diary';
+import { color } from '@/styles/color.css';
+import { Share } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { page, textArea, textAreaContainer, titleInput } from './page.css';
+````
+
 ## File: package.json
 ````json
 {
 	"name": "sotto-app",
 	"private": true,
-	"version": "0.1.0",
+	"version": "1.1.0",
 	"type": "module",
 	"config": {
 		"commitizen": {
