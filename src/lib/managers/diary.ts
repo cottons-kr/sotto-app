@@ -266,7 +266,14 @@ class DiaryManager {
 		this.data.set(uuid, diary);
 		await this.saveData();
 
-		return `https://sotto.tyeongk.im/viewer/${shareUUID}?key=${aesKey}`;
+		const baseUrl = import.meta.env.PROD
+			? 'https://sotto.tyeongk.im/viewer'
+			: 'http://localhost:5173';
+
+		return {
+			url: `${baseUrl}?uuid=${shareUUID}&key=${encodeURIComponent(aesKey)}`,
+			diary,
+		};
 	}
 
 	async stopURLSharingAndReEncrypt(uuid: string) {
@@ -320,12 +327,17 @@ class DiaryManager {
 		return diary.shareUUID !== null;
 	}
 
-	removeDiary(uuid: string) {
+	async removeDiary(uuid: string) {
 		this.checkInitialized();
 		const diary = this.data.get(uuid);
 		if (!diary) {
 			throw new Error('Diary not found');
 		}
+
+		if (diary.sharedWith.length > 0) {
+			await apiClient.delete(`/diaries/${diary.shareUUID}`);
+		}
+
 		this.data.delete(uuid);
 		this.saveData();
 		return diary;

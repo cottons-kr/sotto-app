@@ -78,7 +78,7 @@ export function HomeFriendsDiariesSection() {
 						(b) => b.diary.uuid !== existingSharedDiary.shareUUID,
 					);
 					if (isSharingCanceled) {
-						diaryManager.removeDiary(existingSharedDiary.uuid);
+						await diaryManager.removeDiary(existingSharedDiary.uuid);
 					}
 				}
 				setFriendList(

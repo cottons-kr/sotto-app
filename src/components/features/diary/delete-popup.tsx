@@ -22,7 +22,7 @@ export function DeleteDiaryPopup(props: DeleteDiaryPopupProps & OverlayProps) {
 	const onClickDelete = useCallback(() => {
 		authenticate(async () => {
 			try {
-				diaryManager.removeDiary(diary.uuid);
+				await diaryManager.removeDiary(diary.uuid);
 				await callback();
 			} catch (error) {
 				log('error', 'Failed to delete diary:', error);

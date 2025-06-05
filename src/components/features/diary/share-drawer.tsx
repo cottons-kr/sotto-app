@@ -60,13 +60,20 @@ export function ShareDiaryDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 		}
 
 		try {
-			const url = await diaryManager.shareDiaryViaURL(diary.uuid);
+			let uuid = diary.uuid;
+			if (uuid === 'NOT_SAVED') {
+				const savedDiary = await diaryManager.addDiary(diary);
+				uuid = savedDiary.uuid;
+			}
+
+			const { url, diary: result } = await diaryManager.shareDiaryViaURL(uuid);
+			setDiary(result);
 			await writeText(url);
 			openURLCopied({});
 		} finally {
 			setIsProcessing(false);
 		}
-	}, [isSharable, diary.uuid, openURLCopied]);
+	}, [isSharable, diary, setDiary, openURLCopied]);
 
 	const onStopUrlSharingClick = useCallback(async () => {
 		if (!diary.isSharedViaURL) {

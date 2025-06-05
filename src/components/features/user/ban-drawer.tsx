@@ -25,7 +25,7 @@ export function BanFriendDrawer(props: BanUserDrawerProps & OverlayProps) {
 	const onClickBlock = useCallback(async () => {
 		try {
 			for (const diary of diaryManager.getFriendDiaries(friend.uuid)) {
-				diaryManager.removeDiary(diary.uuid);
+				await diaryManager.removeDiary(diary.uuid);
 			}
 			friendManager.removeFriend(friend.uuid);
 
