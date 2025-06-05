@@ -334,7 +334,7 @@ class DiaryManager {
 			throw new Error('Diary not found');
 		}
 
-		if (diary.sharedWith.length > 0) {
+		if (!diary.sharedBy && diary.shareUUID) {
 			await apiClient.delete(`/diaries/${diary.shareUUID}`);
 		}
 
