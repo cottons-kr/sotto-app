@@ -267,7 +267,7 @@ class DiaryManager {
 		await this.saveData();
 
 		const baseUrl = import.meta.env.PROD
-			? 'https://sotto.tyeongk.im/viewer'
+			? 'https://sotto-viewer.tyeongk.im'
 			: 'http://localhost:5173';
 
 		return {
