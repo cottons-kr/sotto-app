@@ -1,5 +1,6 @@
 import { Column } from '@/components/layout/column';
 import { Row } from '@/components/layout/row';
+import { HomeBottomNavigator } from '@/components/pages/home/bottom-navigator';
 import { HomeFriendsDiariesSection } from '@/components/pages/home/friends-diaries';
 import { HomeMyDiariesSection } from '@/components/pages/home/my-diaries';
 import { Avatar } from '@/components/ui/avatar';
@@ -22,36 +23,35 @@ export default function HomePage() {
 	}, [navigator]);
 
 	return (
-		<>
-			<Column className={fullHeight} justify='start'>
-				<TopNavigator
-					leadingArea={
-						<Row className={left} align='center' gap={6}>
-							<SottoSymbol />
-							<Typo.Lead weight='strong'>Sotto</Typo.Lead>
-						</Row>
-					}
-					trailingArea={
-						<Avatar
-							className={right}
-							src={localStorage.getItem('profileImage')}
-							onClick={onClickAvatar}
-						/>
-					}
-				/>
-				<Tabs defaultValue='my'>
-					<TabsGroup>
-						<TabsItem value='my'>My</TabsItem>
-						<TabsItem value='friends'>Friends</TabsItem>
-					</TabsGroup>
-					<TabsContent value='my'>
-						<HomeMyDiariesSection />
-					</TabsContent>
-					<TabsContent value='friends'>
-						<HomeFriendsDiariesSection />
-					</TabsContent>
-				</Tabs>
-			</Column>
-		</>
+		<Column className={fullHeight} justify='start'>
+			<TopNavigator
+				leadingArea={
+					<Row className={left} align='center' gap={6}>
+						<SottoSymbol />
+						<Typo.Lead weight='strong'>Sotto</Typo.Lead>
+					</Row>
+				}
+				trailingArea={
+					<Avatar
+						className={right}
+						src={localStorage.getItem('profileImage')}
+						onClick={onClickAvatar}
+					/>
+				}
+			/>
+			<Tabs defaultValue='my'>
+				<TabsGroup>
+					<TabsItem value='my'>My</TabsItem>
+					<TabsItem value='friends'>Friends</TabsItem>
+				</TabsGroup>
+				<TabsContent value='my'>
+					<HomeMyDiariesSection />
+				</TabsContent>
+				<TabsContent value='friends'>
+					<HomeFriendsDiariesSection />
+				</TabsContent>
+			</Tabs>
+			<HomeBottomNavigator />
+		</Column>
 	);
 }
