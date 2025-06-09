@@ -4,11 +4,13 @@ import { log } from './log';
 import { diaryManager } from './managers/diary';
 import { friendManager } from './managers/friend';
 import { apiClient } from './managers/http';
+import { locationManager } from './managers/location';
 import { storageClient } from './managers/storage';
 
 export async function processSignIn(pin: string) {
 	await storageClient.init(pin);
 	await diaryManager.init();
+	await locationManager.init();
 	await wait(500);
 }
 

@@ -2,9 +2,9 @@ import { Container } from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Drawer } from '@/components/ui/drawer';
+import { DrawerTitle } from '@/components/ui/drawer/title';
 import { Input } from '@/components/ui/input';
 import type { OverlayProps } from '@/components/ui/overlay/types';
-import { Typo } from '@/components/ui/typography';
 import { log } from '@/lib/log';
 import { apiClient } from '@/lib/managers/http';
 import { message } from '@tauri-apps/plugin-dialog';
@@ -49,9 +49,7 @@ export function MyProfileChangeNameDrawer(props: OverlayProps) {
 
 	return (
 		<Drawer {...props}>
-			<Container vertical='small' horizontal='large'>
-				<Typo.Lead weight='strong'>Change name</Typo.Lead>
-			</Container>
+			<DrawerTitle>Change name</DrawerTitle>
 			<Container vertical='small'>
 				<Input placeholder='New name' value={name} onValue={setName} />
 			</Container>

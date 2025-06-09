@@ -26,6 +26,9 @@ export default defineConfig(async () => ({
 		watch: {
 			ignored: ['**/src-tauri/**'],
 		},
+		warmup: {
+			clientFiles: ['./src/**/*.css.ts'],
+		},
 	},
 	envPrefix: ['VITE_', 'TAURI_ENV_'],
 	minify: !process.env.TAURI_ENV_DEBUG ? 'esbuild' : false,

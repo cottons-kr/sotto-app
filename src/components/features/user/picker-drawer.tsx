@@ -4,6 +4,7 @@ import { AvatarItem } from '@/components/ui/avatar/item';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
 import { Drawer, type DrawerProps } from '@/components/ui/drawer';
+import { DrawerTitle } from '@/components/ui/drawer/title';
 import { Input } from '@/components/ui/input';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
@@ -60,9 +61,7 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 
 	return (
 		<Drawer close={close}>
-			<Container vertical='small' horizontal='large'>
-				<Typo.Lead weight='strong'>{title}</Typo.Lead>
-			</Container>
+			<DrawerTitle>{title}</DrawerTitle>
 			<Container vertical='small' horizontal='medium'>
 				<Input placeholder={placeholder} onValue={onSearch} />
 			</Container>
