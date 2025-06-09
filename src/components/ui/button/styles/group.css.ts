@@ -22,3 +22,7 @@ export const floatStyle = uiStyle([
 		bottom: 0,
 	},
 ]);
+
+export const transparentStyle = uiStyle({
+	backgroundColor: 'transparent',
+});

@@ -9,7 +9,6 @@ resetGlobalStyle('html, body, #root', {
 	wordBreak: 'keep-all',
 	wordWrap: 'break-word',
 	textWrap: 'pretty',
-	scrollBehavior: 'smooth',
 });
 
 resetGlobalStyle('*', {

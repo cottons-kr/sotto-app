@@ -42,10 +42,8 @@ export function HomeBottomNavigator() {
 		navigate('/diary');
 	}, [navigate]);
 
-	console.log('currentTab', currentTab);
-
 	return (
-		<ButtonGroup float>
+		<ButtonGroup float transparent>
 			<AnimatePresence>
 				{currentTab === 'my' && (
 					<motion.div

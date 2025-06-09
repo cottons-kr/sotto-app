@@ -8,6 +8,7 @@ import {
 	buttonGroup,
 	floatStyle,
 	smallPaddingStyle,
+	transparentStyle,
 } from './styles/group.css';
 
 interface ButtonGroupProps extends BaseProps<HAS_CHILDREN> {
@@ -15,6 +16,7 @@ interface ButtonGroupProps extends BaseProps<HAS_CHILDREN> {
 	float?: boolean;
 	smallPadding?: boolean;
 	bottomSafeAreaPadding?: boolean;
+	transparent?: boolean;
 }
 
 export function ButtonGroup(props: ButtonGroupProps) {
@@ -24,6 +26,7 @@ export function ButtonGroup(props: ButtonGroupProps) {
 		float = false,
 		smallPadding = false,
 		bottomSafeAreaPadding,
+		transparent = false,
 	} = props;
 	const [height, setHeight] = useState(0);
 	const Wrapper = direction === 'horizontal' ? Row : Column;
@@ -54,6 +57,7 @@ export function ButtonGroup(props: ButtonGroupProps) {
 			[floatStyle]: float,
 			[smallPaddingStyle]: smallPadding,
 			[bottomSafeAreaPaddingStyle]: bottomSafeAreaPadding,
+			[transparentStyle]: transparent,
 		},
 	];
 
@@ -71,6 +75,7 @@ export function ButtonGroup(props: ButtonGroupProps) {
 					style={{
 						height: height,
 						backgroundColor: 'transparent',
+						flexShrink: 0,
 					}}
 				/>
 			)}

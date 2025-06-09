@@ -2,7 +2,7 @@ import { AppContext } from '@/App';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { HomeFriendDiaryDrawer } from '@/components/pages/home/friend-diary-drawer';
-import { HomeMyDiaryDrawer } from '@/components/pages/home/my-diary-drawer';
+import { HomeMyDiaryDrawer } from '@/components/pages/home/my-diaries/drawer';
 import { useOverlay } from '@/hooks/use-overlay';
 import { calculateDiffDays } from '@/lib/common';
 import type { Diary } from '@/lib/managers/diary';
