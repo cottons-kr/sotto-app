@@ -1,7 +1,7 @@
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
 import type { ReactNode } from 'react';
-import { item } from './styles.css';
+import { item } from './item.css';
 
 interface ListItemProps {
 	leadingArea?: ReactNode;

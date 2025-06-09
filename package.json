@@ -14,6 +14,7 @@
 		"ios": "tauri ios dev \"iPhone 16 Pro\"",
 		"android": "tauri android dev \"Pixel_7_Pro\"",
 		"tauri": "tauri",
+		"check": "biome check",
 		"format": "biome check --fix && bun repomix",
 		"repomix": "repomix -c ./repomix.config.json",
 		"build:ios-sim": "rimraf ./src-tauri/gen/apple/build/arm64-sim && tauri ios build --target aarch64-sim",

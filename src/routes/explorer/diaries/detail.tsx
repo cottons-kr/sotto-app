@@ -2,7 +2,7 @@ import { DeleteDiaryPopup } from '@/components/features/diary/delete-popup';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
-import { ExplorerContent } from '@/components/pages/explorer/content';
+import { ExplorerContent } from '@/components/pages/explorer/shared/content';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';

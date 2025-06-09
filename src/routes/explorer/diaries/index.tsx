@@ -1,8 +1,8 @@
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
-import { ExplorerHeader } from '@/components/pages/explorer/header';
-import { ListItem } from '@/components/ui/list-item';
+import { ExplorerHeader } from '@/components/pages/explorer/shared/header';
+import { ListItem } from '@/components/ui/list/item';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
@@ -21,6 +21,7 @@ export default function ExplorerDiariesPage() {
 			<ExplorerHeader
 				title='Diaries'
 				count={diaries.length}
+				search
 				placeholder='Search by title or content'
 			/>
 			<Container>

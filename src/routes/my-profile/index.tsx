@@ -3,10 +3,12 @@ import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
 import { MyProfileChangeNameDrawer } from '@/components/pages/my-profile/change-name';
+import { MyProfileExplorerItem } from '@/components/pages/my-profile/explorer-item';
 import { MyProfileImage } from '@/components/pages/my-profile/image';
 import { MyProfileResetConfirmDrawer } from '@/components/pages/my-profile/reset-confirm';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button/group';
+import { PaddingDivider } from '@/components/ui/divider/padding';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
@@ -14,7 +16,7 @@ import { useDrawer } from '@/hooks/use-drawer';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
 import { color } from '@/styles/color.css';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, MapPin } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { avatarContainer, stat } from './page.css';
@@ -58,12 +60,16 @@ export default function MyProfilePage() {
 						/>
 					</Row>
 				</Container>
+				<PaddingDivider />
+				<MyProfileExplorerItem
+					icon={<MapPin size={20} />}
+					name='Location alias'
+					path='/explorer/location-alias'
+				/>
 				<Container vertical='large'>
-					<Column align='center'>
-						<Typo.Caption color={color.sand}>
-							Version {packageJson.version} {import.meta.env.MODE}
-						</Typo.Caption>
-					</Column>
+					<Typo.Caption color={color.sand}>
+						Version {packageJson.version} {import.meta.env.MODE}
+					</Typo.Caption>
 				</Container>
 				<ButtonGroup direction='vertical' float>
 					<Button variant='text' fill onClick={openResetConfirm}>

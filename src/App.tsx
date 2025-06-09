@@ -18,6 +18,7 @@ import {
 	SignInPinPage,
 	SignUpPage,
 } from './routes';
+import ExplorerLocationAliasPage from './routes/explorer/location-alias';
 
 export const AppContext = createContext({} as { forceUpdate: () => unknown });
 
@@ -61,6 +62,10 @@ export default function App() {
 							<Route
 								path='/explorer/friends/:uuid'
 								element={<ExplorerFriendsDetailPage />}
+							/>
+							<Route
+								path='/explorer/location-alias'
+								element={<ExplorerLocationAliasPage />}
 							/>
 						</Routes>
 					</Suspense>
