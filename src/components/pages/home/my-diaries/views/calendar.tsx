@@ -1,13 +1,20 @@
 import { MonthCalendar } from '@/components/ui/calendar/month';
 import { CalendarProvider } from '@/components/ui/calendar/provider';
 import dayjs from 'dayjs';
-import toObject from 'dayjs/plugin/toObject';
 import { useEffect, useMemo } from 'react';
 
-dayjs.extend(toObject);
-
 export function HomeMyDiariesCalendar() {
-	const { years, months } = useMemo(() => dayjs().toObject(), []);
+	const recent13Months = useMemo(
+		() =>
+			Array.from({ length: 13 }).map((_, i) => {
+				const date = dayjs().subtract(12 - i, 'month');
+				return {
+					year: date.year(),
+					month: date.month() + 1,
+				};
+			}),
+		[],
+	);
 
 	useEffect(() => {
 		window.scrollTo({
@@ -18,11 +25,8 @@ export function HomeMyDiariesCalendar() {
 
 	return (
 		<CalendarProvider>
-			{Array.from({ length: 12 }).map((_, i) => (
-				<MonthCalendar key={i.toString()} year={years - 1} month={i + 1} />
-			))}
-			{Array.from({ length: months + 1 }).map((_, i) => (
-				<MonthCalendar key={i.toString()} year={years} month={i + 1} />
+			{recent13Months.map(({ year, month }) => (
+				<MonthCalendar key={`${year}-${month}`} year={year} month={month} />
 			))}
 		</CalendarProvider>
 	);

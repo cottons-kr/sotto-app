@@ -1,5 +1,6 @@
 import { encryptDiary } from '@/binding/function/encrypt-diary';
 import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
+import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
 import { type User, friendManager } from './friend';
 import { apiClient } from './http';
@@ -100,6 +101,20 @@ class DiaryManager {
 
 	getDiary(uuid: string) {
 		return this.data.get(uuid);
+	}
+
+	getDiariesByDate(date: Dayjs) {
+		this.checkInitialized();
+		const targetDate = date.toDate();
+		return Array.from(this.data.values()).filter((diary) => {
+			const createdAt = new Date(diary.createdAt);
+			return (
+				createdAt.getFullYear() === targetDate.getFullYear() &&
+				createdAt.getMonth() === targetDate.getMonth() &&
+				createdAt.getDate() === targetDate.getDate() &&
+				!diary.readonly
+			);
+		});
 	}
 
 	createDiary(): Diary {

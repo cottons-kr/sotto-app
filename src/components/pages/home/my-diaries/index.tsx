@@ -11,6 +11,3 @@ export function HomeMyDiariesSection() {
 		<HomeMyDiariesCalendar />
 	);
 }
-
-// 이번년도와 작년 년도에 작성한 일기만 보여주기
-// 보여주는 총 월 수는 24개
