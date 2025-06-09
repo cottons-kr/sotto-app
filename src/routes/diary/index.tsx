@@ -1,6 +1,7 @@
 import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
+import { DiaryAdditionalInfo } from '@/components/pages/diary/additonal-info';
 import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
 import { Divider } from '@/components/ui/divider';
 import { EmojiInput } from '@/components/ui/input/emoji';
@@ -77,22 +78,25 @@ export default function DiaryPage() {
 					}
 				/>
 				<Container vertical='large' horizontal='large'>
-					<Column gap={12}>
-						<EmojiInput
-							defaultValue={diary.emoji}
-							onValue={setEmoji}
-							disabled={isSaving || isReadOnly}
-						/>
-						<input
-							className={titleInput}
-							placeholder='New Diary'
-							value={diary.title}
-							onChange={(e) => setTitle(e.target.value)}
-							disabled={isSaving || isReadOnly}
-						/>
-						<Typo.Caption
-							color={color.sand}
-						>{`Last Edited : ${new Date(diary.updatedAt).toLocaleString()}`}</Typo.Caption>
+					<Column gap={24}>
+						<Column gap={12}>
+							<EmojiInput
+								defaultValue={diary.emoji}
+								onValue={setEmoji}
+								disabled={isSaving || isReadOnly}
+							/>
+							<input
+								className={titleInput}
+								placeholder='New Diary'
+								value={diary.title}
+								onChange={(e) => setTitle(e.target.value)}
+								disabled={isSaving || isReadOnly}
+							/>
+							<Typo.Caption
+								color={color.sand}
+							>{`Last Edited : ${new Date(diary.updatedAt).toLocaleString()}`}</Typo.Caption>
+						</Column>
+						<DiaryAdditionalInfo />
 					</Column>
 				</Container>
 				<Divider />
