@@ -1,5 +1,7 @@
+import { DiaryInDateDrawer } from '@/components/features/diary/in-date-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
+import { useOverlay } from '@/hooks/use-overlay';
 import { cn } from '@/lib/common';
 import { diaryManager } from '@/lib/managers/diary';
 import { fullHeight } from '@/styles/utils.css';
@@ -21,6 +23,7 @@ export function CalendarDayCell(props: CalendarDayCellProps) {
 	const { day } = props;
 
 	const { selectedDate, setSelectedDate } = useContext(CalendarContext);
+	const { show: openDiaryInDate } = useOverlay(DiaryInDateDrawer);
 	const diaries = useMemo(
 		() => (day ? diaryManager.getDiariesByDate(day) : []),
 		[day],
@@ -29,8 +32,11 @@ export function CalendarDayCell(props: CalendarDayCellProps) {
 	const onClickCell = useCallback(() => {
 		if (day) {
 			setSelectedDate(day);
+			if (diaries.length > 0) {
+				openDiaryInDate({ day, diaries });
+			}
 		}
-	}, [day, setSelectedDate]);
+	}, [day, diaries, setSelectedDate, openDiaryInDate]);
 
 	return (
 		<Container

@@ -53,12 +53,16 @@ export function Container(props: ContainerProps) {
 	return (
 		<Component
 			{...rest}
-			onMouseDown={handlePressStart}
-			onTouchStart={handlePressStart}
-			onMouseUp={handlePressEnd}
-			onMouseLeave={handlePressEnd}
-			onTouchEnd={handlePressEnd}
-			onTouchCancel={handlePressEnd}
+			{...(onLongPress
+				? {
+						onMouseDown: handlePressStart,
+						onTouchStart: handlePressStart,
+						onMouseUp: handlePressEnd,
+						onMouseLeave: handlePressEnd,
+						onTouchEnd: handlePressEnd,
+						onTouchCancel: handlePressEnd,
+					}
+				: { onClick })}
 			style={{
 				padding: `${paddingMap[vertical]} ${paddingMap[horizontal]}`,
 			}}
