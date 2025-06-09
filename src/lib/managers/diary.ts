@@ -13,6 +13,9 @@ export interface Diary {
 	emoji: string;
 	title: string;
 	content: string;
+	location?: string;
+	weather?: string;
+	attachments: Array<string>;
 	sharedWith: Array<string>;
 	encryptedData: string | null;
 	aesKey: string | null;
@@ -126,6 +129,7 @@ class DiaryManager {
 			emoji: '',
 			title: '',
 			content: '',
+			attachments: [],
 			encryptedData: null,
 			aesKey: null,
 			encryptedKey: null,

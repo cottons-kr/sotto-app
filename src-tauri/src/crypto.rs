@@ -8,6 +8,9 @@ pub struct DiaryData {
     pub emoji: String,
     pub title: String,
     pub content: String,
+    pub location: Option<String>,
+    pub weather: Option<String>,
+    pub attachments: Vec<String>,
 }
 
 #[tauri::command]
