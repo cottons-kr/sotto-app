@@ -13,13 +13,11 @@ import {
 import { useCallback } from 'react';
 import { grid, item } from './styles/weather-drawer.css';
 
-interface WeatherDrawerProps {
+interface DiaryWeatherDrawerProps {
 	setWeather: (weather: Weather) => unknown;
 }
 
-export function DiaryAddWeatherDrawer(
-	props: WeatherDrawerProps & OverlayProps,
-) {
+export function DiaryWeatherDrawer(props: DiaryWeatherDrawerProps & OverlayProps) {
 	const { setWeather, close } = props;
 
 	return (

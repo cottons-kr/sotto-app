@@ -1,4 +1,4 @@
-import { DiaryAddWeatherDrawer } from '@/components/features/diary/weather-drawer';
+import { DiaryWeatherDrawer } from '@/components/features/diary/weather-drawer';
 import { Row } from '@/components/layout/row';
 import { Typo } from '@/components/ui/typography';
 import { useOverlay } from '@/hooks/use-overlay';
@@ -16,7 +16,7 @@ export function DiaryAdditionalInfo() {
 	} = useContext(DiaryContext);
 	const WeatherIcon = getWeatherIcon(diary.weather);
 
-	const { show: openAddWeather } = useOverlay(DiaryAddWeatherDrawer);
+	const { show: openAddWeather } = useOverlay(DiaryWeatherDrawer);
 
 	const onClickWeather = useCallback(() => {
 		openAddWeather({ setWeather });
