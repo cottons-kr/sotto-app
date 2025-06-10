@@ -1,3 +1,4 @@
+import { Building, House, MapPinned, School } from 'lucide-react';
 import { v4 } from 'uuid';
 import { storageClient } from './storage';
 
@@ -12,11 +13,11 @@ export interface Location {
 export type LocationPresetKey = 'home' | 'secondHome' | 'school' | 'work';
 
 type PresetLocationAlias = {
-	[key in LocationPresetKey]: string | null;
+	[key in LocationPresetKey]: Location | null;
 };
 
-export const MAX_ALIAS_COUNT = 50;
-export const MAX_HISTORY_COUNT = 50;
+export const MAX_ALIAS_COUNT = 10;
+export const MAX_HISTORY_COUNT = 5;
 
 class LocationManager {
 	private presets: PresetLocationAlias = {
@@ -26,7 +27,7 @@ class LocationManager {
 		work: null,
 	};
 	private aliases: Array<Location> = [];
-	private history: Array<Location> = [];
+	private history: Array<Location | LocationPresetKey> = [];
 	public isInitialized = false;
 
 	async init() {
@@ -74,6 +75,34 @@ class LocationManager {
 		return this.presets;
 	}
 
+	getPresetKeys() {
+		return [
+			'home',
+			'secondHome',
+			'school',
+			'work',
+		] satisfies Array<LocationPresetKey>;
+	}
+
+	getPresetLocation(key: LocationPresetKey) {
+		const location = this.presets[key];
+		return location;
+	}
+
+	getPresetIcon(key: LocationPresetKey) {
+		switch (key) {
+			case 'home':
+			case 'secondHome':
+				return House;
+			case 'school':
+				return School;
+			case 'work':
+				return Building;
+			default:
+				return MapPinned;
+		}
+	}
+
 	getPresetName(key: LocationPresetKey) {
 		switch (key) {
 			case 'home':
@@ -91,7 +120,18 @@ class LocationManager {
 
 	async setPreset(name: LocationPresetKey, address: string) {
 		this.checkInitialized();
-		this.presets[name] = address;
+		if (!address) {
+			throw new Error('Address must be provided.');
+		}
+		const uuid = v4();
+		const newLocation: Location = {
+			uuid,
+			name: this.getPresetName(name),
+			address,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+		this.presets[name] = newLocation;
 		await this.saveData();
 	}
 
@@ -160,18 +200,11 @@ class LocationManager {
 		return Array.from(this.history.values());
 	}
 
-	async addHistory(location: Location | string) {
+	async addHistory(location: Location | LocationPresetKey) {
 		this.checkInitialized();
-		if (typeof location === 'string') {
-			const uuid = v4();
-			this.history.push({
-				uuid,
-				address: location,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			});
-		} else {
-			this.history.push(location);
+		this.history = [location, ...this.history];
+		if (this.history.length > MAX_HISTORY_COUNT) {
+			this.history = this.history.slice(0, MAX_HISTORY_COUNT);
 		}
 		await this.saveData();
 	}

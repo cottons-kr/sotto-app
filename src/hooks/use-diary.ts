@@ -27,6 +27,13 @@ export function useDiary(uuid: string | null) {
 		}));
 	}, []);
 
+	const setLocation = useCallback((location: string) => {
+		setDiary((prev) => ({
+			...prev,
+			location,
+		}));
+	}, []);
+
 	const setWeather = useCallback((weather: Weather) => {
 		setDiary((prev) => ({
 			...prev,
@@ -36,7 +43,7 @@ export function useDiary(uuid: string | null) {
 
 	return [
 		diary,
-		{ setEmoji, setTitle, setContent, setWeather, setDiary },
+		{ setEmoji, setTitle, setContent, setLocation, setWeather, setDiary },
 	] as const;
 }
 

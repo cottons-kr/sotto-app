@@ -54,7 +54,11 @@ export function HomeBottomNavigator() {
 						exit='hidden'
 					>
 						<Row gap={8}>
-							<ViewButton icon={<LayoutGrid />} label='List' value='list' />
+							<ViewButton
+								icon={<LayoutGrid size={20} />}
+								label='List'
+								value='list'
+							/>
 							<button
 								type='button'
 								className={addButton}
@@ -63,7 +67,7 @@ export function HomeBottomNavigator() {
 								<Plus />
 							</button>
 							<ViewButton
-								icon={<CalendarDays />}
+								icon={<CalendarDays size={20} />}
 								label='Calendar'
 								value='calendar'
 							/>

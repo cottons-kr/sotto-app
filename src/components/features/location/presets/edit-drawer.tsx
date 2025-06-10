@@ -24,7 +24,7 @@ export function LocationPresetsEditDrawer(
 	const { name, close } = props;
 
 	const [address, setAddress] = useState(
-		locationManager.getPresets()[name] || '',
+		locationManager.getPresets()[name]?.address || '',
 	);
 	const { show: openResetConfirm } = useOverlay(
 		LocationPresetsResetConfirmPopup,

@@ -1,3 +1,4 @@
+import { DiaryLocationDrawer } from '@/components/features/diary/location-drawer';
 import { DiaryWeatherDrawer } from '@/components/features/diary/weather-drawer';
 import { Row } from '@/components/layout/row';
 import { Typo } from '@/components/ui/typography';
@@ -12,15 +13,20 @@ import { item, itemActive } from './styles/additional-info.css';
 export function DiaryAdditionalInfo() {
 	const {
 		diary,
-		diaryDispatch: { setWeather },
+		diaryDispatch: { setLocation, setWeather },
 	} = useContext(DiaryContext);
 	const WeatherIcon = getWeatherIcon(diary.weather);
 
-	const { show: openAddWeather } = useOverlay(DiaryWeatherDrawer);
+	const { show: openLocation } = useOverlay(DiaryLocationDrawer);
+	const { show: openWeather } = useOverlay(DiaryWeatherDrawer);
+
+	const onClickLocation = useCallback(() => {
+		openLocation({ setLocation });
+	}, [setLocation, openLocation]);
 
 	const onClickWeather = useCallback(() => {
-		openAddWeather({ setWeather });
-	}, [setWeather, openAddWeather]);
+		openWeather({ setWeather });
+	}, [setWeather, openWeather]);
 
 	return (
 		<Row gap={8}>
@@ -28,6 +34,7 @@ export function DiaryAdditionalInfo() {
 				className={cn(item, diary.location && itemActive)}
 				gap={6}
 				align='center'
+				onClick={onClickLocation}
 			>
 				<MapPin size={20} />
 				<Typo.Body weight='medium'>

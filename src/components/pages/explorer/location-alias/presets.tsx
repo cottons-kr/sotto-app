@@ -33,9 +33,9 @@ interface ItemProps {
 function Item(props: ItemProps) {
 	const { icon, name } = props;
 
-	const address = locationManager.getPresets()[name];
+	const location = locationManager.getPresets()[name];
 	const { show: openDrawer } = useOverlay(
-		address ? LocationPresetsEditDrawer : LocationPresetsAddDrawer,
+		location ? LocationPresetsEditDrawer : LocationPresetsAddDrawer,
 	);
 
 	const onClick = useCallback(() => {
@@ -50,7 +50,9 @@ function Item(props: ItemProps) {
 					<Typo.Lead weight='medium'>
 						{locationManager.getPresetName(name)}
 					</Typo.Lead>
-					<Typo.Body color={color.sand}>{address || 'Click to add'}</Typo.Body>
+					<Typo.Body color={color.sand}>
+						{location?.address || 'Click to add'}
+					</Typo.Body>
 				</Column>
 			</Column>
 		</Container>

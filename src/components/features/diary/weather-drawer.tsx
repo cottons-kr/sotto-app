@@ -17,7 +17,9 @@ interface DiaryWeatherDrawerProps {
 	setWeather: (weather: Weather) => unknown;
 }
 
-export function DiaryWeatherDrawer(props: DiaryWeatherDrawerProps & OverlayProps) {
+export function DiaryWeatherDrawer(
+	props: DiaryWeatherDrawerProps & OverlayProps,
+) {
 	const { setWeather, close } = props;
 
 	return (
