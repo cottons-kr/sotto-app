@@ -27,7 +27,7 @@ export default function DiaryPage() {
 		[searchParams],
 	);
 	const [diary, diaryDispatch] = useDiary(diaryUUID);
-	const { setEmoji, setTitle, setContent } = diaryDispatch;
+	const { setDiary, setEmoji, setTitle, setContent } = diaryDispatch;
 	const [isSaving, setIsSaving] = useState(false);
 	const { show: openShareDrawer } = useOverlay(ShareDiaryDrawer, {
 		preventBackdropClose: isSaving,
@@ -61,8 +61,8 @@ export default function DiaryPage() {
 	}, [diary, openSavingPopup, closeSavingPopup]);
 
 	const onClickShare = useCallback(() => {
-		openShareDrawer({});
-	}, [openShareDrawer]);
+		openShareDrawer({ diary, setDiary });
+	}, [diary, setDiary, openShareDrawer]);
 
 	return (
 		<DiaryContext value={{ diary, diaryDispatch }}>
