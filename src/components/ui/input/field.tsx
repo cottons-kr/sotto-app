@@ -12,7 +12,7 @@ export function InputField(props: InputFieldProps) {
 	const { label, children } = props;
 
 	return (
-		<Container>
+		<Container vertical='regular'>
 			<Column gap={6} align='center'>
 				{label && (
 					<Container className={labelStyle} vertical='none' horizontal='small'>
