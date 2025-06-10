@@ -1,7 +1,8 @@
 import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
-import { DiaryAdditionalInfo } from '@/components/pages/diary/additonal-info';
+import { DiaryAdditionalInfo } from '@/components/pages/diary/additional-info';
+import { DiaryContext } from '@/components/pages/diary/context';
 import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
 import { Divider } from '@/components/ui/divider';
 import { EmojiInput } from '@/components/ui/input/emoji';
@@ -25,8 +26,8 @@ export default function DiaryPage() {
 		() => searchParams.get('readonly') === 'true',
 		[searchParams],
 	);
-	const [diary, { setEmoji, setTitle, setContent, setDiary }] =
-		useDiary(diaryUUID);
+	const [diary, diaryDispatch] = useDiary(diaryUUID);
+	const { setEmoji, setTitle, setContent } = diaryDispatch;
 	const [isSaving, setIsSaving] = useState(false);
 	const { show: openShareDrawer } = useOverlay(ShareDiaryDrawer, {
 		preventBackdropClose: isSaving,
@@ -60,14 +61,11 @@ export default function DiaryPage() {
 	}, [diary, openSavingPopup, closeSavingPopup]);
 
 	const onClickShare = useCallback(() => {
-		openShareDrawer({
-			diary,
-			setDiary,
-		});
-	}, [openShareDrawer, diary, setDiary]);
+		openShareDrawer({});
+	}, [openShareDrawer]);
 
 	return (
-		<>
+		<DiaryContext value={{ diary, diaryDispatch }}>
 			<Column className={page} justify='start'>
 				<TopNavigator
 					leadingArea={<GoBack beforeBack={saveDiary} />}
@@ -114,6 +112,6 @@ export default function DiaryPage() {
 					/>
 				</Container>
 			</Column>
-		</>
+		</DiaryContext>
 	);
 }

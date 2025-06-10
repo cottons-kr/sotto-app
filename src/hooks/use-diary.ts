@@ -1,5 +1,6 @@
 import { diaryManager } from '@/lib/managers/diary';
 import { storageClient } from '@/lib/managers/storage';
+import type { Weather } from '@/lib/weather';
 import { useCallback, useState } from 'react';
 
 export function useDiary(uuid: string | null) {
@@ -26,7 +27,17 @@ export function useDiary(uuid: string | null) {
 		}));
 	}, []);
 
-	return [diary, { setEmoji, setTitle, setContent, setDiary }] as const;
+	const setWeather = useCallback((weather: Weather) => {
+		setDiary((prev) => ({
+			...prev,
+			weather,
+		}));
+	}, []);
+
+	return [
+		diary,
+		{ setEmoji, setTitle, setContent, setWeather, setDiary },
+	] as const;
 }
 
 function getDiaryOrCreate(uuid?: string | null) {

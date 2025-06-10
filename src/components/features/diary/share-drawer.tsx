@@ -1,27 +1,22 @@
+import { DiaryContext } from '@/components/pages/diary/context';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { useOverlay } from '@/hooks/use-overlay';
-import { type Diary, diaryManager } from '@/lib/managers/diary';
+import { diaryManager } from '@/lib/managers/diary';
 import type { User } from '@/lib/managers/friend';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { message } from '@tauri-apps/plugin-dialog';
-import {
-	type Dispatch,
-	type SetStateAction,
-	useCallback,
-	useMemo,
-	useState,
-} from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { UserPickerDrawer } from '../user/picker-drawer';
 import { DiaryStopURLSharingPopup } from './stop-url-sharing-popup';
 import { DiaryURLCopiedPopup } from './url-copied-popup';
 
-interface DiaryShareDrawerProps {
-	diary: Diary;
-	setDiary: Dispatch<SetStateAction<Diary>>;
-}
+export function ShareDiaryDrawer(props: OverlayProps) {
+	const { close } = props;
 
-export function ShareDiaryDrawer(props: DiaryShareDrawerProps & OverlayProps) {
-	const { diary, setDiary, close } = props;
+	const {
+		diary,
+		diaryDispatch: { setDiary },
+	} = useContext(DiaryContext);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const isSharable = useMemo(
 		() => diary.emoji || diary.title || diary.content,

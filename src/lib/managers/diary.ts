@@ -2,6 +2,7 @@ import { encryptDiary } from '@/binding/function/encrypt-diary';
 import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
 import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
+import type { Weather } from '../weather';
 import { type User, friendManager } from './friend';
 import { apiClient } from './http';
 import { storageClient } from './storage';
@@ -14,7 +15,7 @@ export interface Diary {
 	title: string;
 	content: string;
 	location?: string;
-	weather?: string;
+	weather?: Weather;
 	attachments: Array<string>;
 	sharedWith: Array<string>;
 	encryptedData: string | null;
