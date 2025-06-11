@@ -28,7 +28,12 @@ export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 	const { forceUpdate } = useContext(AppContext);
 	const [address, setAddress] = useState('');
 
-	const onClickItem = useCallback(
+	const onClickClearHistory = useCallback(async () => {
+		await locationManager.clearHistory();
+		forceUpdate();
+	}, [forceUpdate]);
+
+	const handleClickItem = useCallback(
 		(location: Location) => {
 			setAddress(location.name || location.address);
 			setDiaryLocation(location.name || location.address);
@@ -40,10 +45,13 @@ export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 		[setDiaryLocation, close],
 	);
 
-	const onClickClearHistory = useCallback(async () => {
-		await locationManager.clearHistory();
-		forceUpdate();
-	}, [forceUpdate]);
+	const handleClickRemoveHistory = useCallback(
+		(history: Location) => {
+			locationManager.removeHistory(history);
+			forceUpdate();
+		},
+		[forceUpdate],
+	);
 
 	const onClickAdd = useCallback(() => {
 		setDiaryLocation(address);
@@ -73,7 +81,7 @@ export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 								key={presetKey}
 								icon={locationManager.getPresetIcon(presetKey)}
 								name={locationManager.getPresetName(presetKey)}
-								onClick={() => onClickItem(location)}
+								onClick={() => handleClickItem(location)}
 							/>
 						);
 					})}
@@ -81,7 +89,7 @@ export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 						<AliasItem
 							key={alias.uuid}
 							name={alias.name || alias.address}
-							onClick={() => onClickItem(alias)}
+							onClick={() => handleClickItem(alias)}
 						/>
 					))}
 				</Row>
@@ -100,8 +108,10 @@ export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 					key={history.uuid}
 					name={history.name || history.address}
 					description={history.name ? history.address : undefined}
-					onClick={() => onClickItem(history)}
-					trailingArea={<X size={20} />}
+					onClick={() => handleClickItem(history)}
+					trailingArea={
+						<X size={20} onClick={() => handleClickRemoveHistory(history)} />
+					}
 				/>
 			))}
 			<ButtonGroup>

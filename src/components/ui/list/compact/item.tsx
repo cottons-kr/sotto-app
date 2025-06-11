@@ -23,7 +23,7 @@ export function CompactListItem(props: CompactListItemProps) {
 						<Typo.Caption color={color.sand}>{description}</Typo.Caption>
 					)}
 				</Column>
-				{trailingArea}
+				<div onClick={(e) => e.stopPropagation()}>{trailingArea}</div>
 			</Row>
 		</Container>
 	);

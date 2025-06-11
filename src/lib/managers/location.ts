@@ -215,11 +215,24 @@ class LocationManager {
 				...this.history,
 			];
 		} else {
-			this.history = [location, ...this.history];
+			this.history = [
+				{
+					...location,
+					uuid: v4(),
+					updatedAt: new Date(),
+				},
+				...this.history,
+			];
 		}
 		if (this.history.length > MAX_HISTORY_COUNT) {
 			this.history = this.history.slice(0, MAX_HISTORY_COUNT);
 		}
+		await this.saveData();
+	}
+
+	async removeHistory(location: Location) {
+		this.checkInitialized();
+		this.history = this.history.filter((item) => item.uuid !== location.uuid);
 		await this.saveData();
 	}
 
