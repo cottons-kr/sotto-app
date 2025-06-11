@@ -21,12 +21,16 @@ export function DiaryAdditionalInfo() {
 	const { show: openWeather } = useOverlay(DiaryWeatherDrawer);
 
 	const onClickLocation = useCallback(() => {
-		openLocation({ setLocation });
-	}, [setLocation, openLocation]);
+		if (!diary.readonly) {
+			openLocation({ setLocation });
+		}
+	}, [diary.readonly, setLocation, openLocation]);
 
 	const onClickWeather = useCallback(() => {
-		openWeather({ setWeather });
-	}, [setWeather, openWeather]);
+		if (!diary.readonly) {
+			openWeather({ setWeather });
+		}
+	}, [diary.readonly, setWeather, openWeather]);
 
 	return (
 		<Row gap={8}>
