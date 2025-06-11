@@ -27,7 +27,7 @@ class LocationManager {
 		work: null,
 	};
 	private aliases: Array<Location> = [];
-	private history: Array<Location | LocationPresetKey> = [];
+	private history: Array<Location> = [];
 	public isInitialized = false;
 
 	async init() {
@@ -200,9 +200,23 @@ class LocationManager {
 		return Array.from(this.history.values());
 	}
 
-	async addHistory(location: Location | LocationPresetKey) {
+	async addHistory(location: Location | string) {
 		this.checkInitialized();
-		this.history = [location, ...this.history];
+
+		if (typeof location === 'string') {
+			this.history = [
+				{
+					uuid: v4(),
+					name: undefined,
+					address: location,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				},
+				...this.history,
+			];
+		} else {
+			this.history = [location, ...this.history];
+		}
 		if (this.history.length > MAX_HISTORY_COUNT) {
 			this.history = this.history.slice(0, MAX_HISTORY_COUNT);
 		}

@@ -38,6 +38,14 @@ export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 		[setDiaryLocation, close],
 	);
 
+	const onClickAdd = useCallback(() => {
+		setDiaryLocation(address);
+		close();
+		setTimeout(() => {
+			locationManager.addHistory(address);
+		}, 200);
+	}, [setDiaryLocation, address, close]);
+
 	return (
 		<Drawer close={close}>
 			<DrawerTitle>Add location</DrawerTitle>
@@ -76,24 +84,19 @@ export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 				title='Recent locations'
 				trailingArea={<Typo.Caption color={color.sand}>Clear</Typo.Caption>}
 			/>
-			{locationManager.getHistory().map((history) => {
-				const location =
-					typeof history === 'string'
-						? locationManager.getPresetLocation(history)
-						: history;
-				if (!location) return null;
-				return (
-					<CompactListItem
-						key={location.uuid}
-						name={location.name || location.address}
-						description={location.name ? location.address : undefined}
-						onClick={() => onClickItem(location)}
-						trailingArea={<X size={20} />}
-					/>
-				);
-			})}
+			{locationManager.getHistory().map((history) => (
+				<CompactListItem
+					key={history.uuid}
+					name={history.name || history.address}
+					description={history.name ? history.address : undefined}
+					onClick={() => onClickItem(history)}
+					trailingArea={<X size={20} />}
+				/>
+			))}
 			<ButtonGroup>
-				<Button fill>Add</Button>
+				<Button fill onClick={onClickAdd}>
+					Add
+				</Button>
 			</ButtonGroup>
 		</Drawer>
 	);
