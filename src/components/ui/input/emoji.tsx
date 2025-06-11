@@ -1,4 +1,5 @@
 import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
 import { useDrawer } from '@/hooks/use-drawer';
 import { cn } from '@/lib/common';
 import emojis from 'emojibase-data/en/data.json';
@@ -15,6 +16,7 @@ import {
 	emojiButton,
 	emojiContainer,
 	emojiGrid,
+	input,
 	placeholderStyle,
 } from './styles/emoji.css';
 
@@ -39,12 +41,14 @@ export function EmojiInput(props: EmojiInputProps) {
 	}, [show, onValue]);
 
 	return (
-		<div
-			className={cn(!value && placeholderStyle)}
+		<Row
+			className={cn(input, !value && placeholderStyle)}
+			align='center'
+			justify='start'
 			onClick={disabled ? undefined : openShareDrawer}
 		>
 			<Typo.Title>{value || placeholder}</Typo.Title>
-		</div>
+		</Row>
 	);
 }
 

@@ -1,5 +1,9 @@
 import { uiStyle } from '@/styles/layer.css';
 
+export const input = uiStyle({
+	height: 32,
+});
+
 export const placeholderStyle = uiStyle({
 	opacity: 0.5,
 });
