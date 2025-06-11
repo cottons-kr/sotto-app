@@ -222,6 +222,12 @@ class LocationManager {
 		}
 		await this.saveData();
 	}
+
+	async clearHistory() {
+		this.checkInitialized();
+		this.history = [];
+		await this.saveData();
+	}
 }
 
 export const locationManager = new LocationManager();

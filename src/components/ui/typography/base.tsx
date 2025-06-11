@@ -1,6 +1,6 @@
 import { cn } from '@/lib/common';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { type JSX, createElement } from 'react';
+import { type JSX, type MouseEvent, createElement } from 'react';
 import { typography, typographyFill } from './styles/typography.css';
 import { weightStyles } from './styles/weight.css';
 
@@ -11,6 +11,7 @@ export interface TypographyBaseProps extends BaseProps<HAS_CHILDREN> {
 	weight?: TypographyWeight;
 	color?: string;
 	fill?: boolean;
+	onClick?: (event: MouseEvent<HTMLElement>) => void;
 }
 
 export function TypographyBase(props: TypographyBaseProps) {

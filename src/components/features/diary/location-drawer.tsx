@@ -1,3 +1,4 @@
+import { AppContext } from '@/App';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
@@ -14,7 +15,7 @@ import { Typo } from '@/components/ui/typography';
 import { type Location, locationManager } from '@/lib/managers/location';
 import { color } from '@/styles/color.css';
 import { MapPinned, X } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { aliasIcon, aliasItem, aliasList } from './styles/location-drawer.css';
 
 interface LocationDrawerProps {
@@ -24,6 +25,7 @@ interface LocationDrawerProps {
 export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 	const { setLocation: setDiaryLocation, close } = props;
 
+	const { forceUpdate } = useContext(AppContext);
 	const [address, setAddress] = useState('');
 
 	const onClickItem = useCallback(
@@ -37,6 +39,11 @@ export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 		},
 		[setDiaryLocation, close],
 	);
+
+	const onClickClearHistory = useCallback(async () => {
+		await locationManager.clearHistory();
+		forceUpdate();
+	}, [forceUpdate]);
 
 	const onClickAdd = useCallback(() => {
 		setDiaryLocation(address);
@@ -82,7 +89,11 @@ export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
 			<PaddingDivider />
 			<CompactListTitle
 				title='Recent locations'
-				trailingArea={<Typo.Caption color={color.sand}>Clear</Typo.Caption>}
+				trailingArea={
+					<Typo.Caption color={color.sand} onClick={onClickClearHistory}>
+						Clear
+					</Typo.Caption>
+				}
 			/>
 			{locationManager.getHistory().map((history) => (
 				<CompactListItem
