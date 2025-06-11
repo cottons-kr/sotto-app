@@ -3,7 +3,6 @@
 	"output": {
 		"filePath": "./repomix-output.md",
 		"style": "markdown",
-		"compress": true,
 		"removeEmptyLines": true
 	},
 	"ignore": {

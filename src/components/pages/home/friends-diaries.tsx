@@ -34,7 +34,7 @@ export function HomeFriendsDiariesSection() {
 					throw new Error('Private key not found');
 				}
 				for (const sharedDiary of data) {
-					const { emoji, title, content } = await decryptDiary(
+					const decryptedDiary = await decryptDiary(
 						privateKey,
 						sharedDiary.diary.data,
 						sharedDiary.encryptedKey,
@@ -52,9 +52,7 @@ export function HomeFriendsDiariesSection() {
 						friendManager.addFriend(sharedDiary.diary.owner);
 						await diaryManager.addDiary({
 							uuid: sharedDiary.diary.uuid,
-							emoji,
-							title,
-							content,
+							...decryptedDiary,
 							shareUUID: sharedDiary.diary.uuid,
 							sharedBy: sharedDiary.diary.owner.uuid,
 							encryptedData: sharedDiary.diary.data,
@@ -64,9 +62,7 @@ export function HomeFriendsDiariesSection() {
 						});
 					} else {
 						await diaryManager.updateDiary(sharedDiary.diary.uuid, {
-							emoji,
-							title,
-							content,
+							...decryptedDiary,
 							encryptedData: sharedDiary.diary.data,
 							nonce: sharedDiary.diary.nonce,
 							encryptedKey: sharedDiary.encryptedKey,
