@@ -8,6 +8,7 @@ import { DrawerTitle } from '@/components/ui/drawer/title';
 import { LoadingCircle } from '@/components/ui/loading-circle';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
+import { useOverlay } from '@/hooks/use-overlay';
 import { log } from '@/lib/log';
 import type { Diary, Reply } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
@@ -15,7 +16,8 @@ import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
 import { message } from '@tauri-apps/plugin-dialog';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type MouseEvent, useCallback, useEffect, useState } from 'react';
+import { ReplyDeletePopup } from './delete-popup';
 import { content, list } from './styles/replies-drawer.css';
 
 interface ReplyListDrawerProps {
@@ -27,8 +29,13 @@ export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 
 	const [replies, setReplies] = useState<Array<Reply>>([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [isFetched, setIsFetched] = useState(false);
 
 	useEffect(() => {
+		if (replies.length > 0 || isFetched) {
+			return;
+		}
+
 		setIsLoading(true);
 
 		apiClient
@@ -54,6 +61,7 @@ export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 					})),
 				);
 				setReplies(decryptedReplies);
+				setIsFetched(true);
 			})
 			.catch(async (error) => {
 				log('error', 'Failed to fetch replies', error);
@@ -63,7 +71,7 @@ export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [diary.shareUUID, close]);
+	}, [diary.shareUUID, replies, isFetched, close]);
 
 	return (
 		<Drawer close={close}>
@@ -77,7 +85,7 @@ export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 			) : (
 				<Column className={list}>
 					{replies.map((reply, i) => (
-						<Item key={i.toString()} reply={reply} />
+						<Item key={i.toString()} reply={reply} close={close} />
 					))}
 				</Column>
 			)}
@@ -87,10 +95,21 @@ export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 
 interface ItemProps {
 	reply: Reply;
+	close: () => void;
 }
 
 function Item(props: ItemProps) {
-	const { reply } = props;
+	const { reply, close } = props;
+
+	const { show: openDelete } = useOverlay(ReplyDeletePopup);
+
+	const onClickDelete = useCallback(
+		(e: MouseEvent) => {
+			e.stopPropagation();
+			openDelete({ reply, callback: close });
+		},
+		[reply, close, openDelete],
+	);
 
 	const author = friendManager.getFriend(reply.authorId);
 	if (!author) {
@@ -105,7 +124,7 @@ function Item(props: ItemProps) {
 						<Avatar size={24} src={author.profileUrl} />
 						<Typo.Caption weight='medium'>{author.name}</Typo.Caption>
 					</Row>
-					<X size={20} />
+					<X size={20} onClick={onClickDelete} />
 				</Row>
 				<Container className={content} vertical='regular'>
 					<Column gap={8}>

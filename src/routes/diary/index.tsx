@@ -1,5 +1,5 @@
 import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
-import { ReplyListDrawer } from '@/components/features/reply/replies-drawer';
+import { ReplyListDrawer } from '@/components/features/reply/list-drawer';
 import { ReplySendDrawer } from '@/components/features/reply/send-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
