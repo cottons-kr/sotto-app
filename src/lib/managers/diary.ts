@@ -1,4 +1,4 @@
-import { encryptJson } from '@/binding/function/encrypt-json';
+import { encryptData } from '@/binding/function/encrypt-data';
 import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
 import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
@@ -179,7 +179,7 @@ class DiaryManager {
 		await this.saveData();
 
 		if (diary.shareUUID && diary.aesKey) {
-			const [encryptedData, _, nonce] = await encryptJson(
+			const [encryptedData, _, nonce] = await encryptData(
 				updatedDiary,
 				diary.aesKey,
 			);
@@ -232,7 +232,7 @@ class DiaryManager {
 				);
 			}
 		} else {
-			const [encryptedData, aesKey, nonce] = await encryptJson(diary);
+			const [encryptedData, aesKey, nonce] = await encryptData(diary);
 
 			diary.encryptedData = encryptedData;
 			diary.aesKey = aesKey;
@@ -316,7 +316,7 @@ class DiaryManager {
 
 		await apiClient.delete(`/diaries/${diary.shareUUID}`);
 
-		const [encryptedData, aesKey, nonce] = await encryptJson(diary);
+		const [encryptedData, aesKey, nonce] = await encryptData(diary);
 
 		diary.encryptedData = encryptedData;
 		diary.aesKey = aesKey;

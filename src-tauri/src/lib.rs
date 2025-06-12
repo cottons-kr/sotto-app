@@ -14,9 +14,9 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             crypto::generate_key_pair,
-            crypto::encrypt_json,
+            crypto::encrypt_data,
             crypto::encrypt_key_for_recipient,
-            crypto::decrypt_json,
+            crypto::decrypt_data,
             crypto::decrypt_diary,
             crypto::decrypt_reply,
         ])

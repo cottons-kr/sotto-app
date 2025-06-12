@@ -1,4 +1,4 @@
-import { encryptJson } from '@/binding/function/encrypt-json';
+import { encryptData } from '@/binding/function/encrypt-data';
 import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
@@ -43,7 +43,7 @@ export function ReplySendDrawer(props: ReplySendDrawerProps & OverlayProps) {
 		try {
 			setIsSending(true);
 
-			const [data, key, nonce] = await encryptJson({ emoji, content });
+			const [data, key, nonce] = await encryptData({ emoji, content });
 			const encryptedKey = await encryptKeyForRecipient(user.publicKey, key);
 
 			await apiClient.post('/replies', {

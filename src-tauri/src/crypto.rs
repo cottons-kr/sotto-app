@@ -39,7 +39,7 @@ pub fn generate_key_pair() -> Result<(String, String), String> {
 }
 
 #[tauri::command]
-pub fn encrypt_json(json: String, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
+pub fn encrypt_data(data: String, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
     let aes_key: [u8; 32] = if let Some(b64) = prev_aes_key {
         BASE64_STANDARD
             .decode(b64)
@@ -58,7 +58,7 @@ pub fn encrypt_json(json: String, prev_aes_key: Option<String>) -> Result<(Strin
 
     let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&aes_key));
     let encrypted_data = cipher
-        .encrypt(nonce, json.as_bytes())
+        .encrypt(nonce, data.as_bytes())
         .map_err(|e| format!("AES encryption failed: {:?}", e))?;
 
     Ok((
@@ -89,7 +89,7 @@ pub fn encrypt_key_for_recipient(
 }
 
 #[tauri::command]
-pub fn decrypt_json(
+pub fn decrypt_data(
     private_key_pem: String,
     encrypted_data_b64: String,
     encrypted_key_b64: String,
@@ -114,10 +114,10 @@ pub fn decrypt_json(
     let decrypted_data = cipher.decrypt(nonce, encrypted_data.as_ref())
         .map_err(|e| format!("AES decryption failed: {:?}", e))?;
 
-    let json_str = String::from_utf8(decrypted_data)
+    let string_data = String::from_utf8(decrypted_data)
         .map_err(|e| format!("UTF-8 decode error: {:?}", e))?;
 
-    Ok(json_str)
+    Ok(string_data)
 }
 
 #[tauri::command]
@@ -127,7 +127,7 @@ pub fn decrypt_diary(
     encrypted_key_b64: String,
     nonce_b64: String,
 ) -> Result<DiaryData, String> {
-    let decrypted_json = decrypt_json(private_key_pem, encrypted_data_b64, encrypted_key_b64, nonce_b64)?;
+    let decrypted_json = decrypt_data(private_key_pem, encrypted_data_b64, encrypted_key_b64, nonce_b64)?;
     serde_json::from_str(&decrypted_json)
         .map_err(|e| format!("Failed to deserialize DiaryData: {:?}", e))
 }
@@ -139,7 +139,7 @@ pub fn decrypt_reply(
     encrypted_key_b64: String,
     nonce_b64: String,
 ) -> Result<ReplyData, String> {
-    let decrypted_json = decrypt_json(private_key_pem, encrypted_data_b64, encrypted_key_b64, nonce_b64)?;
+    let decrypted_json = decrypt_data(private_key_pem, encrypted_data_b64, encrypted_key_b64, nonce_b64)?;
     serde_json::from_str(&decrypted_json)
         .map_err(|e| format!("Failed to deserialize ReplyData: {:?}", e))
 }
