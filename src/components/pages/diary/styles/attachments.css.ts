@@ -15,3 +15,11 @@ export const item = uiStyle({
 	flexShrink: 0,
 	borderRadius: 16,
 });
+
+export const input = uiStyle({
+	width: 0,
+	height: 0,
+	position: 'absolute',
+	top: -9999,
+	left: -9999,
+});
