@@ -14,19 +14,19 @@ import { useCallback, useContext } from 'react';
 
 interface ReplyDeletePopupProps {
 	reply: Reply;
-	callback: () => unknown;
+	onDelete: () => unknown;
 }
 
 export function ReplyDeletePopup(props: ReplyDeletePopupProps & OverlayProps) {
-	const { reply, callback, close } = props;
+	const { reply, onDelete, close } = props;
 
 	const { forceUpdate } = useContext(AppContext);
 
 	const onClickDelete = useCallback(async () => {
 		try {
 			await apiClient.delete(`/replies/${reply.uuid}`);
+			onDelete();
 			forceUpdate();
-			callback();
 		} catch (error) {
 			log('error', 'Failed to delete reply', error);
 			await message(`Failed to delete reply: ${error}`);
@@ -34,7 +34,7 @@ export function ReplyDeletePopup(props: ReplyDeletePopupProps & OverlayProps) {
 		} finally {
 			close();
 		}
-	}, [reply.uuid, close, callback, forceUpdate]);
+	}, [reply.uuid, onDelete, close, forceUpdate]);
 
 	const author = friendManager.getFriend(reply.authorId);
 	if (!author) {

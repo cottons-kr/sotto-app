@@ -29,49 +29,50 @@ export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 
 	const [replies, setReplies] = useState<Array<Reply>>([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const [isFetched, setIsFetched] = useState(false);
+	const [isInitialized, setIsInitialized] = useState(false);
 
-	useEffect(() => {
-		if (replies.length > 0 || isFetched) {
-			return;
-		}
-
+	const fetchReplies = useCallback(async () => {
 		setIsLoading(true);
 
-		apiClient
-			.get<RepliesResponse>(`/replies?diaryId=${diary.shareUUID}`)
-			.then(async (replies) => {
-				const privateKey = await storageClient.get('privateKey');
-				if (!privateKey) {
-					log('error', 'Private key not found');
-					throw new Error('Private key not found');
-				}
-				const decryptedReplies = await Promise.all(
-					replies.map(async (reply) => ({
-						uuid: reply.uuid,
-						diaryId: reply.diaryId,
-						authorId: reply.authorId,
-						...(await decryptReply(
-							privateKey,
-							reply.data,
-							reply.encryptedKey,
-							reply.nonce,
-						)),
-						createdAt: new Date(reply.createdAt),
-					})),
-				);
-				setReplies(decryptedReplies);
-				setIsFetched(true);
-			})
-			.catch(async (error) => {
-				log('error', 'Failed to fetch replies', error);
-				await message(`Failed to fetch replies: ${error}`);
-				close();
-			})
-			.finally(() => {
-				setIsLoading(false);
-			});
-	}, [diary.shareUUID, replies, isFetched, close]);
+		try {
+			const replies = await apiClient.get<RepliesResponse>(
+				`/replies?diaryId=${diary.shareUUID}`,
+			);
+			const privateKey = await storageClient.get('privateKey');
+			if (!privateKey) {
+				log('error', 'Private key not found');
+				throw new Error('Private key not found');
+			}
+			const decryptedReplies = await Promise.all(
+				replies.map(async (reply) => ({
+					uuid: reply.uuid,
+					diaryId: reply.diaryId,
+					authorId: reply.authorId,
+					...(await decryptReply(
+						privateKey,
+						reply.data,
+						reply.encryptedKey,
+						reply.nonce,
+					)),
+					createdAt: new Date(reply.createdAt),
+				})),
+			);
+			setReplies(decryptedReplies);
+		} catch (error) {
+			log('error', 'Failed to fetch replies', error);
+			await message(`Failed to fetch replies: ${error}`);
+			close();
+		} finally {
+			setIsLoading(false);
+		}
+	}, [diary.shareUUID, close]);
+
+	useEffect(() => {
+		if (!isInitialized) {
+			fetchReplies();
+			setIsInitialized(true);
+		}
+	}, [isInitialized, fetchReplies]);
 
 	return (
 		<Drawer close={close}>
@@ -85,7 +86,7 @@ export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 			) : (
 				<Column className={list}>
 					{replies.map((reply, i) => (
-						<Item key={i.toString()} reply={reply} close={close} />
+						<Item key={i.toString()} reply={reply} onDelete={fetchReplies} />
 					))}
 				</Column>
 			)}
@@ -95,20 +96,20 @@ export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 
 interface ItemProps {
 	reply: Reply;
-	close: () => void;
+	onDelete: () => unknown;
 }
 
 function Item(props: ItemProps) {
-	const { reply, close } = props;
+	const { reply, onDelete } = props;
 
 	const { show: openDelete } = useOverlay(ReplyDeletePopup);
 
 	const onClickDelete = useCallback(
 		(e: MouseEvent) => {
 			e.stopPropagation();
-			openDelete({ reply, callback: close });
+			openDelete({ reply, onDelete });
 		},
-		[reply, close, openDelete],
+		[reply, onDelete, openDelete],
 	);
 
 	const author = friendManager.getFriend(reply.authorId);

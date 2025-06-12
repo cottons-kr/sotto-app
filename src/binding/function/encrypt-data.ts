@@ -10,10 +10,10 @@ import { invoke } from '@tauri-apps/api/core';
 type EncryptResult = [string, string, string];
 
 export async function encryptData(data: string | object, prevAesKey?: string) {
-	const json = typeof data === 'string' ? data : JSON.stringify(data);
+	const parsedData = typeof data === 'string' ? data : JSON.stringify(data);
 
 	const result = await invoke<EncryptResult>('encrypt_data', {
-		json,
+		data: parsedData,
 		prevAesKey,
 	});
 
