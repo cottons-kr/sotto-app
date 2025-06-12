@@ -7,11 +7,13 @@ import { invoke } from '@tauri-apps/api/core';
  * BASE64_STANDARD.encode(&nonce_bytes)
  * ```
  */
-type EncryptDiaryResult = [string, string, string];
+type EncryptResult = [string, string, string];
 
-export async function encryptDiary(diary: DiaryData, prevAesKey?: string) {
-	const result = await invoke<EncryptDiaryResult>('encrypt_diary', {
-		diary,
+export async function encryptJson(data: string | object, prevAesKey?: string) {
+	const json = typeof data === 'string' ? data : JSON.stringify(data);
+
+	const result = await invoke<EncryptResult>('encrypt_json', {
+		json,
 		prevAesKey,
 	});
 

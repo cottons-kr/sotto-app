@@ -13,6 +13,12 @@ pub struct DiaryData {
     pub attachments: Vec<String>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ReplyData {
+    pub emoji: String,
+    pub content: String,
+}
+
 #[tauri::command]
 pub fn generate_key_pair() -> Result<(String, String), String> {
     let mut rng = OsRng;
@@ -33,9 +39,7 @@ pub fn generate_key_pair() -> Result<(String, String), String> {
 }
 
 #[tauri::command]
-pub fn encrypt_diary(diary: DiaryData, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
-    let json = serde_json::to_string(&diary).map_err(|e| e.to_string())?;
-
+pub fn encrypt_json(json: String, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
     let aes_key: [u8; 32] = if let Some(b64) = prev_aes_key {
         BASE64_STANDARD
             .decode(b64)
@@ -85,12 +89,12 @@ pub fn encrypt_key_for_recipient(
 }
 
 #[tauri::command]
-pub fn decrypt_diary(
+pub fn decrypt_json(
     private_key_pem: String,
     encrypted_data_b64: String,
     encrypted_key_b64: String,
     nonce_b64: String,
-) -> Result<DiaryData, String> {
+) -> Result<String, String> {
     let private_key = RsaPrivateKey::from_pkcs1_pem(&private_key_pem)
         .map_err(|e| format!("Invalid private key: {:?}", e))?;
 
@@ -112,8 +116,30 @@ pub fn decrypt_diary(
 
     let json_str = String::from_utf8(decrypted_data)
         .map_err(|e| format!("UTF-8 decode error: {:?}", e))?;
-    let diary: DiaryData = serde_json::from_str(&json_str)
-        .map_err(|e| format!("JSON parse error: {:?}", e))?;
 
-    Ok(diary)
+    Ok(json_str)
+}
+
+#[tauri::command]
+pub fn decrypt_diary(
+    private_key_pem: String,
+    encrypted_data_b64: String,
+    encrypted_key_b64: String,
+    nonce_b64: String,
+) -> Result<DiaryData, String> {
+    let decrypted_json = decrypt_json(private_key_pem, encrypted_data_b64, encrypted_key_b64, nonce_b64)?;
+    serde_json::from_str(&decrypted_json)
+        .map_err(|e| format!("Failed to deserialize DiaryData: {:?}", e))
+}
+
+#[tauri::command]
+pub fn decrypt_reply(
+    private_key_pem: String,
+    encrypted_data_b64: String,
+    encrypted_key_b64: String,
+    nonce_b64: String,
+) -> Result<ReplyData, String> {
+    let decrypted_json = decrypt_json(private_key_pem, encrypted_data_b64, encrypted_key_b64, nonce_b64)?;
+    serde_json::from_str(&decrypted_json)
+        .map_err(|e| format!("Failed to deserialize ReplyData: {:?}", e))
 }
