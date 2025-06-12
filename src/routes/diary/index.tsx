@@ -1,6 +1,6 @@
-import { DiaryRepliesDrawer } from '@/components/features/diary/replies-drawer';
-import { DiarySendReplyDrawer } from '@/components/features/diary/send-reply-drawer';
 import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
+import { DiaryRepliesDrawer } from '@/components/features/reply/replies-drawer';
+import { DiarySendReplyDrawer } from '@/components/features/reply/send-reply-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';

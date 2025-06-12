@@ -43,11 +43,13 @@ src/
   binding/
     function/
       decrypt-diary.ts
-      encrypt-diary.ts
+      decrypt-reply.ts
+      encrypt-json.ts
       encrypt-key-for-recipient.ts
       generate-key-pair.ts
     types/
       diary-data.d.ts
+      reply-data.d.ts
   components/
     features/
       auth/
@@ -83,6 +85,12 @@ src/
           add-drawer.tsx
           edit-drawer.tsx
           reset-confirm-popup.tsx
+      reply/
+        styles/
+          replies-drawer.css.ts
+          send-reply-drawer.css.ts
+        replies-drawer.tsx
+        send-reply-drawer.tsx
       user/
         styles/
           picker-drawer.css.ts
@@ -447,6 +455,26 @@ vite.config.ts
 </svg>
 ````
 
+## File: src/binding/function/encrypt-key-for-recipient.ts
+````typescript
+import { invoke } from '@tauri-apps/api/core';
+/**
+ * @param publicKey
+ * @param aesKey
+ * @returns The encrypted AES key (Base64)
+ */
+export async function encryptKeyForRecipient(
+	publicKey: string,
+	aesKey: string,
+) {
+	const result = await invoke<string>('encrypt_key_for_recipient', {
+		publicKeyPem: publicKey,
+		aesKey,
+	});
+	return result;
+}
+````
+
 ## File: src/binding/function/generate-key-pair.ts
 ````typescript
 import { invoke } from '@tauri-apps/api/core';
@@ -457,6 +485,249 @@ export async function generateKeyPair() {
 		privateKeyPem,
 		publicKeyPem,
 	};
+}
+````
+
+## File: src/components/features/reply/styles/replies-drawer.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
+export const list = uiStyle({
+	width: '100%',
+	maxHeight: 400,
+	overflowY: 'auto',
+});
+export const content = uiStyle({
+	backgroundColor: color.cream,
+	borderRadius: 16,
+});
+````
+
+## File: src/components/features/reply/styles/send-reply-drawer.css.ts
+````typescript
+import {
+	body,
+	typography,
+} from '@/components/ui/typography/styles/typography.css';
+import { weightStyles } from '@/components/ui/typography/styles/weight.css';
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
+export const wrapper = uiStyle({
+	width: '100%',
+	height: 180,
+	backgroundColor: color.cream,
+	borderRadius: 16,
+});
+export const textArea = uiStyle([
+	typography,
+	body,
+	weightStyles.medium,
+	{
+		height: '100%',
+		':disabled': {
+			opacity: 1,
+		},
+	},
+]);
+````
+
+## File: src/components/features/reply/replies-drawer.tsx
+````typescript
+import { decryptReply } from '@/binding/function/decrypt-reply';
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { Avatar } from '@/components/ui/avatar';
+import { Drawer } from '@/components/ui/drawer';
+import { DrawerTitle } from '@/components/ui/drawer/title';
+import { LoadingCircle } from '@/components/ui/loading-circle';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { log } from '@/lib/log';
+import type { Diary, Reply } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
+import { storageClient } from '@/lib/managers/storage';
+import { message } from '@tauri-apps/plugin-dialog';
+import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { content, list } from './styles/replies-drawer.css';
+interface DiaryRepliesDrawerProps {
+	diary: Diary;
+}
+export function DiaryRepliesDrawer(
+	props: DiaryRepliesDrawerProps & OverlayProps,
+) {
+	const { diary, close } = props;
+	const [replies, setReplies] = useState<Array<Reply>>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	useEffect(() => {
+		setIsLoading(true);
+		apiClient
+			.get<RepliesResponse>(`/replies?diaryId=${diary.shareUUID}`)
+			.then(async (replies) => {
+				const privateKey = await storageClient.get('privateKey');
+				if (!privateKey) {
+					log('error', 'Private key not found');
+					throw new Error('Private key not found');
+				}
+				const decryptedReplies = await Promise.all(
+					replies.map(async (reply) => ({
+						uuid: reply.uuid,
+						diaryId: reply.diaryId,
+						authorId: reply.authorId,
+						...(await decryptReply(
+							privateKey,
+							reply.data,
+							reply.encryptedKey,
+							reply.nonce,
+						)),
+						createdAt: new Date(reply.createdAt),
+					})),
+				);
+				setReplies(decryptedReplies);
+			})
+			.catch(async (error) => {
+				log('error', 'Failed to fetch replies', error);
+				await message(`Failed to fetch replies: ${error}`);
+				close();
+			})
+			.finally(() => {
+				setIsLoading(false);
+			});
+	}, [diary.shareUUID, close]);
+	return (
+		<Drawer close={close}>
+			<DrawerTitle>Replies</DrawerTitle>
+			{isLoading ? (
+				<Container vertical='large'>
+					<Row justify='center'>
+						<LoadingCircle />
+					</Row>
+				</Container>
+			) : (
+				<Column className={list}>
+					{replies.map((reply, i) => (
+						<Item key={i.toString()} reply={reply} />
+					))}
+				</Column>
+			)}
+		</Drawer>
+	);
+}
+interface ItemProps {
+	reply: Reply;
+}
+function Item(props: ItemProps) {
+	const { reply } = props;
+	const author = friendManager.getFriend(reply.authorId);
+	if (!author) {
+		return null;
+	}
+	return (
+		<Container>
+			<Column gap={12}>
+				<Row align='center' justify='space-between'>
+					<Row gap={6} align='center'>
+						<Avatar size={24} src={author.profileUrl} />
+						<Typo.Caption weight='medium'>{author.name}</Typo.Caption>
+					</Row>
+					<X size={20} />
+				</Row>
+				<Container className={content} vertical='regular'>
+					<Column gap={8}>
+						{reply.emoji && <Typo.Lead>{reply.emoji}</Typo.Lead>}
+						<Typo.Body>{reply.content}</Typo.Body>
+					</Column>
+				</Container>
+			</Column>
+		</Container>
+	);
+}
+````
+
+## File: src/components/features/reply/send-reply-drawer.tsx
+````typescript
+import { encryptJson } from '@/binding/function/encrypt-json';
+import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Drawer } from '@/components/ui/drawer';
+import { DrawerTitle } from '@/components/ui/drawer/title';
+import { EmojiInput } from '@/components/ui/input/emoji';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { log } from '@/lib/log';
+import type { Diary } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
+import { fullHeight } from '@/styles/utils.css';
+import { message } from '@tauri-apps/plugin-dialog';
+import { useCallback, useState } from 'react';
+import { textArea, wrapper } from './styles/send-reply-drawer.css';
+interface DiarySendReplyDrawerProps {
+	diary: Diary;
+}
+export function DiarySendReplyDrawer(
+	props: DiarySendReplyDrawerProps & OverlayProps,
+) {
+	const { diary, close } = props;
+	const [emoji, setEmoji] = useState('');
+	const [content, setContent] = useState('');
+	const [isSending, setIsSending] = useState(false);
+	const onClickSend = useCallback(async () => {
+		if (!content) {
+			await message('Please enter a message');
+			return;
+		}
+		const user = friendManager.getFriend(diary.sharedBy || '');
+		if (!user) {
+			await message('User not found');
+			return;
+		}
+		try {
+			setIsSending(true);
+			const [data, key, nonce] = await encryptJson({ emoji, content });
+			const encryptedKey = await encryptKeyForRecipient(user.publicKey, key);
+			await apiClient.post('/replies', {
+				diaryId: diary.uuid,
+				data,
+				nonce,
+				encryptedKey,
+			});
+			close();
+		} catch (error) {
+			log('error', 'Failed to send reply', error);
+			await message(`Failed to send reply: ${error}`);
+			return;
+		} finally {
+			setIsSending(false);
+		}
+	}, [diary, emoji, content, close]);
+	return (
+		<Drawer close={close}>
+			<DrawerTitle>Send reply</DrawerTitle>
+			<Container vertical='small'>
+				<Container className={wrapper} horizontal='regular'>
+					<Column className={fullHeight} gap={12}>
+						<EmojiInput defaultValue={emoji} onValue={setEmoji} />
+						<textarea
+							className={textArea}
+							placeholder='Write short message'
+							value={content}
+							onChange={(e) => setContent(e.target.value)}
+						/>
+					</Column>
+				</Container>
+			</Container>
+			<ButtonGroup>
+				<Button fill onClick={onClickSend} loading={isSending}>
+					Send
+				</Button>
+			</ButtonGroup>
+		</Drawer>
+	);
 }
 ````
 
@@ -666,6 +937,132 @@ import { Flex } from '../flex';
 import type { FlexProps } from '../flex/shared';
 export function Row(props: FlexProps) {
 	return <Flex {...props} direction='row' />;
+}
+````
+
+## File: src/components/pages/sign-up/styles/confirm-pin.css.ts
+````typescript
+import { style } from '@vanilla-extract/css';
+export const pinUnmatched = style({
+	textAlign: 'center',
+});
+````
+
+## File: src/components/pages/sign-up/styles/styles.css.ts
+````typescript
+import { style } from '@vanilla-extract/css';
+export const fillHeight = style({
+	height: '100%',
+});
+export const title = style({
+	textAlign: 'center',
+});
+````
+
+## File: src/components/pages/sign-up/confirm-pin.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { PINInput } from '@/components/ui/input/pin';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { useFlow } from '@/hooks/use-flow';
+import { useCallback, useContext, useState } from 'react';
+import { SignUpFlowContext } from './context';
+import { pinUnmatched } from './styles/confirm-pin.css';
+import { fillHeight, title } from './styles/styles.css';
+export function SignUpConfirmPinSection() {
+	const { next } = useFlow();
+	const { pin: prevPin, setConfirmPin } = useContext(SignUpFlowContext);
+	const [isUnmatched, setIsUnmatched] = useState(false);
+	const onPin = useCallback(
+		(pin: string) => {
+			if (pin !== prevPin) {
+				setIsUnmatched(true);
+				return;
+			}
+			setConfirmPin(pin);
+			next();
+		},
+		[setConfirmPin, next, prevPin],
+	);
+	return (
+		<Column className={fillHeight}>
+			<TopNavigator leadingArea={<GoBack />} />
+			<Column className={fillHeight}>
+				<Container className={title}>
+					<Typo.Title weight='strong'>Confirm PIN</Typo.Title>
+				</Container>
+				<Container>
+					<PINInput onPin={onPin} />
+				</Container>
+				{isUnmatched && (
+					<Container className={pinUnmatched}>
+						<Typo.Body>PIN does not match</Typo.Body>
+					</Container>
+				)}
+			</Column>
+		</Column>
+	);
+}
+````
+
+## File: src/components/pages/sign-up/context.ts
+````typescript
+import { type Dispatch, type SetStateAction, createContext } from 'react';
+type SignUpFlowContextType = {
+	profileImage: string | null;
+	name: string;
+	username: string;
+	pin: string;
+	confirmPin: string;
+	useBiometricLogin: boolean;
+	setProfileImage: Dispatch<SetStateAction<string | null>>;
+	setName: Dispatch<SetStateAction<string>>;
+	setUsername: Dispatch<SetStateAction<string>>;
+	setPin: Dispatch<SetStateAction<string>>;
+	setConfirmPin: Dispatch<SetStateAction<string>>;
+	setUseBiometricLogin: Dispatch<SetStateAction<boolean>>;
+};
+export const SignUpFlowContext = createContext({} as SignUpFlowContextType);
+````
+
+## File: src/components/pages/sign-up/set-pin.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { PINInput } from '@/components/ui/input/pin';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
+import { Typo } from '@/components/ui/typography';
+import { useFlow } from '@/hooks/use-flow';
+import { useCallback, useContext } from 'react';
+import { SignUpFlowContext } from './context';
+import { fillHeight, title } from './styles/styles.css';
+export function SignUpSetPinSection() {
+	const { next } = useFlow();
+	const { setPin } = useContext(SignUpFlowContext);
+	const onPin = useCallback(
+		(pin: string) => {
+			setPin(pin);
+			next();
+		},
+		[setPin, next],
+	);
+	return (
+		<Column className={fillHeight}>
+			<TopNavigator leadingArea={<GoBack />} />
+			<Column className={fillHeight}>
+				<Container className={title}>
+					<Typo.Title weight='strong'>Set PIN</Typo.Title>
+				</Container>
+				<Container>
+					<PINInput onPin={onPin} />
+				</Container>
+			</Column>
+		</Column>
+	);
 }
 ````
 
@@ -1128,49 +1525,6 @@ export const weightStyles = {
 };
 ````
 
-## File: src/components/ui/typography/base.tsx
-````typescript
-import { cn } from '@/lib/common';
-import type { BaseProps, HAS_CHILDREN } from '@/types/props';
-import { type JSX, createElement } from 'react';
-import { typography, typographyFill } from './styles/typography.css';
-import { weightStyles } from './styles/weight.css';
-type TypographyWeight = 'regular' | 'medium' | 'strong';
-export interface TypographyBaseProps extends BaseProps<HAS_CHILDREN> {
-	as?: keyof JSX.IntrinsicElements;
-	weight?: TypographyWeight;
-	color?: string;
-	fill?: boolean;
-}
-export function TypographyBase(props: TypographyBaseProps) {
-	const {
-		as = 'span',
-		weight = 'regular',
-		color,
-		fill,
-		className: propClassName,
-		style: propStyle,
-		...restProps
-	} = props;
-	if (!restProps.children) {
-		return null;
-	}
-	const classNames = [
-		typography,
-		weightStyles[weight],
-		propClassName,
-		{
-			[typographyFill]: fill,
-		},
-	];
-	return createElement(as, {
-		...restProps,
-		className: cn(classNames),
-		style: { color, ...propStyle },
-	});
-}
-````
-
 ## File: src/components/ui/typography/index.tsx
 ````typescript
 import { cn } from '@/lib/common';
@@ -1216,6 +1570,108 @@ export function useFlow() {
 }
 ````
 
+## File: src/lib/managers/storage.ts
+````typescript
+import { appDataDir } from '@tauri-apps/api/path';
+import { BaseDirectory, remove } from '@tauri-apps/plugin-fs';
+import {
+	type Client,
+	type Store,
+	Stronghold,
+} from '@tauri-apps/plugin-stronghold';
+import { log } from '../log';
+abstract class StorageClient {
+	public isInitialized = false;
+	abstract init(password: string): Promise<void>;
+	abstract get(key: string): Promise<string | null>;
+	abstract set(key: string, value: string): Promise<void>;
+	abstract remove(key: string): Promise<void>;
+	abstract clear(): Promise<StorageClient>;
+}
+class LocalStorageClient extends StorageClient {
+	constructor() {
+		super();
+		log('warn', 'Using LocalStorageClient');
+	}
+	async init() {
+		log('debug', 'LocalStorageClient does not require initialization');
+		this.isInitialized = true;
+	}
+	async get(key: string) {
+		return localStorage.getItem(key);
+	}
+	async set(key: string, value: string) {
+		localStorage.setItem(key, value);
+	}
+	async remove(key: string) {
+		localStorage.removeItem(key);
+	}
+	async clear() {
+		localStorage.clear();
+		return new LocalStorageClient();
+	}
+}
+class StrongholdStorageClient extends StorageClient {
+	private stronghold?: Stronghold;
+	private client?: Client;
+	private store?: Store;
+	constructor() {
+		super();
+		log('debug', 'Using StrongholdStorageClient');
+	}
+	async init(password: string) {
+		const vaultPath = `${await appDataDir()}/vault.hold`;
+		this.stronghold = await Stronghold.load(vaultPath, password);
+		try {
+			this.client = await this.stronghold.loadClient('sotto_client');
+		} catch {
+			this.client = await this.stronghold.createClient('sotto_client');
+		}
+		this.store = this.client.getStore();
+		this.isInitialized = true;
+	}
+	private checkInitialized() {
+		if (!this.client || !this.stronghold || !this.store) {
+			throw new Error(
+				'Stronghold client is not initialized. Please call init() first.',
+			);
+		}
+	}
+	async get(key: string) {
+		this.checkInitialized();
+		const value = (await this.store?.get(key)) || null;
+		return value ? new TextDecoder().decode(value) : null;
+	}
+	async set(key: string, value: string) {
+		this.checkInitialized();
+		const encodedValue = Array.from(new TextEncoder().encode(value));
+		await this.store?.insert(key, encodedValue);
+		await this.stronghold?.save();
+	}
+	async remove(key: string) {
+		this.checkInitialized();
+		await this.store?.remove(key);
+		await this.stronghold?.save();
+	}
+	/**
+	 * You have to reinitialize the Stronghold client after clearing it.
+	 * @returns A new instance of StrongholdStorageClient
+	 */
+	async clear() {
+		this.checkInitialized();
+		await this.stronghold?.unload();
+		await remove('vault.hold', {
+			baseDir: BaseDirectory.AppData,
+		});
+		const instance = new StrongholdStorageClient();
+		return instance;
+	}
+}
+export const storageClient: StorageClient = import.meta.env.PROD
+	? new StrongholdStorageClient()
+	: new LocalStorageClient();
+````
+
 ## File: src/lib/animation.ts
 ````typescript
 export const ease = [0.4, 0, 0.2, 1];
@@ -1229,6 +1685,18 @@ export function getTransition(duration = 0.2, delay = 0) {
 		ease,
 		delay,
 	};
+}
+````
+
+## File: src/lib/log.ts
+````typescript
+import * as logPlugin from '@tauri-apps/plugin-log';
+type Log = 'debug' | 'warn' | 'error';
+export function log(type: Log, ...args: Array<unknown>) {
+	const nativeLogger = logPlugin[type];
+	const consoleLogger = console[type];
+	consoleLogger(...args);
+	nativeLogger(args.join(' '));
 }
 ````
 
@@ -2743,7 +3211,26 @@ export async function decryptDiary(
 }
 ````
 
-## File: src/binding/function/encrypt-diary.ts
+## File: src/binding/function/decrypt-reply.ts
+````typescript
+import { invoke } from '@tauri-apps/api/core';
+export async function decryptReply(
+	privateKey: string,
+	encryptedData: string,
+	encryptedKey: string,
+	nonce: string,
+) {
+	const result = await invoke<ReplyData>('decrypt_reply', {
+		privateKeyPem: privateKey,
+		encryptedDataB64: encryptedData,
+		encryptedKeyB64: encryptedKey,
+		nonceB64: nonce,
+	});
+	return result;
+}
+````
+
+## File: src/binding/function/encrypt-json.ts
 ````typescript
 import { invoke } from '@tauri-apps/api/core';
 /**
@@ -2753,33 +3240,22 @@ import { invoke } from '@tauri-apps/api/core';
  * BASE64_STANDARD.encode(&nonce_bytes)
  * ```
  */
-type EncryptDiaryResult = [string, string, string];
-export async function encryptDiary(diary: DiaryData, prevAesKey?: string) {
-	const result = await invoke<EncryptDiaryResult>('encrypt_diary', {
-		diary,
+type EncryptResult = [string, string, string];
+export async function encryptJson(data: string | object, prevAesKey?: string) {
+	const json = typeof data === 'string' ? data : JSON.stringify(data);
+	const result = await invoke<EncryptResult>('encrypt_json', {
+		json,
 		prevAesKey,
 	});
 	return result;
 }
 ````
 
-## File: src/binding/function/encrypt-key-for-recipient.ts
+## File: src/binding/types/reply-data.d.ts
 ````typescript
-import { invoke } from '@tauri-apps/api/core';
-/**
- * @param publicKey
- * @param aesKey
- * @returns The encrypted AES key (Base64)
- */
-export async function encryptKeyForRecipient(
-	publicKey: string,
-	aesKey: string,
-) {
-	const result = await invoke<string>('encrypt_key_for_recipient', {
-		publicKeyPem: publicKey,
-		aesKey,
-	});
-	return result;
+interface ReplyData {
+	emoji: string;
+	content: string;
 }
 ````
 
@@ -3089,128 +3565,6 @@ export function DiaryInDateDrawer(
 				</Grid>
 			</Container>
 		</Drawer>
-	);
-}
-````
-
-## File: src/components/features/diary/location-drawer.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { Row } from '@/components/layout/row';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { PaddingDivider } from '@/components/ui/divider/padding';
-import { Drawer } from '@/components/ui/drawer';
-import { DrawerTitle } from '@/components/ui/drawer/title';
-import { Input } from '@/components/ui/input';
-import { CompactListItem } from '@/components/ui/list/compact/item';
-import { CompactListTitle } from '@/components/ui/list/compact/title';
-import type { OverlayProps } from '@/components/ui/overlay/types';
-import { Typo } from '@/components/ui/typography';
-import { type Location, locationManager } from '@/lib/managers/location';
-import { color } from '@/styles/color.css';
-import { MapPinned, X } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import { aliasIcon, aliasItem, aliasList } from './styles/location-drawer.css';
-interface LocationDrawerProps {
-	setLocation: (location: string) => void;
-}
-export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
-	const { setLocation: setDiaryLocation, close } = props;
-	const [address, setAddress] = useState('');
-	const onClickItem = useCallback(
-		(location: Location) => {
-			setAddress(location.name || location.address);
-			setDiaryLocation(location.name || location.address);
-			close();
-			setTimeout(() => {
-				locationManager.addHistory(location);
-			}, 200);
-		},
-		[setDiaryLocation, close],
-	);
-	return (
-		<Drawer close={close}>
-			<DrawerTitle>Add location</DrawerTitle>
-			<Container vertical='small'>
-				<Input
-					placeholder='Enter your address'
-					value={address}
-					onValue={setAddress}
-				/>
-			</Container>
-			<Container vertical='small' horizontal='regular'>
-				<Row className={aliasList} gap={4} align='center' justify='start'>
-					{locationManager.getPresetKeys().map((presetKey) => {
-						const location = locationManager.getPresetLocation(presetKey);
-						if (!location) return null;
-						return (
-							<AliasItem
-								key={presetKey}
-								icon={locationManager.getPresetIcon(presetKey)}
-								name={locationManager.getPresetName(presetKey)}
-								onClick={() => onClickItem(location)}
-							/>
-						);
-					})}
-					{locationManager.getAliases().map((alias) => (
-						<AliasItem
-							key={alias.uuid}
-							name={alias.name || alias.address}
-							onClick={() => onClickItem(alias)}
-						/>
-					))}
-				</Row>
-			</Container>
-			<PaddingDivider />
-			<CompactListTitle
-				title='Recent locations'
-				trailingArea={<Typo.Caption color={color.sand}>Clear</Typo.Caption>}
-			/>
-			{locationManager.getHistory().map((history) => {
-				const location =
-					typeof history === 'string'
-						? locationManager.getPresetLocation(history)
-						: history;
-				if (!location) return null;
-				return (
-					<CompactListItem
-						key={location.uuid}
-						name={location.name || location.address}
-						description={location.name ? location.address : undefined}
-						onClick={() => onClickItem(location)}
-						trailingArea={<X size={20} />}
-					/>
-				);
-			})}
-			<ButtonGroup>
-				<Button fill>Add</Button>
-			</ButtonGroup>
-		</Drawer>
-	);
-}
-interface AliasItemProps {
-	icon?: typeof MapPinned;
-	name: string;
-	onClick?: () => void;
-}
-function AliasItem(props: AliasItemProps) {
-	const { icon: Icon, name, onClick } = props;
-	return (
-		<Container
-			className={aliasItem}
-			vertical='none'
-			horizontal='small'
-			onClick={onClick}
-		>
-			<Column gap={4} align='center'>
-				<div className={aliasIcon}>
-					{Icon ? <Icon size={20} /> : <MapPinned size={20} />}
-				</div>
-				<Typo.Caption>{name}</Typo.Caption>
-			</Column>
-		</Container>
 	);
 }
 ````
@@ -3925,127 +4279,99 @@ export function MyProfileExplorerItem(props: ExplorerItemProps) {
 }
 ````
 
-## File: src/components/pages/sign-up/styles/confirm-pin.css.ts
-````typescript
-import { style } from '@vanilla-extract/css';
-export const pinUnmatched = style({
-	textAlign: 'center',
-});
-````
-
-## File: src/components/pages/sign-up/styles/styles.css.ts
-````typescript
-import { style } from '@vanilla-extract/css';
-export const fillHeight = style({
-	height: '100%',
-});
-export const title = style({
-	textAlign: 'center',
-});
-````
-
-## File: src/components/pages/sign-up/confirm-pin.tsx
+## File: src/components/pages/sign-up/information.tsx
 ````typescript
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
-import { PINInput } from '@/components/ui/input/pin';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Input } from '@/components/ui/input';
+import { InputField } from '@/components/ui/input/field';
+import { ImageInput } from '@/components/ui/input/image';
 import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { useFlow } from '@/hooks/use-flow';
-import { useCallback, useContext, useState } from 'react';
-import { SignUpFlowContext } from './context';
-import { pinUnmatched } from './styles/confirm-pin.css';
-import { fillHeight, title } from './styles/styles.css';
-export function SignUpConfirmPinSection() {
-	const { next } = useFlow();
-	const { pin: prevPin, setConfirmPin } = useContext(SignUpFlowContext);
-	const [isUnmatched, setIsUnmatched] = useState(false);
-	const onPin = useCallback(
-		(pin: string) => {
-			if (pin !== prevPin) {
-				setIsUnmatched(true);
-				return;
-			}
-			setConfirmPin(pin);
-			next();
-		},
-		[setConfirmPin, next, prevPin],
-	);
-	return (
-		<Column className={fillHeight}>
-			<TopNavigator leadingArea={<GoBack />} />
-			<Column className={fillHeight}>
-				<Container className={title}>
-					<Typo.Title weight='strong'>Confirm PIN</Typo.Title>
-				</Container>
-				<Container>
-					<PINInput onPin={onPin} />
-				</Container>
-				{isUnmatched && (
-					<Container className={pinUnmatched}>
-						<Typo.Body>PIN does not match</Typo.Body>
-					</Container>
-				)}
-			</Column>
-		</Column>
-	);
-}
-````
-
-## File: src/components/pages/sign-up/context.ts
-````typescript
-import { type Dispatch, type SetStateAction, createContext } from 'react';
-type SignUpFlowContextType = {
-	profileImage: string | null;
-	name: string;
-	username: string;
-	pin: string;
-	confirmPin: string;
-	useBiometricLogin: boolean;
-	setProfileImage: Dispatch<SetStateAction<string | null>>;
-	setName: Dispatch<SetStateAction<string>>;
-	setUsername: Dispatch<SetStateAction<string>>;
-	setPin: Dispatch<SetStateAction<string>>;
-	setConfirmPin: Dispatch<SetStateAction<string>>;
-	setUseBiometricLogin: Dispatch<SetStateAction<boolean>>;
-};
-export const SignUpFlowContext = createContext({} as SignUpFlowContextType);
-````
-
-## File: src/components/pages/sign-up/set-pin.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { PINInput } from '@/components/ui/input/pin';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { useFlow } from '@/hooks/use-flow';
+import { resizeImage } from '@/lib/common';
+import { message } from '@tauri-apps/plugin-dialog';
 import { useCallback, useContext } from 'react';
 import { SignUpFlowContext } from './context';
 import { fillHeight, title } from './styles/styles.css';
-export function SignUpSetPinSection() {
+export function SignUpInformationSection() {
 	const { next } = useFlow();
-	const { setPin } = useContext(SignUpFlowContext);
-	const onPin = useCallback(
-		(pin: string) => {
-			setPin(pin);
-			next();
+	const { name, username, setProfileImage, setName, setUsername } =
+		useContext(SignUpFlowContext);
+	const onChangeProfileImage = useCallback(
+		async (image: File | null) => {
+			if (image) {
+				setProfileImage(await resizeImage(image, 128));
+			} else {
+				setProfileImage(null);
+			}
 		},
-		[setPin, next],
+		[setProfileImage],
 	);
+	const onClickSignUp = useCallback(async () => {
+		if (!name) {
+			await message('Please enter your name.', { kind: 'error' });
+			return;
+		}
+		if (name.length < 1 || name.length > 50) {
+			await message('Name must be between 1 and 50 characters long.', {
+				kind: 'error',
+			});
+			return;
+		}
+		if (!/^[a-zA-Z\s]+$/.test(name)) {
+			await message('Name can only contain letters and spaces.', {
+				kind: 'error',
+			});
+			return;
+		}
+		if (!username) {
+			await message('Please enter your username.', { kind: 'error' });
+			return;
+		}
+		if (username.length < 6 || username.length > 24) {
+			await message('Username must be between 6 and 24 characters long.', {
+				kind: 'error',
+			});
+			return;
+		}
+		if (!/^[a-zA-Z0-9.]+$/.test(username)) {
+			await message('Username must contain only letters, numbers, and dots.', {
+				kind: 'error',
+			});
+			return;
+		}
+		next();
+	}, [name, username, next]);
 	return (
 		<Column className={fillHeight}>
 			<TopNavigator leadingArea={<GoBack />} />
 			<Column className={fillHeight}>
 				<Container className={title}>
-					<Typo.Title weight='strong'>Set PIN</Typo.Title>
+					<Typo.Title weight='strong'>Sign up</Typo.Title>
 				</Container>
-				<Container>
-					<PINInput onPin={onPin} />
-				</Container>
+				<InputField label='Profile Image'>
+					<ImageInput onImage={onChangeProfileImage} />
+				</InputField>
+				<InputField label='Name'>
+					<Input placeholder='Your full name' value={name} onValue={setName} />
+				</InputField>
+				<InputField label='Username'>
+					<Input
+						placeholder='Alphabet and number only'
+						value={username}
+						onValue={setUsername}
+					/>
+				</InputField>
 			</Column>
+			<ButtonGroup bottomSafeAreaPadding>
+				<Button fill onClick={onClickSignUp}>
+					Sign up
+				</Button>
+			</ButtonGroup>
 		</Column>
 	);
 }
@@ -4391,6 +4717,9 @@ export function DrawerTitle(props: DrawerTitleProps) {
 ## File: src/components/ui/input/styles/emoji.css.ts
 ````typescript
 import { uiStyle } from '@/styles/layer.css';
+export const input = uiStyle({
+	height: 32,
+});
 export const placeholderStyle = uiStyle({
 	opacity: 0.5,
 });
@@ -4434,37 +4763,6 @@ export function InputField(props: InputFieldProps) {
 				)}
 				{children}
 			</Column>
-		</Container>
-	);
-}
-````
-
-## File: src/components/ui/list/compact/item.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { Row } from '@/components/layout/row';
-import { color } from '@/styles/color.css';
-import { Typo } from '../../typography';
-interface CompactListItemProps {
-	name: string;
-	description?: string;
-	trailingArea?: React.ReactNode;
-	onClick?: () => unknown;
-}
-export function CompactListItem(props: CompactListItemProps) {
-	const { name, description, trailingArea, onClick } = props;
-	return (
-		<Container vertical='small' onClick={onClick}>
-			<Row gap={8} align='center' justify='space-between'>
-				<Column gap={2} align='start'>
-					<Typo.Body weight='medium'>{name}</Typo.Body>
-					{description && (
-						<Typo.Caption color={color.sand}>{description}</Typo.Caption>
-					)}
-				</Column>
-				{trailingArea}
-			</Row>
 		</Container>
 	);
 }
@@ -4623,6 +4921,79 @@ export function Tabs(props: TabsProps) {
 }
 ````
 
+## File: src/components/ui/top-navigator/go-back.tsx
+````typescript
+import { Row } from '@/components/layout/row';
+import { ChevronLeft } from 'lucide-react';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Typo } from '../typography';
+interface GoBackProps {
+	label?: string;
+	beforeBack?: () => unknown;
+}
+export function GoBack(props: GoBackProps) {
+	const { label = 'Back', beforeBack } = props;
+	const navigate = useNavigate();
+	const onClickBack = useCallback(async () => {
+		if (beforeBack) {
+			await beforeBack();
+		}
+		navigate(-1);
+	}, [beforeBack, navigate]);
+	return (
+		<Row as='button' gap={4} align='center' onClick={onClickBack}>
+			<ChevronLeft />
+			<Typo.Body>{label}</Typo.Body>
+		</Row>
+	);
+}
+````
+
+## File: src/components/ui/typography/base.tsx
+````typescript
+import { cn } from '@/lib/common';
+import type { BaseProps, HAS_CHILDREN } from '@/types/props';
+import { type JSX, type MouseEvent, createElement } from 'react';
+import { typography, typographyFill } from './styles/typography.css';
+import { weightStyles } from './styles/weight.css';
+type TypographyWeight = 'regular' | 'medium' | 'strong';
+export interface TypographyBaseProps extends BaseProps<HAS_CHILDREN> {
+	as?: keyof JSX.IntrinsicElements;
+	weight?: TypographyWeight;
+	color?: string;
+	fill?: boolean;
+	onClick?: (event: MouseEvent<HTMLElement>) => void;
+}
+export function TypographyBase(props: TypographyBaseProps) {
+	const {
+		as = 'span',
+		weight = 'regular',
+		color,
+		fill,
+		className: propClassName,
+		style: propStyle,
+		...restProps
+	} = props;
+	if (!restProps.children) {
+		return null;
+	}
+	const classNames = [
+		typography,
+		weightStyles[weight],
+		propClassName,
+		{
+			[typographyFill]: fill,
+		},
+	];
+	return createElement(as, {
+		...restProps,
+		className: cn(classNames),
+		style: { color, ...propStyle },
+	});
+}
+````
+
 ## File: src/hooks/use-auth.ts
 ````typescript
 import { AuthBiometricPopup } from '@/components/features/auth/biometric';
@@ -4670,108 +5041,6 @@ export function useAuth() {
 	};
 	return authenticate;
 }
-````
-
-## File: src/lib/managers/storage.ts
-````typescript
-import { appDataDir } from '@tauri-apps/api/path';
-import { BaseDirectory, remove } from '@tauri-apps/plugin-fs';
-import {
-	type Client,
-	type Store,
-	Stronghold,
-} from '@tauri-apps/plugin-stronghold';
-import { log } from '../log';
-abstract class StorageClient {
-	public isInitialized = false;
-	abstract init(password: string): Promise<void>;
-	abstract get(key: string): Promise<string | null>;
-	abstract set(key: string, value: string): Promise<void>;
-	abstract remove(key: string): Promise<void>;
-	abstract clear(): Promise<StorageClient>;
-}
-class LocalStorageClient extends StorageClient {
-	constructor() {
-		super();
-		log('warn', 'Using LocalStorageClient');
-	}
-	async init() {
-		log('debug', 'LocalStorageClient does not require initialization');
-		this.isInitialized = true;
-	}
-	async get(key: string) {
-		return localStorage.getItem(key);
-	}
-	async set(key: string, value: string) {
-		localStorage.setItem(key, value);
-	}
-	async remove(key: string) {
-		localStorage.removeItem(key);
-	}
-	async clear() {
-		localStorage.clear();
-		return new LocalStorageClient();
-	}
-}
-class StrongholdStorageClient extends StorageClient {
-	private stronghold?: Stronghold;
-	private client?: Client;
-	private store?: Store;
-	constructor() {
-		super();
-		log('debug', 'Using StrongholdStorageClient');
-	}
-	async init(password: string) {
-		const vaultPath = `${await appDataDir()}/vault.hold`;
-		this.stronghold = await Stronghold.load(vaultPath, password);
-		try {
-			this.client = await this.stronghold.loadClient('sotto_client');
-		} catch {
-			this.client = await this.stronghold.createClient('sotto_client');
-		}
-		this.store = this.client.getStore();
-		this.isInitialized = true;
-	}
-	private checkInitialized() {
-		if (!this.client || !this.stronghold || !this.store) {
-			throw new Error(
-				'Stronghold client is not initialized. Please call init() first.',
-			);
-		}
-	}
-	async get(key: string) {
-		this.checkInitialized();
-		const value = (await this.store?.get(key)) || null;
-		return value ? new TextDecoder().decode(value) : null;
-	}
-	async set(key: string, value: string) {
-		this.checkInitialized();
-		const encodedValue = Array.from(new TextEncoder().encode(value));
-		await this.store?.insert(key, encodedValue);
-		await this.stronghold?.save();
-	}
-	async remove(key: string) {
-		this.checkInitialized();
-		await this.store?.remove(key);
-		await this.stronghold?.save();
-	}
-	/**
-	 * You have to reinitialize the Stronghold client after clearing it.
-	 * @returns A new instance of StrongholdStorageClient
-	 */
-	async clear() {
-		this.checkInitialized();
-		await this.stronghold?.unload();
-		await remove('vault.hold', {
-			baseDir: BaseDirectory.AppData,
-		});
-		const instance = new StrongholdStorageClient();
-		return instance;
-	}
-}
-export const storageClient: StorageClient = import.meta.env.PROD
-	? new StrongholdStorageClient()
-	: new LocalStorageClient();
 ````
 
 ## File: src/lib/common.ts
@@ -4829,18 +5098,6 @@ export function getCalendarDays(year: number, month: number) {
 		calendar.push(dayjs(`${year}-${month}-${d}`));
 	}
 	return calendar;
-}
-````
-
-## File: src/lib/log.ts
-````typescript
-import * as logPlugin from '@tauri-apps/plugin-log';
-type Log = 'debug' | 'warn' | 'error';
-export function log(type: Log, ...args: Array<unknown>) {
-	const nativeLogger = logPlugin[type];
-	const consoleLogger = console[type];
-	consoleLogger(...args);
-	nativeLogger(args.join(' '));
 }
 ````
 
@@ -5201,6 +5458,93 @@ export default function SignUpPage() {
 }
 ````
 
+## File: src/routes/diary/page.css.ts
+````typescript
+import {
+	body,
+	title,
+	typography,
+} from '@/components/ui/typography/styles/typography.css';
+import { weightStyles } from '@/components/ui/typography/styles/weight.css';
+import { style } from '@vanilla-extract/css';
+export const page = style({
+	height: '100%',
+});
+export const titleInput = style([
+	typography,
+	title,
+	weightStyles.strong,
+	{
+		':disabled': {
+			opacity: 1,
+		},
+	},
+]);
+export const textAreaContainer = style({
+	height: '100%',
+});
+export const textArea = style([
+	typography,
+	body,
+	weightStyles.medium,
+	{
+		height: '100%',
+		':disabled': {
+			opacity: 1,
+		},
+	},
+]);
+````
+
+## File: src/routes/index/index.tsx
+````typescript
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { LoadingCircle } from '@/components/ui/loading-circle';
+import { SottoSymbol } from '@/components/ui/sotto-symbol';
+import { Typo } from '@/components/ui/typography';
+import { wait } from '@/lib/common';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { centerSymbol } from './page.css';
+export default function IndexPage() {
+	const [showSignUp, setShowSignUp] = useState(false);
+	const navigate = useNavigate();
+	const startApp = useCallback(async () => {
+		await wait(500);
+		if (localStorage.getItem('app-initialized') === 'true') {
+			setShowSignUp(false);
+		} else {
+			setShowSignUp(true);
+			return;
+		}
+		if (localStorage.getItem('useBiometricLogin') === 'true') {
+			navigate('/sign-in/biometric');
+		} else {
+			navigate('/sign-in/pin');
+		}
+	}, [navigate]);
+	useEffect(() => {
+		startApp();
+	}, [startApp]);
+	return (
+		<>
+			<SottoSymbol className={centerSymbol} size={84} />
+			<ButtonGroup direction='vertical' float>
+				{import.meta.env.DEV && <Typo.Body>{import.meta.env.MODE}</Typo.Body>}
+				{showSignUp ? (
+					<Link to='/sign-up'>
+						<Button fill>Sign up</Button>
+					</Link>
+				) : (
+					<LoadingCircle size={32} />
+				)}
+			</ButtonGroup>
+		</>
+	);
+}
+````
+
 ## File: src/routes/index/page.css.ts
 ````typescript
 import { style } from '@vanilla-extract/css';
@@ -5305,6 +5649,49 @@ class MainActivity : TauriActivity()
         </provider>
     </application>
 </manifest>
+````
+
+## File: src-tauri/Cargo.toml
+````toml
+[package]
+name = "sotto-app"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "sotto_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rsa = "0.9.8"
+aes-gcm = "0.10.3"
+rand = "0.9.1"
+base64 = "0.22.1"
+tauri-plugin-dialog = "2"
+tauri-plugin-http = "2"
+tauri-plugin-stronghold = "2.2.0"
+rust-argon2 = "2.1.0"
+tauri-plugin-keychain = "2.0.2"
+tauri-plugin-fs = "2"
+tauri-plugin-log = "2"
+tauri-plugin-clipboard-manager = "2"
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+tauri-plugin-biometric = "2"
 ````
 
 ## File: src-tauri/tauri.conf.json
@@ -5451,24 +5838,15 @@ This app cannot run on real iPhone because I don't have Apple Developer Program 
 [MIT](https://github.com/cottons-kr/sotto-app/blob/main/LICENSE.md)
 ````
 
-## File: repomix.config.json
-````json
-{
-	"$schema": "https://repomix.com/schemas/latest/schema.json",
-	"output": {
-		"filePath": "./repomix-output.md",
-		"style": "markdown",
-		"removeEmptyLines": true
-	},
-	"ignore": {
-		"useGitignore": true,
-		"useDefaultPatterns": true,
-		"customPatterns": [
-			"src-tauri/gen/android/app/src/main/res/**/*.*",
-			"src-tauri/gen/android/app/build/**/*.*",
-			"**/*.pbxproj"
-		]
-	}
+## File: src/binding/types/diary-data.d.ts
+````typescript
+interface DiaryData {
+	emoji: string;
+	title: string;
+	content: string;
+	location?: string;
+	weather?: string;
+	attachments: Array<string>;
 }
 ````
 
@@ -5961,104 +6339,6 @@ export function MyProfileImage() {
 }
 ````
 
-## File: src/components/pages/sign-up/information.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { Input } from '@/components/ui/input';
-import { InputField } from '@/components/ui/input/field';
-import { ImageInput } from '@/components/ui/input/image';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { useFlow } from '@/hooks/use-flow';
-import { resizeImage } from '@/lib/common';
-import { message } from '@tauri-apps/plugin-dialog';
-import { useCallback, useContext } from 'react';
-import { SignUpFlowContext } from './context';
-import { fillHeight, title } from './styles/styles.css';
-export function SignUpInformationSection() {
-	const { next } = useFlow();
-	const { name, username, setProfileImage, setName, setUsername } =
-		useContext(SignUpFlowContext);
-	const onChangeProfileImage = useCallback(
-		async (image: File | null) => {
-			if (image) {
-				setProfileImage(await resizeImage(image, 128));
-			} else {
-				setProfileImage(null);
-			}
-		},
-		[setProfileImage],
-	);
-	const onClickSignUp = useCallback(async () => {
-		if (!name) {
-			await message('Please enter your name.', { kind: 'error' });
-			return;
-		}
-		if (name.length < 1 || name.length > 50) {
-			await message('Name must be between 1 and 50 characters long.', {
-				kind: 'error',
-			});
-			return;
-		}
-		if (!/^[a-zA-Z\s]+$/.test(name)) {
-			await message('Name can only contain letters and spaces.', {
-				kind: 'error',
-			});
-			return;
-		}
-		if (!username) {
-			await message('Please enter your username.', { kind: 'error' });
-			return;
-		}
-		if (username.length < 6 || username.length > 24) {
-			await message('Username must be between 6 and 24 characters long.', {
-				kind: 'error',
-			});
-			return;
-		}
-		if (!/^[a-zA-Z0-9.]+$/.test(username)) {
-			await message('Username must contain only letters, numbers, and dots.', {
-				kind: 'error',
-			});
-			return;
-		}
-		next();
-	}, [name, username, next]);
-	return (
-		<Column className={fillHeight}>
-			<TopNavigator leadingArea={<GoBack />} />
-			<Column className={fillHeight}>
-				<Container className={title}>
-					<Typo.Title weight='strong'>Sign up</Typo.Title>
-				</Container>
-				<InputField label='Profile Image'>
-					<ImageInput onImage={onChangeProfileImage} />
-				</InputField>
-				<InputField label='Name'>
-					<Input placeholder='Your full name' value={name} onValue={setName} />
-				</InputField>
-				<InputField label='Username'>
-					<Input
-						placeholder='Alphabet and number only'
-						value={username}
-						onValue={setUsername}
-					/>
-				</InputField>
-			</Column>
-			<ButtonGroup bottomSafeAreaPadding>
-				<Button fill onClick={onClickSignUp}>
-					Sign up
-				</Button>
-			</ButtonGroup>
-		</Column>
-	);
-}
-````
-
 ## File: src/components/ui/avatar/index.tsx
 ````typescript
 import { cn } from '@/lib/common';
@@ -6194,6 +6474,42 @@ export function ButtonGroup(props: ButtonGroupProps) {
 }
 ````
 
+## File: src/components/ui/card/styles.css.ts
+````typescript
+import { color } from '@/styles/color.css';
+import { uiStyle } from '@/styles/layer.css';
+export const card = uiStyle({
+	width: '100%',
+	backgroundColor: color.cream,
+	borderRadius: 16,
+	overflow: 'hidden',
+	userSelect: 'none',
+	WebkitUserSelect: 'none',
+	transition: 'transform 0.2s ease-in-out, filter 0.2s ease-in-out',
+	':active': {
+		transform: 'scale(0.98)',
+		filter: 'brightness(0.9)',
+	},
+});
+export const content = uiStyle({
+	width: '100%',
+	height: 120,
+});
+export const preventOverflow = uiStyle({
+	width: '100%',
+	overflow: 'hidden',
+	textOverflow: 'ellipsis',
+	whiteSpace: 'nowrap',
+});
+export const title = uiStyle([preventOverflow]);
+export const preview = uiStyle([
+	preventOverflow,
+	{
+		opacity: 0.7,
+	},
+]);
+````
+
 ## File: src/components/ui/drawer/styles.css.ts
 ````typescript
 import { color } from '@/styles/color.css';
@@ -6222,6 +6538,37 @@ export const handle = uiStyle({
 	backgroundColor: color.sand,
 	borderRadius: 1000,
 });
+````
+
+## File: src/components/ui/list/compact/item.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { color } from '@/styles/color.css';
+import { Typo } from '../../typography';
+interface CompactListItemProps {
+	name: string;
+	description?: string;
+	trailingArea?: React.ReactNode;
+	onClick?: () => unknown;
+}
+export function CompactListItem(props: CompactListItemProps) {
+	const { name, description, trailingArea, onClick } = props;
+	return (
+		<Container vertical='small' onClick={onClick}>
+			<Row gap={8} align='center' justify='space-between'>
+				<Column gap={2} align='start'>
+					<Typo.Body weight='medium'>{name}</Typo.Body>
+					{description && (
+						<Typo.Caption color={color.sand}>{description}</Typo.Caption>
+					)}
+				</Column>
+				<div onClick={(e) => e.stopPropagation()}>{trailingArea}</div>
+			</Row>
+		</Container>
+	);
+}
 ````
 
 ## File: src/components/ui/loading-circle/styles.css.ts
@@ -6273,35 +6620,6 @@ export const variants: Variants = {
 };
 ````
 
-## File: src/components/ui/top-navigator/go-back.tsx
-````typescript
-import { Row } from '@/components/layout/row';
-import { ChevronLeft } from 'lucide-react';
-import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Typo } from '../typography';
-interface GoBackProps {
-	label?: string;
-	beforeBack?: () => unknown;
-}
-export function GoBack(props: GoBackProps) {
-	const { label = 'Back', beforeBack } = props;
-	const navigate = useNavigate();
-	const onClickBack = useCallback(async () => {
-		if (beforeBack) {
-			await beforeBack();
-		}
-		navigate(-1);
-	}, [beforeBack, navigate]);
-	return (
-		<Row as='button' gap={4} align='center' onClick={onClickBack}>
-			<ChevronLeft />
-			<Typo.Body>{label}</Typo.Body>
-		</Row>
-	);
-}
-````
-
 ## File: src/hooks/use-check-initialized.ts
 ````typescript
 import { diaryManager } from '@/lib/managers/diary';
@@ -6319,6 +6637,64 @@ export function useCheckInitialized() {
 			location.href = `/?redirect=${location.pathname}`;
 		}
 	}, []);
+}
+````
+
+## File: src/hooks/use-diary.ts
+````typescript
+import { diaryManager } from '@/lib/managers/diary';
+import { storageClient } from '@/lib/managers/storage';
+import type { Weather } from '@/lib/weather';
+import { useCallback, useState } from 'react';
+export function useDiary(uuid: string | null) {
+	const [diary, setDiary] = useState(() => getDiaryOrCreate(uuid));
+	const setEmoji = useCallback((emoji: string) => {
+		setDiary((prev) => ({
+			...prev,
+			emoji,
+		}));
+	}, []);
+	const setTitle = useCallback((title: string) => {
+		setDiary((prev) => ({
+			...prev,
+			title,
+		}));
+	}, []);
+	const setContent = useCallback((content: string) => {
+		setDiary((prev) => ({
+			...prev,
+			content,
+		}));
+	}, []);
+	const setLocation = useCallback((location: string) => {
+		setDiary((prev) => ({
+			...prev,
+			location,
+		}));
+	}, []);
+	const setWeather = useCallback((weather: Weather) => {
+		setDiary((prev) => ({
+			...prev,
+			weather,
+		}));
+	}, []);
+	return [
+		diary,
+		{ setEmoji, setTitle, setContent, setLocation, setWeather, setDiary },
+	] as const;
+}
+function getDiaryOrCreate(uuid?: string | null) {
+	if (!storageClient.isInitialized) {
+		return diaryManager.createDiary();
+	}
+	if (uuid) {
+		const data = diaryManager.getDiary(uuid);
+		if (!data) {
+			throw new Error('Diary not found');
+		}
+		return data;
+	}
+	return diaryManager.createDiary();
 }
 ````
 
@@ -6363,52 +6739,34 @@ export default function ExplorerLocationAliasPage() {
 }
 ````
 
-## File: src/routes/index/index.tsx
-````typescript
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { LoadingCircle } from '@/components/ui/loading-circle';
-import { SottoSymbol } from '@/components/ui/sotto-symbol';
-import { Typo } from '@/components/ui/typography';
-import { wait } from '@/lib/common';
-import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { centerSymbol } from './page.css';
-export default function IndexPage() {
-	const [showSignUp, setShowSignUp] = useState(false);
-	const navigate = useNavigate();
-	const startApp = useCallback(async () => {
-		await wait(500);
-		if (localStorage.getItem('app-initialized') === 'true') {
-			setShowSignUp(false);
-		} else {
-			setShowSignUp(true);
-			return;
+## File: src-tauri/capabilities/default.json
+````json
+{
+	"$schema": "../gen/schemas/desktop-schema.json",
+	"identifier": "default",
+	"description": "Capability for the main window",
+	"windows": ["main"],
+	"permissions": [
+		"core:default",
+		"opener:default",
+		"dialog:default",
+		"fs:default",
+		"keychain:default",
+		"stronghold:default",
+		"log:default",
+		"clipboard-manager:allow-write-text",
+		{
+			"identifier": "http:default",
+			"allow": [
+				{
+					"url": "http://localhost:3000"
+				},
+				{
+					"url": "https://sotto-api.tapie.kr"
+				}
+			]
 		}
-		if (localStorage.getItem('useBiometricLogin') === 'true') {
-			navigate('/sign-in/biometric');
-		} else {
-			navigate('/sign-in/pin');
-		}
-	}, [navigate]);
-	useEffect(() => {
-		startApp();
-	}, [startApp]);
-	return (
-		<>
-			<SottoSymbol className={centerSymbol} size={84} />
-			<ButtonGroup direction='vertical' float>
-				{import.meta.env.DEV && <Typo.Body>{import.meta.env.MODE}</Typo.Body>}
-				{showSignUp ? (
-					<Link to='/sign-up'>
-						<Button fill>Sign up</Button>
-					</Link>
-				) : (
-					<LoadingCircle size={32} />
-				)}
-			</ButtonGroup>
-		</>
-	);
+	]
 }
 ````
 
@@ -6502,47 +6860,42 @@ dependencies {
 apply(from = "tauri.build.gradle.kts")
 ````
 
-## File: src-tauri/Cargo.toml
-````toml
-[package]
-name = "sotto-app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "sotto_app_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
-
-[build-dependencies]
-tauri-build = { version = "2", features = [] }
-
-[dependencies]
-tauri = { version = "2", features = [] }
-tauri-plugin-opener = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-rsa = "0.9.8"
-aes-gcm = "0.10.3"
-rand = "0.9.1"
-base64 = "0.22.1"
-tauri-plugin-dialog = "2"
-tauri-plugin-http = "2"
-tauri-plugin-stronghold = "2.2.0"
-rust-argon2 = "2.1.0"
-tauri-plugin-keychain = "2.0.2"
-tauri-plugin-fs = "2"
-tauri-plugin-log = "2"
-tauri-plugin-clipboard-manager = "2"
-
-[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
-tauri-plugin-biometric = "2"
+## File: src-tauri/src/lib.rs
+````rust
+use tauri::Manager;
+mod crypto;
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_keychain::init())
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![
+            crypto::generate_key_pair,
+            crypto::encrypt_json,
+            crypto::encrypt_key_for_recipient,
+            crypto::decrypt_json,
+            crypto::decrypt_diary,
+            crypto::decrypt_reply,
+        ])
+        .setup(|app| {
+            #[cfg(any(target_os = "android", target_os = "ios"))]
+            app.handle().plugin(tauri_plugin_biometric::init());
+            let salt_path = app
+                .path()
+                .app_local_data_dir()
+                .expect("Failed to get app local data dir")
+                .join("sotto_salt.txt");
+            app.handle().plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
 ````
 
 ## File: .gitignore
@@ -6575,6 +6928,27 @@ keystore.properties
 *.njsproj
 *.sln
 *.sw?
+````
+
+## File: repomix.config.json
+````json
+{
+	"$schema": "https://repomix.com/schemas/latest/schema.json",
+	"output": {
+		"filePath": "./repomix-output.md",
+		"style": "markdown",
+		"removeEmptyLines": true
+	},
+	"ignore": {
+		"useGitignore": true,
+		"useDefaultPatterns": true,
+		"customPatterns": [
+			"src-tauri/gen/android/app/src/main/res/**/*.*",
+			"src-tauri/gen/android/app/build/**/*.*",
+			"**/*.pbxproj"
+		]
+	}
+}
 ````
 
 ## File: vite.config.ts
@@ -6613,18 +6987,6 @@ export default defineConfig(async () => ({
 	minify: !process.env.TAURI_ENV_DEBUG ? 'esbuild' : false,
 	sourcemap: !!process.env.TAURI_ENV_DEBUG,
 }));
-````
-
-## File: src/binding/types/diary-data.d.ts
-````typescript
-interface DiaryData {
-	emoji: string;
-	title: string;
-	content: string;
-	location?: string;
-	weather?: string;
-	attachments: Array<string>;
-}
 ````
 
 ## File: src/components/features/diary/weather-drawer.tsx
@@ -6749,63 +7111,6 @@ export function Container(props: ContainerProps) {
 				padding: `${paddingMap[vertical]} ${paddingMap[horizontal]}`,
 			}}
 		/>
-	);
-}
-````
-
-## File: src/components/pages/diary/additional-info.tsx
-````typescript
-import { DiaryLocationDrawer } from '@/components/features/diary/location-drawer';
-import { DiaryWeatherDrawer } from '@/components/features/diary/weather-drawer';
-import { Row } from '@/components/layout/row';
-import { Typo } from '@/components/ui/typography';
-import { useOverlay } from '@/hooks/use-overlay';
-import { cn } from '@/lib/common';
-import { getWeatherIcon, getWeatherLabel } from '@/lib/weather';
-import { MapPin } from 'lucide-react';
-import { useCallback, useContext } from 'react';
-import { DiaryContext } from './context';
-import { item, itemActive } from './styles/additional-info.css';
-export function DiaryAdditionalInfo() {
-	const {
-		diary,
-		diaryDispatch: { setLocation, setWeather },
-	} = useContext(DiaryContext);
-	const WeatherIcon = getWeatherIcon(diary.weather);
-	console.log('DiaryAdditionalInfo', diary);
-	const { show: openLocation } = useOverlay(DiaryLocationDrawer);
-	const { show: openWeather } = useOverlay(DiaryWeatherDrawer);
-	const onClickLocation = useCallback(() => {
-		openLocation({ setLocation });
-	}, [setLocation, openLocation]);
-	const onClickWeather = useCallback(() => {
-		openWeather({ setWeather });
-	}, [setWeather, openWeather]);
-	return (
-		<Row gap={8}>
-			<Row
-				className={cn(item, diary.location && itemActive)}
-				gap={6}
-				align='center'
-				onClick={onClickLocation}
-			>
-				<MapPin size={20} />
-				<Typo.Body weight='medium'>
-					{diary.location || 'Add location'}
-				</Typo.Body>
-			</Row>
-			<Row
-				className={cn(item, diary.weather && itemActive)}
-				gap={6}
-				align='center'
-				onClick={onClickWeather}
-			>
-				<WeatherIcon size={20} />
-				<Typo.Body weight='medium'>
-					{diary.weather ? getWeatherLabel(diary.weather) : 'Add weather'}
-				</Typo.Body>
-			</Row>
-		</Row>
 	);
 }
 ````
@@ -7050,42 +7355,6 @@ export function CalendarDayCell(props: CalendarDayCellProps) {
 }
 ````
 
-## File: src/components/ui/card/styles.css.ts
-````typescript
-import { color } from '@/styles/color.css';
-import { uiStyle } from '@/styles/layer.css';
-export const card = uiStyle({
-	width: '100%',
-	backgroundColor: color.cream,
-	borderRadius: 16,
-	overflow: 'hidden',
-	userSelect: 'none',
-	WebkitUserSelect: 'none',
-	transition: 'transform 0.2s ease-in-out, filter 0.2s ease-in-out',
-	':active': {
-		transform: 'scale(0.98)',
-		filter: 'brightness(0.9)',
-	},
-});
-export const content = uiStyle({
-	width: '100%',
-	height: 120,
-});
-export const preventOverflow = uiStyle({
-	width: '100%',
-	overflow: 'hidden',
-	textOverflow: 'ellipsis',
-	whiteSpace: 'nowrap',
-});
-export const title = uiStyle([preventOverflow]);
-export const preview = uiStyle([
-	preventOverflow,
-	{
-		opacity: 0.7,
-	},
-]);
-````
-
 ## File: src/components/ui/overlay/context.ts
 ````typescript
 import { type Dispatch, type SetStateAction, createContext } from 'react';
@@ -7200,319 +7469,6 @@ export const iconWrapper = uiStyle({
 });
 ````
 
-## File: src/routes/diary/page.css.ts
-````typescript
-import {
-	body,
-	title,
-	typography,
-} from '@/components/ui/typography/styles/typography.css';
-import { weightStyles } from '@/components/ui/typography/styles/weight.css';
-import { style } from '@vanilla-extract/css';
-export const page = style({
-	height: '100%',
-});
-export const titleInput = style([
-	typography,
-	title,
-	weightStyles.strong,
-	{
-		':disabled': {
-			opacity: 1,
-		},
-	},
-]);
-export const textAreaContainer = style({
-	height: '100%',
-});
-export const textArea = style([
-	typography,
-	body,
-	weightStyles.medium,
-	{
-		height: '100%',
-		':disabled': {
-			opacity: 1,
-		},
-	},
-]);
-````
-
-## File: src/styles/reset.css.ts
-````typescript
-import { color } from './color.css';
-import { resetGlobalStyle } from './layer.css';
-resetGlobalStyle('html, body, #root', {
-	width: '100%',
-	height: 'var(--vh, 100vh)',
-	backgroundColor: color.milk,
-	color: color.mud,
-	wordBreak: 'keep-all',
-	wordWrap: 'break-word',
-	textWrap: 'pretty',
-});
-resetGlobalStyle('*', {
-	boxSizing: 'border-box',
-	margin: 0,
-	padding: 0,
-	fontSynthesis: 'none',
-	WebkitFontSmoothing: 'antialiased',
-	textRendering: 'optimizeLegibility',
-	shapeRendering: 'geometricPrecision',
-	WebkitTapHighlightColor: 'rgba(0, 0, 0, 0)',
-	userSelect: 'none',
-	WebkitUserSelect: 'none',
-});
-resetGlobalStyle('*:focus', { outline: 'none' });
-resetGlobalStyle('a', {
-	width: '100%',
-	color: 'inherit',
-	cursor: 'pointer',
-	textDecoration: 'none',
-});
-resetGlobalStyle('svg', {
-	flexShrink: 0,
-});
-resetGlobalStyle('input, textarea, button', {
-	fontFamily: 'inherit',
-	color: 'inherit',
-	background: 'transparent',
-	border: 'none',
-	outline: 'none',
-});
-resetGlobalStyle('input::placeholder, textarea::placeholder', {
-	color: color.sand,
-});
-resetGlobalStyle('::-webkit-scrollbar', { display: 'none' });
-````
-
-## File: src-tauri/capabilities/default.json
-````json
-{
-	"$schema": "../gen/schemas/desktop-schema.json",
-	"identifier": "default",
-	"description": "Capability for the main window",
-	"windows": ["main"],
-	"permissions": [
-		"core:default",
-		"opener:default",
-		"dialog:default",
-		"fs:default",
-		"keychain:default",
-		"stronghold:default",
-		"log:default",
-		"clipboard-manager:allow-write-text",
-		{
-			"identifier": "http:default",
-			"allow": [
-				{
-					"url": "http://localhost:3000"
-				},
-				{
-					"url": "https://sotto-api.tapie.kr"
-				}
-			]
-		}
-	]
-}
-````
-
-## File: src-tauri/src/crypto.rs
-````rust
-use rsa::{pkcs1::{DecodeRsaPrivateKey, DecodeRsaPublicKey, EncodeRsaPrivateKey, EncodeRsaPublicKey}, pkcs1v15::DecryptingKey, rand_core::RngCore, traits::Decryptor, RsaPrivateKey, RsaPublicKey};
-use aes_gcm::{aead::{Aead, KeyInit, OsRng}, Aes256Gcm, Key, Nonce};
-use serde::{Serialize, Deserialize};
-use base64::prelude::*;
-#[derive(Serialize, Deserialize)]
-pub struct DiaryData {
-    pub emoji: String,
-    pub title: String,
-    pub content: String,
-    pub location: Option<String>,
-    pub weather: Option<String>,
-    pub attachments: Vec<String>,
-}
-#[tauri::command]
-pub fn generate_key_pair() -> Result<(String, String), String> {
-    let mut rng = OsRng;
-    let bits = 2048;
-    let private_key = RsaPrivateKey::new(&mut rng, bits)
-        .map_err(|e| format!("Key generation failed: {:?}", e))?;
-    let public_key = RsaPublicKey::from(&private_key);
-    let private_key_pem = private_key.to_pkcs1_pem(Default::default())
-        .map_err(|e| format!("Private key PEM encoding failed: {:?}", e))?
-        .to_string();
-    let public_key_pem = public_key.to_pkcs1_pem(Default::default())
-        .map_err(|e| format!("Public key PEM encoding failed: {:?}", e))?
-        .to_string();
-    Ok((private_key_pem, public_key_pem))
-}
-#[tauri::command]
-pub fn encrypt_diary(diary: DiaryData, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
-    let json = serde_json::to_string(&diary).map_err(|e| e.to_string())?;
-    let aes_key: [u8; 32] = if let Some(b64) = prev_aes_key {
-        BASE64_STANDARD
-            .decode(b64)
-            .map_err(|e| format!("Failed to decode provided AES key: {:?}", e))?
-            .try_into()
-            .map_err(|_| "Invalid AES key length".to_string())?
-    } else {
-        let mut key = [0u8; 32];
-        let mut rng = OsRng;
-        rng.fill_bytes(&mut key);
-        key
-    };
-    let nonce_bytes: [u8; 12] = rand::random();
-    let nonce = Nonce::from_slice(&nonce_bytes);
-    let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&aes_key));
-    let encrypted_data = cipher
-        .encrypt(nonce, json.as_bytes())
-        .map_err(|e| format!("AES encryption failed: {:?}", e))?;
-    Ok((
-        BASE64_STANDARD.encode(&encrypted_data),
-        BASE64_STANDARD.encode(&aes_key),
-        BASE64_STANDARD.encode(&nonce_bytes),
-    ))
-}
-#[tauri::command]
-pub fn encrypt_key_for_recipient(
-    public_key_pem: String,
-    aes_key: String,
-) -> Result<String, String> {
-    let public_key = RsaPublicKey::from_pkcs1_pem(&public_key_pem)
-        .map_err(|e| format!("Invalid public key: {:?}", e))?;
-    let aes_key = BASE64_STANDARD
-        .decode(&aes_key)
-        .map_err(|e| format!("Failed to decode AES key: {:?}", e))?;
-    let mut rng = OsRng;
-    let encrypted_key = public_key
-        .encrypt(&mut rng, rsa::pkcs1v15::Pkcs1v15Encrypt, &aes_key)
-        .map_err(|e| format!("RSA encryption failed: {:?}", e))?;
-    Ok(BASE64_STANDARD.encode(&encrypted_key))
-}
-#[tauri::command]
-pub fn decrypt_diary(
-    private_key_pem: String,
-    encrypted_data_b64: String,
-    encrypted_key_b64: String,
-    nonce_b64: String,
-) -> Result<DiaryData, String> {
-    let private_key = RsaPrivateKey::from_pkcs1_pem(&private_key_pem)
-        .map_err(|e| format!("Invalid private key: {:?}", e))?;
-    let encrypted_data = BASE64_STANDARD.decode(encrypted_data_b64)
-        .map_err(|e| format!("encrypted_data decode error: {:?}", e))?;
-    let encrypted_key = BASE64_STANDARD.decode(encrypted_key_b64)
-        .map_err(|e| format!("encrypted_key decode error: {:?}", e))?;
-    let nonce_bytes = BASE64_STANDARD.decode(nonce_b64)
-        .map_err(|e| format!("nonce decode error: {:?}", e))?;
-    let nonce = Nonce::from_slice(&nonce_bytes);
-    let decryptor = DecryptingKey::new(private_key);
-    let aes_key = decryptor.decrypt(&encrypted_key)
-        .map_err(|e| format!("RSA decryption failed: {:?}", e))?;
-    let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&aes_key));
-    let decrypted_data = cipher.decrypt(nonce, encrypted_data.as_ref())
-        .map_err(|e| format!("AES decryption failed: {:?}", e))?;
-    let json_str = String::from_utf8(decrypted_data)
-        .map_err(|e| format!("UTF-8 decode error: {:?}", e))?;
-    let diary: DiaryData = serde_json::from_str(&json_str)
-        .map_err(|e| format!("JSON parse error: {:?}", e))?;
-    Ok(diary)
-}
-````
-
-## File: src-tauri/src/lib.rs
-````rust
-use tauri::Manager;
-mod crypto;
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_log::Builder::new().build())
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_keychain::init())
-        .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![
-            crypto::generate_key_pair,
-            crypto::encrypt_diary,
-            crypto::encrypt_key_for_recipient,
-            crypto::decrypt_diary
-        ])
-        .setup(|app| {
-            #[cfg(any(target_os = "android", target_os = "ios"))]
-            app.handle().plugin(tauri_plugin_biometric::init());
-            let salt_path = app
-                .path()
-                .app_local_data_dir()
-                .expect("Failed to get app local data dir")
-                .join("sotto_salt.txt");
-            app.handle().plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
-            Ok(())
-        })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
-}
-````
-
-## File: src/components/pages/my-profile/reset-confirm.tsx
-````typescript
-import { Container } from '@/components/layout/container';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { Drawer } from '@/components/ui/drawer';
-import type { OverlayProps } from '@/components/ui/overlay/types';
-import { Typo } from '@/components/ui/typography';
-import { useAuth } from '@/hooks/use-auth';
-import { resetApp } from '@/lib/app';
-import { message } from '@tauri-apps/plugin-dialog';
-import { ShieldQuestion } from 'lucide-react';
-import { useCallback } from 'react';
-import { centered, iconWrapper } from './styles/reset-confirm.css';
-export function MyProfileResetConfirmDrawer(props: OverlayProps) {
-	const { close } = props;
-	const authenticate = useAuth();
-	const onClickReset = useCallback(async () => {
-		try {
-			authenticate(async () => {
-				await resetApp();
-				location.reload();
-			});
-		} catch (error) {
-			await message('Reset failed. Please try again later.');
-			console.error('Reset failed:', error);
-			close();
-		}
-	}, [authenticate, close]);
-	return (
-		<Drawer {...props}>
-			<Container horizontal='none'>
-				<Container className={centered} vertical='regular'>
-					<div className={iconWrapper}>
-						<ShieldQuestion />
-					</div>
-				</Container>
-				<Container className={centered} vertical='small'>
-					<Typo.Lead weight='strong'>Are you sure?</Typo.Lead>
-				</Container>
-				<Container className={centered} vertical='none'>
-					<Typo.Body>Your data will be deleted and log out</Typo.Body>
-				</Container>
-			</Container>
-			<ButtonGroup direction='horizontal'>
-				<Button fill onClick={onClickReset}>
-					Reset
-				</Button>
-				<Button fill variant='secondary' onClick={close}>
-					Cancel
-				</Button>
-			</ButtonGroup>
-		</Drawer>
-	);
-}
-````
-
 ## File: src/lib/managers/http.ts
 ````typescript
 import { fetch } from '@tauri-apps/plugin-http';
@@ -7592,197 +7548,629 @@ function isBodyContainable(method: string): boolean {
 }
 ````
 
-## File: src/lib/managers/location.ts
+## File: src/styles/reset.css.ts
 ````typescript
-import { Building, House, MapPinned, School } from 'lucide-react';
-import { v4 } from 'uuid';
-import { storageClient } from './storage';
-export interface Location {
+import { color } from './color.css';
+import { resetGlobalStyle } from './layer.css';
+resetGlobalStyle('html, body, #root', {
+	width: '100%',
+	height: 'var(--vh, 100vh)',
+	backgroundColor: color.milk,
+	color: color.mud,
+	wordBreak: 'keep-all',
+	wordWrap: 'break-word',
+	textWrap: 'pretty',
+});
+resetGlobalStyle('*', {
+	boxSizing: 'border-box',
+	margin: 0,
+	padding: 0,
+	fontSynthesis: 'none',
+	WebkitFontSmoothing: 'antialiased',
+	textRendering: 'optimizeLegibility',
+	shapeRendering: 'geometricPrecision',
+	WebkitTapHighlightColor: 'rgba(0, 0, 0, 0)',
+	userSelect: 'none',
+	WebkitUserSelect: 'none',
+});
+resetGlobalStyle('*:focus', { outline: 'none' });
+resetGlobalStyle('a', {
+	width: '100%',
+	color: 'inherit',
+	cursor: 'pointer',
+	textDecoration: 'none',
+});
+resetGlobalStyle('svg', {
+	flexShrink: 0,
+});
+resetGlobalStyle('input, textarea, button', {
+	fontFamily: 'inherit',
+	color: 'inherit',
+	background: 'transparent',
+	border: 'none',
+	outline: 'none',
+});
+resetGlobalStyle('input::placeholder, textarea::placeholder', {
+	color: color.sand,
+});
+resetGlobalStyle('::-webkit-scrollbar', { display: 'none' });
+````
+
+## File: src-tauri/src/crypto.rs
+````rust
+use rsa::{pkcs1::{DecodeRsaPrivateKey, DecodeRsaPublicKey, EncodeRsaPrivateKey, EncodeRsaPublicKey}, pkcs1v15::DecryptingKey, rand_core::RngCore, traits::Decryptor, RsaPrivateKey, RsaPublicKey};
+use aes_gcm::{aead::{Aead, KeyInit, OsRng}, Aes256Gcm, Key, Nonce};
+use serde::{Serialize, Deserialize};
+use base64::prelude::*;
+#[derive(Serialize, Deserialize)]
+pub struct DiaryData {
+    pub emoji: String,
+    pub title: String,
+    pub content: String,
+    pub location: Option<String>,
+    pub weather: Option<String>,
+    pub attachments: Vec<String>,
+}
+#[derive(Serialize, Deserialize)]
+pub struct ReplyData {
+    pub emoji: String,
+    pub content: String,
+}
+#[tauri::command]
+pub fn generate_key_pair() -> Result<(String, String), String> {
+    let mut rng = OsRng;
+    let bits = 2048;
+    let private_key = RsaPrivateKey::new(&mut rng, bits)
+        .map_err(|e| format!("Key generation failed: {:?}", e))?;
+    let public_key = RsaPublicKey::from(&private_key);
+    let private_key_pem = private_key.to_pkcs1_pem(Default::default())
+        .map_err(|e| format!("Private key PEM encoding failed: {:?}", e))?
+        .to_string();
+    let public_key_pem = public_key.to_pkcs1_pem(Default::default())
+        .map_err(|e| format!("Public key PEM encoding failed: {:?}", e))?
+        .to_string();
+    Ok((private_key_pem, public_key_pem))
+}
+#[tauri::command]
+pub fn encrypt_json(json: String, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
+    let aes_key: [u8; 32] = if let Some(b64) = prev_aes_key {
+        BASE64_STANDARD
+            .decode(b64)
+            .map_err(|e| format!("Failed to decode provided AES key: {:?}", e))?
+            .try_into()
+            .map_err(|_| "Invalid AES key length".to_string())?
+    } else {
+        let mut key = [0u8; 32];
+        let mut rng = OsRng;
+        rng.fill_bytes(&mut key);
+        key
+    };
+    let nonce_bytes: [u8; 12] = rand::random();
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&aes_key));
+    let encrypted_data = cipher
+        .encrypt(nonce, json.as_bytes())
+        .map_err(|e| format!("AES encryption failed: {:?}", e))?;
+    Ok((
+        BASE64_STANDARD.encode(&encrypted_data),
+        BASE64_STANDARD.encode(&aes_key),
+        BASE64_STANDARD.encode(&nonce_bytes),
+    ))
+}
+#[tauri::command]
+pub fn encrypt_key_for_recipient(
+    public_key_pem: String,
+    aes_key: String,
+) -> Result<String, String> {
+    let public_key = RsaPublicKey::from_pkcs1_pem(&public_key_pem)
+        .map_err(|e| format!("Invalid public key: {:?}", e))?;
+    let aes_key = BASE64_STANDARD
+        .decode(&aes_key)
+        .map_err(|e| format!("Failed to decode AES key: {:?}", e))?;
+    let mut rng = OsRng;
+    let encrypted_key = public_key
+        .encrypt(&mut rng, rsa::pkcs1v15::Pkcs1v15Encrypt, &aes_key)
+        .map_err(|e| format!("RSA encryption failed: {:?}", e))?;
+    Ok(BASE64_STANDARD.encode(&encrypted_key))
+}
+#[tauri::command]
+pub fn decrypt_json(
+    private_key_pem: String,
+    encrypted_data_b64: String,
+    encrypted_key_b64: String,
+    nonce_b64: String,
+) -> Result<String, String> {
+    let private_key = RsaPrivateKey::from_pkcs1_pem(&private_key_pem)
+        .map_err(|e| format!("Invalid private key: {:?}", e))?;
+    let encrypted_data = BASE64_STANDARD.decode(encrypted_data_b64)
+        .map_err(|e| format!("encrypted_data decode error: {:?}", e))?;
+    let encrypted_key = BASE64_STANDARD.decode(encrypted_key_b64)
+        .map_err(|e| format!("encrypted_key decode error: {:?}", e))?;
+    let nonce_bytes = BASE64_STANDARD.decode(nonce_b64)
+        .map_err(|e| format!("nonce decode error: {:?}", e))?;
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    let decryptor = DecryptingKey::new(private_key);
+    let aes_key = decryptor.decrypt(&encrypted_key)
+        .map_err(|e| format!("RSA decryption failed: {:?}", e))?;
+    let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&aes_key));
+    let decrypted_data = cipher.decrypt(nonce, encrypted_data.as_ref())
+        .map_err(|e| format!("AES decryption failed: {:?}", e))?;
+    let json_str = String::from_utf8(decrypted_data)
+        .map_err(|e| format!("UTF-8 decode error: {:?}", e))?;
+    Ok(json_str)
+}
+#[tauri::command]
+pub fn decrypt_diary(
+    private_key_pem: String,
+    encrypted_data_b64: String,
+    encrypted_key_b64: String,
+    nonce_b64: String,
+) -> Result<DiaryData, String> {
+    let decrypted_json = decrypt_json(private_key_pem, encrypted_data_b64, encrypted_key_b64, nonce_b64)?;
+    serde_json::from_str(&decrypted_json)
+        .map_err(|e| format!("Failed to deserialize DiaryData: {:?}", e))
+}
+#[tauri::command]
+pub fn decrypt_reply(
+    private_key_pem: String,
+    encrypted_data_b64: String,
+    encrypted_key_b64: String,
+    nonce_b64: String,
+) -> Result<ReplyData, String> {
+    let decrypted_json = decrypt_json(private_key_pem, encrypted_data_b64, encrypted_key_b64, nonce_b64)?;
+    serde_json::from_str(&decrypted_json)
+        .map_err(|e| format!("Failed to deserialize ReplyData: {:?}", e))
+}
+````
+
+## File: src/components/features/diary/location-drawer.tsx
+````typescript
+import { AppContext } from '@/App';
+import { Column } from '@/components/layout/column';
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { PaddingDivider } from '@/components/ui/divider/padding';
+import { Drawer } from '@/components/ui/drawer';
+import { DrawerTitle } from '@/components/ui/drawer/title';
+import { Input } from '@/components/ui/input';
+import { CompactListItem } from '@/components/ui/list/compact/item';
+import { CompactListTitle } from '@/components/ui/list/compact/title';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { type Location, locationManager } from '@/lib/managers/location';
+import { color } from '@/styles/color.css';
+import { MapPinned, X } from 'lucide-react';
+import { useCallback, useContext, useState } from 'react';
+import { aliasIcon, aliasItem, aliasList } from './styles/location-drawer.css';
+interface LocationDrawerProps {
+	setLocation: (location: string) => void;
+}
+export function DiaryLocationDrawer(props: LocationDrawerProps & OverlayProps) {
+	const { setLocation: setDiaryLocation, close } = props;
+	const { forceUpdate } = useContext(AppContext);
+	const [address, setAddress] = useState('');
+	const onClickClearHistory = useCallback(async () => {
+		await locationManager.clearHistory();
+		forceUpdate();
+	}, [forceUpdate]);
+	const handleClickItem = useCallback(
+		(location: Location) => {
+			setAddress(location.name || location.address);
+			setDiaryLocation(location.name || location.address);
+			close();
+			setTimeout(() => {
+				locationManager.addHistory(location);
+			}, 200);
+		},
+		[setDiaryLocation, close],
+	);
+	const handleClickRemoveHistory = useCallback(
+		(history: Location) => {
+			locationManager.removeHistory(history);
+			forceUpdate();
+		},
+		[forceUpdate],
+	);
+	const onClickAdd = useCallback(() => {
+		setDiaryLocation(address);
+		close();
+		setTimeout(() => {
+			locationManager.addHistory(address);
+		}, 200);
+	}, [setDiaryLocation, address, close]);
+	return (
+		<Drawer close={close}>
+			<DrawerTitle>Add location</DrawerTitle>
+			<Container vertical='small'>
+				<Input
+					placeholder='Enter your address'
+					value={address}
+					onValue={setAddress}
+				/>
+			</Container>
+			<Container vertical='small' horizontal='regular'>
+				<Row className={aliasList} gap={4} align='center' justify='start'>
+					{locationManager.getPresetKeys().map((presetKey) => {
+						const location = locationManager.getPresetLocation(presetKey);
+						if (!location) return null;
+						return (
+							<AliasItem
+								key={presetKey}
+								icon={locationManager.getPresetIcon(presetKey)}
+								name={locationManager.getPresetName(presetKey)}
+								onClick={() => handleClickItem(location)}
+							/>
+						);
+					})}
+					{locationManager.getAliases().map((alias) => (
+						<AliasItem
+							key={alias.uuid}
+							name={alias.name || alias.address}
+							onClick={() => handleClickItem(alias)}
+						/>
+					))}
+				</Row>
+			</Container>
+			<PaddingDivider />
+			<CompactListTitle
+				title='Recent locations'
+				trailingArea={
+					<Typo.Caption color={color.sand} onClick={onClickClearHistory}>
+						Clear
+					</Typo.Caption>
+				}
+			/>
+			{locationManager.getHistory().map((history) => (
+				<CompactListItem
+					key={history.uuid}
+					name={history.name || history.address}
+					description={history.name ? history.address : undefined}
+					onClick={() => handleClickItem(history)}
+					trailingArea={
+						<X size={20} onClick={() => handleClickRemoveHistory(history)} />
+					}
+				/>
+			))}
+			<ButtonGroup>
+				<Button fill onClick={onClickAdd}>
+					Add
+				</Button>
+			</ButtonGroup>
+		</Drawer>
+	);
+}
+interface AliasItemProps {
+	icon?: typeof MapPinned;
+	name: string;
+	onClick?: () => void;
+}
+function AliasItem(props: AliasItemProps) {
+	const { icon: Icon, name, onClick } = props;
+	return (
+		<Container
+			className={aliasItem}
+			vertical='none'
+			horizontal='small'
+			onClick={onClick}
+		>
+			<Column gap={4} align='center'>
+				<div className={aliasIcon}>
+					{Icon ? <Icon size={20} /> : <MapPinned size={20} />}
+				</div>
+				<Typo.Caption>{name}</Typo.Caption>
+			</Column>
+		</Container>
+	);
+}
+````
+
+## File: src/components/pages/diary/additional-info.tsx
+````typescript
+import { DiaryLocationDrawer } from '@/components/features/diary/location-drawer';
+import { DiaryWeatherDrawer } from '@/components/features/diary/weather-drawer';
+import { Row } from '@/components/layout/row';
+import { Typo } from '@/components/ui/typography';
+import { useOverlay } from '@/hooks/use-overlay';
+import { cn } from '@/lib/common';
+import { getWeatherIcon, getWeatherLabel } from '@/lib/weather';
+import { MapPin } from 'lucide-react';
+import { useCallback, useContext } from 'react';
+import { DiaryContext } from './context';
+import { item, itemActive } from './styles/additional-info.css';
+export function DiaryAdditionalInfo() {
+	const {
+		diary,
+		diaryDispatch: { setLocation, setWeather },
+	} = useContext(DiaryContext);
+	const WeatherIcon = getWeatherIcon(diary.weather);
+	const { show: openLocation } = useOverlay(DiaryLocationDrawer);
+	const { show: openWeather } = useOverlay(DiaryWeatherDrawer);
+	const onClickLocation = useCallback(() => {
+		if (!diary.readonly) {
+			openLocation({ setLocation });
+		}
+	}, [diary.readonly, setLocation, openLocation]);
+	const onClickWeather = useCallback(() => {
+		if (!diary.readonly) {
+			openWeather({ setWeather });
+		}
+	}, [diary.readonly, setWeather, openWeather]);
+	return (
+		<Row gap={8}>
+			<Row
+				className={cn(item, diary.location && itemActive)}
+				gap={6}
+				align='center'
+				onClick={onClickLocation}
+			>
+				<MapPin size={20} />
+				<Typo.Body weight='medium'>
+					{diary.location || 'Add location'}
+				</Typo.Body>
+			</Row>
+			<Row
+				className={cn(item, diary.weather && itemActive)}
+				gap={6}
+				align='center'
+				onClick={onClickWeather}
+			>
+				<WeatherIcon size={20} />
+				<Typo.Body weight='medium'>
+					{diary.weather ? getWeatherLabel(diary.weather) : 'Add weather'}
+				</Typo.Body>
+			</Row>
+		</Row>
+	);
+}
+````
+
+## File: src/components/pages/my-profile/reset-confirm.tsx
+````typescript
+import { Container } from '@/components/layout/container';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Drawer } from '@/components/ui/drawer';
+import type { OverlayProps } from '@/components/ui/overlay/types';
+import { Typo } from '@/components/ui/typography';
+import { useAuth } from '@/hooks/use-auth';
+import { resetApp } from '@/lib/app';
+import { message } from '@tauri-apps/plugin-dialog';
+import { ShieldQuestion } from 'lucide-react';
+import { useCallback } from 'react';
+import { centered, iconWrapper } from './styles/reset-confirm.css';
+export function MyProfileResetConfirmDrawer(props: OverlayProps) {
+	const { close } = props;
+	const authenticate = useAuth();
+	const onClickReset = useCallback(async () => {
+		try {
+			authenticate(async () => {
+				await resetApp();
+				location.reload();
+			});
+		} catch (error) {
+			await message('Reset failed. Please try again later.');
+			console.error('Reset failed:', error);
+			close();
+		}
+	}, [authenticate, close]);
+	return (
+		<Drawer {...props}>
+			<Container horizontal='none'>
+				<Container className={centered} vertical='regular'>
+					<div className={iconWrapper}>
+						<ShieldQuestion />
+					</div>
+				</Container>
+				<Container className={centered} vertical='small'>
+					<Typo.Lead weight='strong'>Are you sure?</Typo.Lead>
+				</Container>
+				<Container className={centered} vertical='none'>
+					<Typo.Body>Your data will be deleted and log out</Typo.Body>
+				</Container>
+			</Container>
+			<ButtonGroup direction='horizontal'>
+				<Button fill onClick={onClickReset}>
+					Reset
+				</Button>
+				<Button fill variant='secondary' onClick={close}>
+					Cancel
+				</Button>
+			</ButtonGroup>
+		</Drawer>
+	);
+}
+````
+
+## File: src/components/pages/sign-up/biometric.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button/group';
+import { Content } from '@/components/ui/content';
+import { ScanFace } from 'lucide-react';
+import { fillHeight } from './styles/styles.css';
+interface SignUpBiometricSectionProps {
+	signUp: (biometricLogin: boolean) => void;
+}
+export function SignUpBiometricSection(props: SignUpBiometricSectionProps) {
+	const { signUp } = props;
+	return (
+		<Column className={fillHeight}>
+			<Content
+				icon={<ScanFace size={48} />}
+				title='Use Biometric Login?'
+				description='You can use FaceID or TouchID to use this app'
+			/>
+			<ButtonGroup bottomSafeAreaPadding>
+				<Button fill variant='secondary' onClick={() => signUp(false)}>
+					No
+				</Button>
+				<Button fill onClick={() => signUp(true)}>
+					Yes
+				</Button>
+			</ButtonGroup>
+		</Column>
+	);
+}
+````
+
+## File: src/components/ui/input/emoji.tsx
+````typescript
+import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
+import { useDrawer } from '@/hooks/use-drawer';
+import { cn } from '@/lib/common';
+import emojis from 'emojibase-data/en/data.json';
+import {
+	type Dispatch,
+	type SetStateAction,
+	useCallback,
+	useState,
+} from 'react';
+import { Drawer } from '../drawer';
+import type { OverlayProps } from '../overlay/types';
+import { Typo } from '../typography';
+import {
+	emojiButton,
+	emojiContainer,
+	emojiGrid,
+	input,
+	placeholderStyle,
+} from './styles/emoji.css';
+interface EmojiInputProps {
+	placeholder?: string;
+	defaultValue?: string;
+	onValue?: (value: string) => unknown;
+	disabled?: boolean;
+}
+export function EmojiInput(props: EmojiInputProps) {
+	const { placeholder = '😀', defaultValue, onValue, disabled } = props;
+	const [value, setValue] = useState<string | undefined>(defaultValue);
+	const { show } = useDrawer(EmojiSelectorDrawer);
+	const openShareDrawer = useCallback(() => {
+		show({
+			setValue,
+			onValue,
+		});
+	}, [show, onValue]);
+	return (
+		<Row
+			className={cn(input, !value && placeholderStyle)}
+			align='center'
+			justify='start'
+			onClick={disabled ? undefined : openShareDrawer}
+		>
+			<Typo.Title>{value || placeholder}</Typo.Title>
+		</Row>
+	);
+}
+interface EmojiSelectorDrawerProps {
+	onValue?: (value: string) => unknown;
+	setValue: Dispatch<SetStateAction<string | undefined>>;
+}
+function EmojiSelectorDrawer(props: EmojiSelectorDrawerProps & OverlayProps) {
+	const { onValue, setValue, close } = props;
+	return (
+		<Drawer close={close}>
+			<Container vertical='small' horizontal='large'>
+				<Typo.Lead weight='strong'>How about your feeling?</Typo.Lead>
+			</Container>
+			<Container className={emojiContainer} vertical='small'>
+				<div className={emojiGrid}>
+					{emojis
+						.filter((e) => e.group === 0)
+						.map((emoji) => (
+							<button
+								key={emoji.label}
+								className={emojiButton}
+								type='button'
+								onClick={() => {
+									setValue(emoji.emoji);
+									onValue?.(emoji.emoji);
+									close();
+								}}
+							>
+								<Typo.Title>{emoji.emoji}</Typo.Title>
+							</button>
+						))}
+				</div>
+			</Container>
+		</Drawer>
+	);
+}
+````
+
+## File: src/lib/managers/friend.ts
+````typescript
+export interface User {
 	uuid: string;
-	name?: string;
-	address: string;
-	createdAt: Date;
-	updatedAt: Date;
+	name: string;
+	username: string;
+	profileUrl: string;
+	publicKey: string;
+	createdAt: string;
+	updatedAt: string;
 }
-export type LocationPresetKey = 'home' | 'secondHome' | 'school' | 'work';
-type PresetLocationAlias = {
-	[key in LocationPresetKey]: Location | null;
-};
-export const MAX_ALIAS_COUNT = 10;
-export const MAX_HISTORY_COUNT = 5;
-class LocationManager {
-	private presets: PresetLocationAlias = {
-		home: null,
-		secondHome: null,
-		school: null,
-		work: null,
-	};
-	private aliases: Array<Location> = [];
-	private history: Array<Location | LocationPresetKey> = [];
-	public isInitialized = false;
-	async init() {
-		const savedPresets = await storageClient.get('location-presets');
-		const savedAliases = await storageClient.get('location-aliases');
-		const savedHistory = await storageClient.get('location-history');
-		if (savedPresets) {
-			const parsedPresets = JSON.parse(savedPresets);
-			this.presets = parsedPresets;
-		}
-		if (savedAliases) {
-			this.aliases = JSON.parse(savedAliases);
-		}
-		if (savedHistory) {
-			this.history = JSON.parse(savedHistory);
-		}
-		this.isInitialized = true;
-	}
-	private checkInitialized() {
-		if (!this.isInitialized) {
-			throw new Error('LocationManager is not initialized. Call init() first.');
+class FriendManager {
+	private friends: Map<string, User> = new Map();
+	constructor() {
+		if (typeof window !== 'undefined') {
+			const savedFriends = localStorage.getItem('saved-friends');
+			if (savedFriends) {
+				const parsedUsers = JSON.parse(savedFriends);
+				this.friends = new Map<string, User>(Object.entries(parsedUsers));
+			}
 		}
 	}
-	private async saveData() {
-		this.checkInitialized();
-		await storageClient.set('location-presets', JSON.stringify(this.presets));
-		await storageClient.set('location-aliases', JSON.stringify(this.aliases));
-		await storageClient.set(
-			'location-history',
-			JSON.stringify(Array.from(this.history.values())),
-		);
-	}
-	getSavedCount() {
-		const presetCount = Object.values(this.presets).filter(
-			(value) => value !== null,
-		).length;
-		const aliasCount = this.aliases.length;
-		return presetCount + aliasCount;
-	}
-	getPresets() {
-		return this.presets;
-	}
-	getPresetKeys() {
-		return [
-			'home',
-			'secondHome',
-			'school',
-			'work',
-		] satisfies Array<LocationPresetKey>;
-	}
-	getPresetLocation(key: LocationPresetKey) {
-		const location = this.presets[key];
-		return location;
-	}
-	getPresetIcon(key: LocationPresetKey) {
-		switch (key) {
-			case 'home':
-			case 'secondHome':
-				return House;
-			case 'school':
-				return School;
-			case 'work':
-				return Building;
-			default:
-				return MapPinned;
+	private save() {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(
+				'saved-friends',
+				JSON.stringify(Object.fromEntries(this.friends)),
+			);
 		}
 	}
-	getPresetName(key: LocationPresetKey) {
-		switch (key) {
-			case 'home':
-				return 'Home';
-			case 'secondHome':
-				return 'Home 2';
-			case 'school':
-				return 'School';
-			case 'work':
-				return 'Work';
-			default:
-				return key;
+	isFriend(uuid: string) {
+		return this.friends.has(uuid);
+	}
+	cacheUser(user: User) {
+		this.friends.set(user.uuid, user);
+	}
+	getFriends() {
+		return Array.from(this.friends.values());
+	}
+	getFriend(uuid: string) {
+		return this.friends.get(uuid);
+	}
+	addFriend(user: User) {
+		if (this.friends.has(user.uuid)) {
+			return;
 		}
+		this.friends.set(user.uuid, user);
+		this.save();
 	}
-	async setPreset(name: LocationPresetKey, address: string) {
-		this.checkInitialized();
-		if (!address) {
-			throw new Error('Address must be provided.');
+	updateFriend(uuid: string, user: User) {
+		if (!this.friends.has(uuid)) {
+			return;
 		}
-		const uuid = v4();
-		const newLocation: Location = {
-			uuid,
-			name: this.getPresetName(name),
-			address,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		};
-		this.presets[name] = newLocation;
-		await this.saveData();
+		this.friends.set(uuid, user);
+		this.save();
 	}
-	async resetPreset(name: LocationPresetKey) {
-		this.checkInitialized();
-		this.presets[name] = null;
-		await this.saveData();
-	}
-	getAliases() {
-		return Array.from(this.aliases.values());
-	}
-	getAlias(uuid: string) {
-		return Array.from(this.aliases).find((alias) => alias.uuid === uuid);
-	}
-	async addAlias(name: string, address: string) {
-		this.checkInitialized();
-		if (!name || !address) {
-			throw new Error('Name and address must be provided.');
+	removeFriend(uuid: string) {
+		if (!this.friends.has(uuid)) {
+			return;
 		}
-		const uuid = v4();
-		const newAlias = {
-			uuid,
-			name,
-			address,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		};
-		if (this.aliases.some((alias) => alias.uuid === uuid)) {
-			throw new Error('Alias with this UUID already exists.');
-		}
-		this.aliases.push(newAlias);
-		await this.saveData();
-		return newAlias;
+		this.friends.delete(uuid);
+		this.save();
 	}
-	async updateAlias(uuid: string, location: Partial<Location>) {
-		this.checkInitialized();
-		const alias = this.getAlias(uuid);
-		if (!alias) {
-			throw new Error('Alias not found.');
-		}
-		const updatedAlias = {
-			...alias,
-			...location,
-			updatedAt: new Date(),
-		};
-		const index = this.aliases.findIndex((a) => a.uuid === uuid);
-		if (index === -1) {
-			throw new Error('Alias not found.');
-		}
-		this.aliases[index] = updatedAlias;
-		await this.saveData();
-		return updatedAlias;
-	}
-	async deleteAlias(uuid: string) {
-		this.checkInitialized();
-		this.aliases = this.aliases.filter((alias) => alias.uuid !== uuid);
-		await this.saveData();
-	}
-	getHistory() {
-		return Array.from(this.history.values());
-	}
-	async addHistory(location: Location | LocationPresetKey) {
-		this.checkInitialized();
-		this.history = [location, ...this.history];
-		if (this.history.length > MAX_HISTORY_COUNT) {
-			this.history = this.history.slice(0, MAX_HISTORY_COUNT);
-		}
-		await this.saveData();
+	clear() {
+		this.friends.clear();
+		this.save();
 	}
 }
-export const locationManager = new LocationManager();
+export const friendManager = new FriendManager();
 ````
 
 ## File: src/routes/explorer/friends/index.tsx
@@ -7873,6 +8261,22 @@ type SharedDiariesResponse = Array<{
 	recipient: unknown;
 	createdAt: string;
 }>;
+type RepliesResponse = Array<{
+	uuid: string;
+	diaryId: string;
+	data: string;
+	nonce: string;
+	encryptedKey: string;
+	authorId: string;
+	author: {
+		uuid: string;
+		username: string;
+		name: string;
+		profileUrl: string;
+	};
+	encryptedKey: string;
+	createdAt: string;
+}>;
 ````
 
 ## File: src/main.tsx
@@ -7894,37 +8298,21 @@ ReactDOM.createRoot(root).render(
 );
 ````
 
-## File: src/components/pages/sign-up/biometric.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button/group';
-import { Content } from '@/components/ui/content';
-import { ScanFace } from 'lucide-react';
-import { fillHeight } from './styles/styles.css';
-interface SignUpBiometricSectionProps {
-	signUp: (biometricLogin: boolean) => void;
-}
-export function SignUpBiometricSection(props: SignUpBiometricSectionProps) {
-	const { signUp } = props;
-	return (
-		<Column className={fillHeight}>
-			<Content
-				icon={<ScanFace size={48} />}
-				title='Use Biometric Login?'
-				description='You can use FaceID or TouchID to use this app'
-			/>
-			<ButtonGroup bottomSafeAreaPadding>
-				<Button fill variant='secondary' onClick={() => signUp(false)}>
-					No
-				</Button>
-				<Button fill onClick={() => signUp(true)}>
-					Yes
-				</Button>
-			</ButtonGroup>
-		</Column>
-	);
-}
+## File: index.html
+````html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Sotto</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="overlay-root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
 ````
 
 ## File: src/components/ui/overlay/provider.tsx
@@ -7991,64 +8379,6 @@ export function Popup(props: PopupProps) {
 			{children}
 		</motion.div>
 	);
-}
-````
-
-## File: src/hooks/use-diary.ts
-````typescript
-import { diaryManager } from '@/lib/managers/diary';
-import { storageClient } from '@/lib/managers/storage';
-import type { Weather } from '@/lib/weather';
-import { useCallback, useState } from 'react';
-export function useDiary(uuid: string | null) {
-	const [diary, setDiary] = useState(() => getDiaryOrCreate(uuid));
-	const setEmoji = useCallback((emoji: string) => {
-		setDiary((prev) => ({
-			...prev,
-			emoji,
-		}));
-	}, []);
-	const setTitle = useCallback((title: string) => {
-		setDiary((prev) => ({
-			...prev,
-			title,
-		}));
-	}, []);
-	const setContent = useCallback((content: string) => {
-		setDiary((prev) => ({
-			...prev,
-			content,
-		}));
-	}, []);
-	const setLocation = useCallback((location: string) => {
-		setDiary((prev) => ({
-			...prev,
-			location,
-		}));
-	}, []);
-	const setWeather = useCallback((weather: Weather) => {
-		setDiary((prev) => ({
-			...prev,
-			weather,
-		}));
-	}, []);
-	return [
-		diary,
-		{ setEmoji, setTitle, setContent, setLocation, setWeather, setDiary },
-	] as const;
-}
-function getDiaryOrCreate(uuid?: string | null) {
-	if (!storageClient.isInitialized) {
-		return diaryManager.createDiary();
-	}
-	if (uuid) {
-		const data = diaryManager.getDiary(uuid);
-		if (!data) {
-			throw new Error('Diary not found');
-		}
-		return data;
-	}
-	return diaryManager.createDiary();
 }
 ````
 
@@ -8185,21 +8515,62 @@ export default function ExplorerDiariesPage() {
 }
 ````
 
-## File: index.html
-````html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>Sotto</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <div id="overlay-root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+## File: src/routes/home/index.tsx
+````typescript
+import { Column } from '@/components/layout/column';
+import { Row } from '@/components/layout/row';
+import { HomeBottomNavigator } from '@/components/pages/home/bottom-navigator';
+import { HomeFriendsDiariesSection } from '@/components/pages/home/friends-diaries';
+import { HomeMyDiariesSection } from '@/components/pages/home/my-diaries';
+import { Avatar } from '@/components/ui/avatar';
+import { SottoSymbol } from '@/components/ui/sotto-symbol';
+import { Tabs } from '@/components/ui/tabs';
+import { TabsContent } from '@/components/ui/tabs/content';
+import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { Typo } from '@/components/ui/typography';
+import { fullHeight } from '@/styles/utils.css';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { left, right } from './page.css';
+export default function HomePage() {
+	const navigator = useNavigate();
+	const onClickAvatar = useCallback(() => {
+		navigator('/my-profile');
+	}, [navigator]);
+	return (
+		<Column className={fullHeight} justify='start'>
+			<TopNavigator
+				leadingArea={
+					<Row className={left} align='center' gap={6}>
+						<SottoSymbol />
+						<Typo.Lead weight='strong'>Sotto</Typo.Lead>
+					</Row>
+				}
+				trailingArea={
+					<Avatar
+						className={right}
+						src={localStorage.getItem('profileImage')}
+						onClick={onClickAvatar}
+					/>
+				}
+			/>
+			<Tabs defaultValue='my'>
+				<TabsGroup>
+					<TabsItem value='my'>My</TabsItem>
+					<TabsItem value='friends'>Friends</TabsItem>
+				</TabsGroup>
+				<TabsContent value='my'>
+					<HomeMyDiariesSection />
+				</TabsContent>
+				<TabsContent value='friends'>
+					<HomeFriendsDiariesSection />
+				</TabsContent>
+			</Tabs>
+			<HomeBottomNavigator />
+		</Column>
+	);
+}
 ````
 
 ## File: src/components/features/user/picker-drawer.tsx
@@ -8324,157 +8695,66 @@ export function UserPickerDrawer(props: UserPickerDrawerProps & OverlayProps) {
 }
 ````
 
-## File: src/components/ui/input/emoji.tsx
+## File: src/components/ui/card/diary.tsx
 ````typescript
+import { AppContext } from '@/App';
+import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
-import { useDrawer } from '@/hooks/use-drawer';
-import { cn } from '@/lib/common';
-import emojis from 'emojibase-data/en/data.json';
-import {
-	type Dispatch,
-	type SetStateAction,
-	useCallback,
-	useState,
-} from 'react';
-import { Drawer } from '../drawer';
-import type { OverlayProps } from '../overlay/types';
+import { HomeFriendDiaryDrawer } from '@/components/pages/home/friend-diary-drawer';
+import { HomeMyDiaryDrawer } from '@/components/pages/home/my-diaries/drawer';
+import { useOverlay } from '@/hooks/use-overlay';
+import { calculateDiffDays } from '@/lib/common';
+import type { Diary } from '@/lib/managers/diary';
+import { useCallback, useContext, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Typo } from '../typography';
-import {
-	emojiButton,
-	emojiContainer,
-	emojiGrid,
-	placeholderStyle,
-} from './styles/emoji.css';
-interface EmojiInputProps {
-	placeholder?: string;
-	defaultValue?: string;
-	onValue?: (value: string) => unknown;
-	disabled?: boolean;
+import { card, content, preventOverflow, preview, title } from './styles.css';
+interface DiaryCardProps {
+	diary: Diary;
 }
-export function EmojiInput(props: EmojiInputProps) {
-	const { placeholder = '😀', defaultValue, onValue, disabled } = props;
-	const [value, setValue] = useState<string | undefined>(defaultValue);
-	const { show } = useDrawer(EmojiSelectorDrawer);
-	const openShareDrawer = useCallback(() => {
-		show({
-			setValue,
-			onValue,
-		});
-	}, [show, onValue]);
+export function DiaryCard(props: DiaryCardProps) {
+	const { diary } = props;
+	const navigate = useNavigate();
+	const { forceUpdate } = useContext(AppContext);
+	const diffDays = useMemo(
+		() => calculateDiffDays(new Date(diary.createdAt)),
+		[diary.createdAt],
+	);
+	const { show } = useOverlay(
+		diary.sharedBy ? HomeFriendDiaryDrawer : HomeMyDiaryDrawer,
+	);
+	const onClick = useCallback(() => {
+		navigate(`/diary?uuid=${diary.uuid}&readonly=${diary.readonly ?? false}`);
+	}, [diary, navigate]);
 	return (
-		<div
-			className={cn(!value && placeholderStyle)}
-			onClick={disabled ? undefined : openShareDrawer}
+		<Container
+			className={card}
+			onClick={onClick}
+			onLongPress={() => {
+				show({ diary, onDelete: forceUpdate });
+			}}
 		>
-			<Typo.Title>{value || placeholder}</Typo.Title>
-		</div>
+			<Column className={content} align='end' justify='space-between'>
+				<Typo.Caption>
+					{diffDays === 0
+						? 'Today'
+						: diffDays === 1
+							? 'Yesterday'
+							: `${diffDays} days ago`}
+				</Typo.Caption>
+				<Column className={preventOverflow} justify='end' align='start'>
+					<Typo.Title>{diary.emoji}</Typo.Title>
+					<Typo.Body className={title} weight='strong'>
+						{diary.title || 'Untitled'}
+					</Typo.Body>
+					<Typo.Caption className={preview}>
+						{diary.content.split('\n')[0].trim() || 'No content yet :('}
+					</Typo.Caption>
+				</Column>
+			</Column>
+		</Container>
 	);
 }
-interface EmojiSelectorDrawerProps {
-	onValue?: (value: string) => unknown;
-	setValue: Dispatch<SetStateAction<string | undefined>>;
-}
-function EmojiSelectorDrawer(props: EmojiSelectorDrawerProps & OverlayProps) {
-	const { onValue, setValue, close } = props;
-	return (
-		<Drawer close={close}>
-			<Container vertical='small' horizontal='large'>
-				<Typo.Lead weight='strong'>How about your feeling?</Typo.Lead>
-			</Container>
-			<Container className={emojiContainer} vertical='small'>
-				<div className={emojiGrid}>
-					{emojis
-						.filter((e) => e.group === 0)
-						.map((emoji) => (
-							<button
-								key={emoji.label}
-								className={emojiButton}
-								type='button'
-								onClick={() => {
-									setValue(emoji.emoji);
-									onValue?.(emoji.emoji);
-									close();
-								}}
-							>
-								<Typo.Title>{emoji.emoji}</Typo.Title>
-							</button>
-						))}
-				</div>
-			</Container>
-		</Drawer>
-	);
-}
-````
-
-## File: src/lib/managers/friend.ts
-````typescript
-export interface User {
-	uuid: string;
-	name: string;
-	username: string;
-	profileUrl: string;
-	publicKey: string;
-	createdAt: string;
-	updatedAt: string;
-}
-class FriendManager {
-	private friends: Map<string, User> = new Map();
-	constructor() {
-		if (typeof window !== 'undefined') {
-			const savedFriends = localStorage.getItem('saved-friends');
-			if (savedFriends) {
-				const parsedUsers = JSON.parse(savedFriends);
-				this.friends = new Map<string, User>(Object.entries(parsedUsers));
-			}
-		}
-	}
-	private save() {
-		if (typeof window !== 'undefined') {
-			localStorage.setItem(
-				'saved-friends',
-				JSON.stringify(Object.fromEntries(this.friends)),
-			);
-		}
-	}
-	isFriend(uuid: string) {
-		return this.friends.has(uuid);
-	}
-	cacheUser(user: User) {
-		this.friends.set(user.uuid, user);
-	}
-	getFriends() {
-		return Array.from(this.friends.values());
-	}
-	getFriend(uuid: string) {
-		return this.friends.get(uuid);
-	}
-	addFriend(user: User) {
-		if (this.friends.has(user.uuid)) {
-			return;
-		}
-		this.friends.set(user.uuid, user);
-		this.save();
-	}
-	updateFriend(uuid: string, user: User) {
-		if (!this.friends.has(uuid)) {
-			return;
-		}
-		this.friends.set(uuid, user);
-		this.save();
-	}
-	removeFriend(uuid: string) {
-		if (!this.friends.has(uuid)) {
-			return;
-		}
-		this.friends.delete(uuid);
-		this.save();
-	}
-	clear() {
-		this.friends.clear();
-		this.save();
-	}
-}
-export const friendManager = new FriendManager();
 ````
 
 ## File: src/routes/explorer/friends/detail.tsx
@@ -8552,64 +8832,6 @@ export default function ExplorerFriendsDetailPage() {
 				</Button>
 			</ButtonGroup>
 		</>
-	);
-}
-````
-
-## File: src/routes/home/index.tsx
-````typescript
-import { Column } from '@/components/layout/column';
-import { Row } from '@/components/layout/row';
-import { HomeBottomNavigator } from '@/components/pages/home/bottom-navigator';
-import { HomeFriendsDiariesSection } from '@/components/pages/home/friends-diaries';
-import { HomeMyDiariesSection } from '@/components/pages/home/my-diaries';
-import { Avatar } from '@/components/ui/avatar';
-import { SottoSymbol } from '@/components/ui/sotto-symbol';
-import { Tabs } from '@/components/ui/tabs';
-import { TabsContent } from '@/components/ui/tabs/content';
-import { TabsGroup, TabsItem } from '@/components/ui/tabs/item';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { Typo } from '@/components/ui/typography';
-import { fullHeight } from '@/styles/utils.css';
-import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { left, right } from './page.css';
-export default function HomePage() {
-	const navigator = useNavigate();
-	const onClickAvatar = useCallback(() => {
-		navigator('/my-profile');
-	}, [navigator]);
-	return (
-		<Column className={fullHeight} justify='start'>
-			<TopNavigator
-				leadingArea={
-					<Row className={left} align='center' gap={6}>
-						<SottoSymbol />
-						<Typo.Lead weight='strong'>Sotto</Typo.Lead>
-					</Row>
-				}
-				trailingArea={
-					<Avatar
-						className={right}
-						src={localStorage.getItem('profileImage')}
-						onClick={onClickAvatar}
-					/>
-				}
-			/>
-			<Tabs defaultValue='my'>
-				<TabsGroup>
-					<TabsItem value='my'>My</TabsItem>
-					<TabsItem value='friends'>Friends</TabsItem>
-				</TabsGroup>
-				<TabsContent value='my'>
-					<HomeMyDiariesSection />
-				</TabsContent>
-				<TabsContent value='friends'>
-					<HomeFriendsDiariesSection />
-				</TabsContent>
-			</Tabs>
-			<HomeBottomNavigator />
-		</Column>
 	);
 }
 ````
@@ -8840,6 +9062,229 @@ export function Drawer(props: DrawerProps & OverlayProps) {
 }
 ````
 
+## File: src/lib/managers/location.ts
+````typescript
+import { Building, House, MapPinned, School } from 'lucide-react';
+import { v4 } from 'uuid';
+import { storageClient } from './storage';
+export interface Location {
+	uuid: string;
+	name?: string;
+	address: string;
+	createdAt: Date;
+	updatedAt: Date;
+}
+export type LocationPresetKey = 'home' | 'secondHome' | 'school' | 'work';
+type PresetLocationAlias = {
+	[key in LocationPresetKey]: Location | null;
+};
+export const MAX_ALIAS_COUNT = 10;
+export const MAX_HISTORY_COUNT = 5;
+class LocationManager {
+	private presets: PresetLocationAlias = {
+		home: null,
+		secondHome: null,
+		school: null,
+		work: null,
+	};
+	private aliases: Array<Location> = [];
+	private history: Array<Location> = [];
+	public isInitialized = false;
+	async init() {
+		const savedPresets = await storageClient.get('location-presets');
+		const savedAliases = await storageClient.get('location-aliases');
+		const savedHistory = await storageClient.get('location-history');
+		if (savedPresets) {
+			const parsedPresets = JSON.parse(savedPresets);
+			this.presets = parsedPresets;
+		}
+		if (savedAliases) {
+			this.aliases = JSON.parse(savedAliases);
+		}
+		if (savedHistory) {
+			this.history = JSON.parse(savedHistory);
+		}
+		this.isInitialized = true;
+	}
+	private checkInitialized() {
+		if (!this.isInitialized) {
+			throw new Error('LocationManager is not initialized. Call init() first.');
+		}
+	}
+	private async saveData() {
+		this.checkInitialized();
+		await storageClient.set('location-presets', JSON.stringify(this.presets));
+		await storageClient.set('location-aliases', JSON.stringify(this.aliases));
+		await storageClient.set(
+			'location-history',
+			JSON.stringify(Array.from(this.history.values())),
+		);
+	}
+	getSavedCount() {
+		const presetCount = Object.values(this.presets).filter(
+			(value) => value !== null,
+		).length;
+		const aliasCount = this.aliases.length;
+		return presetCount + aliasCount;
+	}
+	getPresets() {
+		return this.presets;
+	}
+	getPresetKeys() {
+		return [
+			'home',
+			'secondHome',
+			'school',
+			'work',
+		] satisfies Array<LocationPresetKey>;
+	}
+	getPresetLocation(key: LocationPresetKey) {
+		const location = this.presets[key];
+		return location;
+	}
+	getPresetIcon(key: LocationPresetKey) {
+		switch (key) {
+			case 'home':
+			case 'secondHome':
+				return House;
+			case 'school':
+				return School;
+			case 'work':
+				return Building;
+			default:
+				return MapPinned;
+		}
+	}
+	getPresetName(key: LocationPresetKey) {
+		switch (key) {
+			case 'home':
+				return 'Home';
+			case 'secondHome':
+				return 'Home 2';
+			case 'school':
+				return 'School';
+			case 'work':
+				return 'Work';
+			default:
+				return key;
+		}
+	}
+	async setPreset(name: LocationPresetKey, address: string) {
+		this.checkInitialized();
+		if (!address) {
+			throw new Error('Address must be provided.');
+		}
+		const uuid = v4();
+		const newLocation: Location = {
+			uuid,
+			name: this.getPresetName(name),
+			address,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+		this.presets[name] = newLocation;
+		await this.saveData();
+	}
+	async resetPreset(name: LocationPresetKey) {
+		this.checkInitialized();
+		this.presets[name] = null;
+		await this.saveData();
+	}
+	getAliases() {
+		return Array.from(this.aliases.values());
+	}
+	getAlias(uuid: string) {
+		return Array.from(this.aliases).find((alias) => alias.uuid === uuid);
+	}
+	async addAlias(name: string, address: string) {
+		this.checkInitialized();
+		if (!name || !address) {
+			throw new Error('Name and address must be provided.');
+		}
+		const uuid = v4();
+		const newAlias = {
+			uuid,
+			name,
+			address,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+		if (this.aliases.some((alias) => alias.uuid === uuid)) {
+			throw new Error('Alias with this UUID already exists.');
+		}
+		this.aliases.push(newAlias);
+		await this.saveData();
+		return newAlias;
+	}
+	async updateAlias(uuid: string, location: Partial<Location>) {
+		this.checkInitialized();
+		const alias = this.getAlias(uuid);
+		if (!alias) {
+			throw new Error('Alias not found.');
+		}
+		const updatedAlias = {
+			...alias,
+			...location,
+			updatedAt: new Date(),
+		};
+		const index = this.aliases.findIndex((a) => a.uuid === uuid);
+		if (index === -1) {
+			throw new Error('Alias not found.');
+		}
+		this.aliases[index] = updatedAlias;
+		await this.saveData();
+		return updatedAlias;
+	}
+	async deleteAlias(uuid: string) {
+		this.checkInitialized();
+		this.aliases = this.aliases.filter((alias) => alias.uuid !== uuid);
+		await this.saveData();
+	}
+	getHistory() {
+		return Array.from(this.history.values());
+	}
+	async addHistory(location: Location | string) {
+		this.checkInitialized();
+		if (typeof location === 'string') {
+			this.history = [
+				{
+					uuid: v4(),
+					name: undefined,
+					address: location,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				},
+				...this.history,
+			];
+		} else {
+			this.history = [
+				{
+					...location,
+					uuid: v4(),
+					updatedAt: new Date(),
+				},
+				...this.history,
+			];
+		}
+		if (this.history.length > MAX_HISTORY_COUNT) {
+			this.history = this.history.slice(0, MAX_HISTORY_COUNT);
+		}
+		await this.saveData();
+	}
+	async removeHistory(location: Location) {
+		this.checkInitialized();
+		this.history = this.history.filter((item) => item.uuid !== location.uuid);
+		await this.saveData();
+	}
+	async clearHistory() {
+		this.checkInitialized();
+		this.history = [];
+		await this.saveData();
+	}
+}
+export const locationManager = new LocationManager();
+````
+
 ## File: src/routes/explorer/diaries/detail.tsx
 ````typescript
 import { DeleteDiaryPopup } from '@/components/features/diary/delete-popup';
@@ -8938,68 +9383,6 @@ export default function ExplorerDiariesDetailPage() {
 }
 ````
 
-## File: src/components/ui/card/diary.tsx
-````typescript
-import { AppContext } from '@/App';
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { HomeFriendDiaryDrawer } from '@/components/pages/home/friend-diary-drawer';
-import { HomeMyDiaryDrawer } from '@/components/pages/home/my-diaries/drawer';
-import { useOverlay } from '@/hooks/use-overlay';
-import { calculateDiffDays } from '@/lib/common';
-import type { Diary } from '@/lib/managers/diary';
-import { useCallback, useContext, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Typo } from '../typography';
-import { card, content, preventOverflow, preview, title } from './styles.css';
-interface DiaryCardProps {
-	diary: Diary;
-}
-export function DiaryCard(props: DiaryCardProps) {
-	const { diary } = props;
-	const navigate = useNavigate();
-	const { forceUpdate } = useContext(AppContext);
-	const diffDays = useMemo(
-		() => calculateDiffDays(new Date(diary.createdAt)),
-		[diary.createdAt],
-	);
-	const { show } = useOverlay(
-		diary.sharedBy ? HomeFriendDiaryDrawer : HomeMyDiaryDrawer,
-	);
-	const onClick = useCallback(() => {
-		navigate(`/diary?uuid=${diary.uuid}&readonly=${diary.readonly ?? false}`);
-	}, [diary, navigate]);
-	return (
-		<Container
-			className={card}
-			onClick={onClick}
-			onLongPress={() => {
-				show({ diary, onDelete: forceUpdate });
-			}}
-		>
-			<Column className={content} align='end' justify='space-between'>
-				<Typo.Caption>
-					{diffDays === 0
-						? 'Today'
-						: diffDays === 1
-							? 'Yesterday'
-							: `${diffDays} days ago`}
-				</Typo.Caption>
-				<Column className={preventOverflow} justify='end' align='start'>
-					<Typo.Title>{diary.emoji}</Typo.Title>
-					<Typo.Body className={title} weight='strong'>
-						{diary.title || 'Untitled'}
-					</Typo.Body>
-					<Typo.Caption className={preview}>
-						{diary.content.split('\n')[0].trim() || 'No content yet :('}
-					</Typo.Caption>
-				</Column>
-			</Column>
-		</Container>
-	);
-}
-````
-
 ## File: src/App.tsx
 ````typescript
 import '@/styles/reset.css';
@@ -9076,148 +9459,203 @@ export default function App() {
 }
 ````
 
-## File: src/components/pages/home/friends-diaries.tsx
+## File: package.json
+````json
+{
+	"name": "sotto-app",
+	"private": true,
+	"version": "1.2.0",
+	"type": "module",
+	"config": {
+		"commitizen": {
+			"path": "./node_modules/cz-conventional-changelog"
+		}
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"ios": "tauri ios dev \"iPhone 16 Pro\"",
+		"android": "tauri android dev \"Pixel_7_Pro\"",
+		"tauri": "tauri",
+		"check": "biome check",
+		"format": "biome check --fix && bun repomix",
+		"repomix": "repomix -c ./repomix.config.json",
+		"build:ios-sim": "rimraf ./src-tauri/gen/apple/build/arm64-sim && tauri ios build --target aarch64-sim",
+		"build:android": "tauri android build",
+		"build:all": "bun build:ios-sim && bun build:android",
+		"commit": "bun format && git add . && cz"
+	},
+	"dependencies": {
+		"@tauri-apps/api": "^2.5.0",
+		"@tauri-apps/plugin-biometric": "~2",
+		"@tauri-apps/plugin-clipboard-manager": "~2",
+		"@tauri-apps/plugin-dialog": "~2",
+		"@tauri-apps/plugin-fs": "~2",
+		"@tauri-apps/plugin-http": "~2",
+		"@tauri-apps/plugin-log": "~2",
+		"@tauri-apps/plugin-opener": "^2.2.6",
+		"@tauri-apps/plugin-stronghold": "^2.2.0",
+		"@vanilla-extract/css": "^1.17.1",
+		"classnames": "^2.5.1",
+		"dayjs": "^1.11.13",
+		"emojibase-data": "^16.0.3",
+		"lucide-react": "^0.510.0",
+		"motion": "^12.10.5",
+		"nanoid": "^5.1.5",
+		"nuqs": "^2.4.3",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"react-router-dom": "^7.6.0",
+		"tauri-plugin-keychain": "^2.0.1",
+		"use-debounce": "^10.0.4",
+		"uuid": "^11.1.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@commitlint/cli": "^19.8.1",
+		"@commitlint/config-conventional": "^19.8.1",
+		"@tauri-apps/cli": "^2.5.0",
+		"@types/react": "^19.1.3",
+		"@types/react-dom": "^19.1.3",
+		"@vanilla-extract/vite-plugin": "^5.0.1",
+		"@vitejs/plugin-react": "^4.4.1",
+		"commitizen": "^4.3.1",
+		"cz-conventional-changelog": "^3.3.0",
+		"repomix": "^0.3.7",
+		"rimraf": "^6.0.1",
+		"typescript": "~5.8.3",
+		"vite": "^6.3.5"
+	}
+}
+````
+
+## File: src/routes/diary/index.tsx
 ````typescript
-import { decryptDiary } from '@/binding/function/decrypt-diary';
-import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
+import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
+import { DiaryRepliesDrawer } from '@/components/features/reply/replies-drawer';
+import { DiarySendReplyDrawer } from '@/components/features/reply/send-reply-drawer';
+import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
-import { Grid } from '@/components/layout/grid';
 import { Row } from '@/components/layout/row';
-import { Avatar } from '@/components/ui/avatar';
-import { DiaryCard } from '@/components/ui/card/diary';
-import { Content } from '@/components/ui/content';
+import { DiaryAdditionalInfo } from '@/components/pages/diary/additional-info';
+import { DiaryContext } from '@/components/pages/diary/context';
+import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
 import { Divider } from '@/components/ui/divider';
+import { EmojiInput } from '@/components/ui/input/emoji';
+import { TopNavigator } from '@/components/ui/top-navigator';
+import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
-import { useDrawer } from '@/hooks/use-drawer';
+import { useDiary } from '@/hooks/use-diary';
+import { useOverlay } from '@/hooks/use-overlay';
 import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
-import { friendManager } from '@/lib/managers/friend';
-import { apiClient } from '@/lib/managers/http';
-import { storageClient } from '@/lib/managers/storage';
-import { Ban, SmilePlus } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-export function HomeFriendsDiariesSection() {
-	const [friendList, setFriendList] = useState<Array<string>>(
-		friendManager
-			.getFriends()
-			.map((friend) => friend.uuid)
-			.filter((userUUID) => diaryManager.getFriendDiaries(userUUID).length > 0),
+import { color } from '@/styles/color.css';
+import { MessageCircle, Share, SmilePlus } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { page, textArea, textAreaContainer, titleInput } from './page.css';
+export default function DiaryPage() {
+	const [searchParams] = useSearchParams();
+	const diaryUUID = useMemo(() => searchParams.get('uuid'), [searchParams]);
+	const isReadOnly = useMemo(
+		() => searchParams.get('readonly') === 'true',
+		[searchParams],
 	);
-	useEffect(() => {
-		apiClient
-			.get<SharedDiariesResponse>('/diaries/shared')
-			.then(async (data) => {
-				const privateKey = await storageClient.get('privateKey');
-				if (!privateKey) {
-					throw new Error('Private key not found');
-				}
-				for (const sharedDiary of data) {
-					const { emoji, title, content } = await decryptDiary(
-						privateKey,
-						sharedDiary.diary.data,
-						sharedDiary.encryptedKey,
-						sharedDiary.diary.nonce,
-					);
-					if (friendManager.isFriend(sharedDiary.diary.owner.uuid)) {
-						friendManager.updateFriend(
-							sharedDiary.diary.owner.uuid,
-							sharedDiary.diary.owner,
-						);
-					}
-					if (!diaryManager.isSharedDiaryExists(sharedDiary.diary.uuid)) {
-						friendManager.addFriend(sharedDiary.diary.owner);
-						await diaryManager.addDiary({
-							uuid: sharedDiary.diary.uuid,
-							emoji,
-							title,
-							content,
-							shareUUID: sharedDiary.diary.uuid,
-							sharedBy: sharedDiary.diary.owner.uuid,
-							encryptedData: sharedDiary.diary.data,
-							nonce: sharedDiary.diary.nonce,
-							encryptedKey: sharedDiary.encryptedKey,
-							readonly: true,
-						});
-					} else {
-						await diaryManager.updateDiary(sharedDiary.diary.uuid, {
-							emoji,
-							title,
-							content,
-							encryptedData: sharedDiary.diary.data,
-							nonce: sharedDiary.diary.nonce,
-							encryptedKey: sharedDiary.encryptedKey,
-						});
-					}
-				}
-				for (const existingSharedDiary of diaryManager.getSharedDiaries()) {
-					const isSharingCanceled = data.every(
-						(b) => b.diary.uuid !== existingSharedDiary.shareUUID,
-					);
-					if (isSharingCanceled) {
-						await diaryManager.removeDiary(existingSharedDiary.uuid);
-					}
-				}
-				setFriendList(
-					friendManager
-						.getFriends()
-						.map((friend) => friend.uuid)
-						.filter(
-							(userUUID) => diaryManager.getFriendDiaries(userUUID).length > 0,
-						),
-				);
-			});
-	}, []);
-	return friendList.length > 0 ? (
-		friendList.map((userUUID) => (
-			<FriendDiaries key={userUUID} userUUID={userUUID} />
-		))
-	) : (
-		<Content
-			icon={<SmilePlus size={48} />}
-			description='Share this app to your friends'
-		/>
+	const [diary, diaryDispatch] = useDiary(diaryUUID);
+	const { setDiary, setEmoji, setTitle, setContent } = diaryDispatch;
+	const [isSaving, setIsSaving] = useState(false);
+	const { show: openShareDrawer } = useOverlay(ShareDiaryDrawer, {
+		preventBackdropClose: isSaving,
+	});
+	const { show: openSavingPopup, hide: closeSavingPopup } = useOverlay(
+		DiarySavingPopup,
+		{ preventBackdropClose: true },
 	);
-}
-interface FriendDiariesProps {
-	userUUID: string;
-}
-function FriendDiaries(props: FriendDiariesProps) {
-	const { userUUID } = props;
-	const { show } = useDrawer(BanFriendDrawer);
-	const user = friendManager.getFriend(userUUID);
-	const diaries = diaryManager.getFriendDiaries(userUUID);
-	const showBanDrawer = useCallback(() => {
-		if (user) {
-			show({ friend: user });
-		} else {
-			log('error', 'User not found for ban drawer');
+	const { show: openSendReply } = useOverlay(DiarySendReplyDrawer);
+	const { show: openReplies } = useOverlay(DiaryRepliesDrawer);
+	const saveDiary = useCallback(async () => {
+		if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {
+			return;
 		}
-	}, [show, user]);
-	if (!user) {
-		return null;
-	}
+		setIsSaving(true);
+		openSavingPopup({});
+		try {
+			if (diaryManager.getDiary(diary.uuid)) {
+				await diaryManager.updateDiary(diary.uuid, diary);
+			} else {
+				await diaryManager.addDiary(diary);
+			}
+		} catch (error) {
+			log('error', 'Error while saving diary', error);
+			console.error('Error while saving diary', error);
+		} finally {
+			setIsSaving(false);
+			closeSavingPopup();
+		}
+	}, [diary, openSavingPopup, closeSavingPopup]);
+	const onClickShare = useCallback(() => {
+		openShareDrawer({ diary, setDiary });
+	}, [diary, setDiary, openShareDrawer]);
+	const onClickSendReply = useCallback(() => {
+		openSendReply({ diary });
+	}, [diary, openSendReply]);
+	const onClickViewReplies = useCallback(() => {
+		openReplies({ diary });
+	}, [diary, openReplies]);
 	return (
-		<>
-			<Container vertical='small'>
-				<Row align='center' justify='space-between'>
-					<Row align='center' gap={8}>
-						<Avatar src={user.profileUrl} />
-						<Typo.Body weight='strong'>{user.name}</Typo.Body>
-					</Row>
-					<Ban size={20} onClick={showBanDrawer} />
-				</Row>
-			</Container>
-			<Container vertical='small'>
-				<Grid>
-					{diaries.map((d) => (
-						<DiaryCard key={d.uuid} diary={d} />
-					))}
-				</Grid>
-			</Container>
-			<Container horizontal='none'>
+		<DiaryContext value={{ diary, diaryDispatch }}>
+			<Column className={page} justify='start'>
+				<TopNavigator
+					leadingArea={<GoBack beforeBack={saveDiary} />}
+					trailingArea={
+						isReadOnly ? (
+							<SmilePlus onClick={onClickSendReply} />
+						) : (
+							<Row gap={16}>
+								<MessageCircle onClick={onClickViewReplies} />
+								<Share onClick={onClickShare} />
+							</Row>
+						)
+					}
+				/>
+				<Container vertical='large' horizontal='large'>
+					<Column gap={24}>
+						<Column gap={12}>
+							<EmojiInput
+								defaultValue={diary.emoji}
+								onValue={setEmoji}
+								disabled={isSaving || isReadOnly}
+							/>
+							<input
+								className={titleInput}
+								placeholder='New Diary'
+								value={diary.title}
+								onChange={(e) => setTitle(e.target.value)}
+								disabled={isSaving || isReadOnly}
+							/>
+							<Typo.Caption
+								color={color.sand}
+							>{`Last Edited : ${new Date(diary.updatedAt).toLocaleString()}`}</Typo.Caption>
+						</Column>
+						<DiaryAdditionalInfo />
+					</Column>
+				</Container>
 				<Divider />
-			</Container>
-		</>
+				<Container
+					className={textAreaContainer}
+					vertical='large'
+					horizontal='large'
+				>
+					<textarea
+						className={textArea}
+						placeholder='Write your diary'
+						value={diary.content}
+						onChange={(e) => setContent(e.target.value)}
+						disabled={isSaving || isReadOnly}
+					/>
+				</Container>
+			</Column>
+		</DiaryContext>
 	);
 }
 ````
@@ -9327,79 +9765,151 @@ function Stat(props: StatProps) {
 }
 ````
 
-## File: package.json
-````json
-{
-	"name": "sotto-app",
-	"private": true,
-	"version": "1.2.0",
-	"type": "module",
-	"config": {
-		"commitizen": {
-			"path": "./node_modules/cz-conventional-changelog"
+## File: src/components/pages/home/friends-diaries.tsx
+````typescript
+import { decryptDiary } from '@/binding/function/decrypt-diary';
+import { BanFriendDrawer } from '@/components/features/user/ban-drawer';
+import { Container } from '@/components/layout/container';
+import { Grid } from '@/components/layout/grid';
+import { Row } from '@/components/layout/row';
+import { Avatar } from '@/components/ui/avatar';
+import { DiaryCard } from '@/components/ui/card/diary';
+import { Content } from '@/components/ui/content';
+import { Divider } from '@/components/ui/divider';
+import { Typo } from '@/components/ui/typography';
+import { useDrawer } from '@/hooks/use-drawer';
+import { log } from '@/lib/log';
+import { diaryManager } from '@/lib/managers/diary';
+import { friendManager } from '@/lib/managers/friend';
+import { apiClient } from '@/lib/managers/http';
+import { storageClient } from '@/lib/managers/storage';
+import { Ban, SmilePlus } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+export function HomeFriendsDiariesSection() {
+	const [friendList, setFriendList] = useState<Array<string>>(
+		friendManager
+			.getFriends()
+			.map((friend) => friend.uuid)
+			.filter((userUUID) => diaryManager.getFriendDiaries(userUUID).length > 0),
+	);
+	useEffect(() => {
+		apiClient
+			.get<SharedDiariesResponse>('/diaries/shared')
+			.then(async (data) => {
+				const privateKey = await storageClient.get('privateKey');
+				if (!privateKey) {
+					throw new Error('Private key not found');
+				}
+				for (const sharedDiary of data) {
+					const decryptedDiary = await decryptDiary(
+						privateKey,
+						sharedDiary.diary.data,
+						sharedDiary.encryptedKey,
+						sharedDiary.diary.nonce,
+					);
+					if (friendManager.isFriend(sharedDiary.diary.owner.uuid)) {
+						friendManager.updateFriend(
+							sharedDiary.diary.owner.uuid,
+							sharedDiary.diary.owner,
+						);
+					}
+					if (!diaryManager.isSharedDiaryExists(sharedDiary.diary.uuid)) {
+						friendManager.addFriend(sharedDiary.diary.owner);
+						await diaryManager.addDiary({
+							uuid: sharedDiary.diary.uuid,
+							...decryptedDiary,
+							shareUUID: sharedDiary.diary.uuid,
+							sharedBy: sharedDiary.diary.owner.uuid,
+							encryptedData: sharedDiary.diary.data,
+							nonce: sharedDiary.diary.nonce,
+							encryptedKey: sharedDiary.encryptedKey,
+							readonly: true,
+						});
+					} else {
+						await diaryManager.updateDiary(sharedDiary.diary.uuid, {
+							...decryptedDiary,
+							encryptedData: sharedDiary.diary.data,
+							nonce: sharedDiary.diary.nonce,
+							encryptedKey: sharedDiary.encryptedKey,
+						});
+					}
+				}
+				for (const existingSharedDiary of diaryManager.getSharedDiaries()) {
+					const isSharingCanceled = data.every(
+						(b) => b.diary.uuid !== existingSharedDiary.shareUUID,
+					);
+					if (isSharingCanceled) {
+						await diaryManager.removeDiary(existingSharedDiary.uuid);
+					}
+				}
+				setFriendList(
+					friendManager
+						.getFriends()
+						.map((friend) => friend.uuid)
+						.filter(
+							(userUUID) => diaryManager.getFriendDiaries(userUUID).length > 0,
+						),
+				);
+			});
+	}, []);
+	return friendList.length > 0 ? (
+		friendList.map((userUUID) => (
+			<FriendDiaries key={userUUID} userUUID={userUUID} />
+		))
+	) : (
+		<Content
+			icon={<SmilePlus size={48} />}
+			description='Share this app to your friends'
+		/>
+	);
+}
+interface FriendDiariesProps {
+	userUUID: string;
+}
+function FriendDiaries(props: FriendDiariesProps) {
+	const { userUUID } = props;
+	const { show } = useDrawer(BanFriendDrawer);
+	const user = friendManager.getFriend(userUUID);
+	const diaries = diaryManager.getFriendDiaries(userUUID);
+	const showBanDrawer = useCallback(() => {
+		if (user) {
+			show({ friend: user });
+		} else {
+			log('error', 'User not found for ban drawer');
 		}
-	},
-	"scripts": {
-		"dev": "vite",
-		"build": "tsc && vite build",
-		"ios": "tauri ios dev \"iPhone 16 Pro\"",
-		"android": "tauri android dev \"Pixel_7_Pro\"",
-		"tauri": "tauri",
-		"check": "biome check",
-		"format": "biome check --fix && bun repomix",
-		"repomix": "repomix -c ./repomix.config.json",
-		"build:ios-sim": "rimraf ./src-tauri/gen/apple/build/arm64-sim && tauri ios build --target aarch64-sim",
-		"build:android": "tauri android build",
-		"build:all": "bun build:ios-sim && bun build:android",
-		"commit": "bun format && git add . && cz"
-	},
-	"dependencies": {
-		"@tauri-apps/api": "^2.5.0",
-		"@tauri-apps/plugin-biometric": "~2",
-		"@tauri-apps/plugin-clipboard-manager": "~2",
-		"@tauri-apps/plugin-dialog": "~2",
-		"@tauri-apps/plugin-fs": "~2",
-		"@tauri-apps/plugin-http": "~2",
-		"@tauri-apps/plugin-log": "~2",
-		"@tauri-apps/plugin-opener": "^2.2.6",
-		"@tauri-apps/plugin-stronghold": "^2.2.0",
-		"@vanilla-extract/css": "^1.17.1",
-		"classnames": "^2.5.1",
-		"dayjs": "^1.11.13",
-		"emojibase-data": "^16.0.3",
-		"lucide-react": "^0.510.0",
-		"motion": "^12.10.5",
-		"nanoid": "^5.1.5",
-		"nuqs": "^2.4.3",
-		"react": "^19.1.0",
-		"react-dom": "^19.1.0",
-		"react-router-dom": "^7.6.0",
-		"tauri-plugin-keychain": "^2.0.1",
-		"use-debounce": "^10.0.4",
-		"uuid": "^11.1.0"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^1.9.4",
-		"@commitlint/cli": "^19.8.1",
-		"@commitlint/config-conventional": "^19.8.1",
-		"@tauri-apps/cli": "^2.5.0",
-		"@types/react": "^19.1.3",
-		"@types/react-dom": "^19.1.3",
-		"@vanilla-extract/vite-plugin": "^5.0.1",
-		"@vitejs/plugin-react": "^4.4.1",
-		"commitizen": "^4.3.1",
-		"cz-conventional-changelog": "^3.3.0",
-		"repomix": "^0.3.7",
-		"rimraf": "^6.0.1",
-		"typescript": "~5.8.3",
-		"vite": "^6.3.5"
+	}, [show, user]);
+	if (!user) {
+		return null;
 	}
+	return (
+		<>
+			<Container vertical='small'>
+				<Row align='center' justify='space-between'>
+					<Row align='center' gap={8}>
+						<Avatar src={user.profileUrl} />
+						<Typo.Body weight='strong'>{user.name}</Typo.Body>
+					</Row>
+					<Ban size={20} onClick={showBanDrawer} />
+				</Row>
+			</Container>
+			<Container vertical='small'>
+				<Grid>
+					{diaries.map((d) => (
+						<DiaryCard key={d.uuid} diary={d} />
+					))}
+				</Grid>
+			</Container>
+			<Container horizontal='none'>
+				<Divider />
+			</Container>
+		</>
+	);
 }
 ````
 
 ## File: src/lib/managers/diary.ts
 ````typescript
-import { encryptDiary } from '@/binding/function/encrypt-diary';
+import { encryptJson } from '@/binding/function/encrypt-json';
 import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
 import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
@@ -9431,6 +9941,12 @@ interface DiaryEditable {
 	emoji: string;
 	title: string;
 	content: string;
+}
+export interface Reply extends ReplyData {
+	uuid: string;
+	diaryId: string;
+	authorId: string;
+	createdAt: Date;
 }
 class DiaryManager {
 	private data: Map<string, Diary> = new Map();
@@ -9555,7 +10071,7 @@ class DiaryManager {
 		this.data.set(uuid, updatedDiary);
 		await this.saveData();
 		if (diary.shareUUID && diary.aesKey) {
-			const [encryptedData, _, nonce] = await encryptDiary(
+			const [encryptedData, _, nonce] = await encryptJson(
 				updatedDiary,
 				diary.aesKey,
 			);
@@ -9602,7 +10118,7 @@ class DiaryManager {
 				);
 			}
 		} else {
-			const [encryptedData, aesKey, nonce] = await encryptDiary(diary);
+			const [encryptedData, aesKey, nonce] = await encryptJson(diary);
 			diary.encryptedData = encryptedData;
 			diary.aesKey = aesKey;
 			diary.nonce = nonce;
@@ -9668,7 +10184,7 @@ class DiaryManager {
 			throw new Error('Diary is not shared via URL');
 		}
 		await apiClient.delete(`/diaries/${diary.shareUUID}`);
-		const [encryptedData, aesKey, nonce] = await encryptDiary(diary);
+		const [encryptedData, aesKey, nonce] = await encryptJson(diary);
 		diary.encryptedData = encryptedData;
 		diary.aesKey = aesKey;
 		diary.nonce = nonce;
@@ -9718,119 +10234,4 @@ class DiaryManager {
 	}
 }
 export const diaryManager = new DiaryManager();
-````
-
-## File: src/routes/diary/index.tsx
-````typescript
-import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
-import { Column } from '@/components/layout/column';
-import { Container } from '@/components/layout/container';
-import { DiaryAdditionalInfo } from '@/components/pages/diary/additional-info';
-import { DiaryContext } from '@/components/pages/diary/context';
-import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
-import { Divider } from '@/components/ui/divider';
-import { EmojiInput } from '@/components/ui/input/emoji';
-import { TopNavigator } from '@/components/ui/top-navigator';
-import { GoBack } from '@/components/ui/top-navigator/go-back';
-import { Typo } from '@/components/ui/typography';
-import { useDiary } from '@/hooks/use-diary';
-import { useOverlay } from '@/hooks/use-overlay';
-import { log } from '@/lib/log';
-import { diaryManager } from '@/lib/managers/diary';
-import { color } from '@/styles/color.css';
-import { Share } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { page, textArea, textAreaContainer, titleInput } from './page.css';
-export default function DiaryPage() {
-	const [searchParams] = useSearchParams();
-	const diaryUUID = useMemo(() => searchParams.get('uuid'), [searchParams]);
-	const isReadOnly = useMemo(
-		() => searchParams.get('readonly') === 'true',
-		[searchParams],
-	);
-	const [diary, diaryDispatch] = useDiary(diaryUUID);
-	const { setDiary, setEmoji, setTitle, setContent } = diaryDispatch;
-	const [isSaving, setIsSaving] = useState(false);
-	const { show: openShareDrawer } = useOverlay(ShareDiaryDrawer, {
-		preventBackdropClose: isSaving,
-	});
-	const { show: openSavingPopup, hide: closeSavingPopup } = useOverlay(
-		DiarySavingPopup,
-		{ preventBackdropClose: true },
-	);
-	const saveDiary = useCallback(async () => {
-		if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {
-			return;
-		}
-		setIsSaving(true);
-		openSavingPopup({});
-		try {
-			if (diaryManager.getDiary(diary.uuid)) {
-				await diaryManager.updateDiary(diary.uuid, diary);
-			} else {
-				await diaryManager.addDiary(diary);
-			}
-		} catch (error) {
-			log('error', 'Error while saving diary', error);
-			console.error('Error while saving diary', error);
-		} finally {
-			setIsSaving(false);
-			closeSavingPopup();
-		}
-	}, [diary, openSavingPopup, closeSavingPopup]);
-	const onClickShare = useCallback(() => {
-		openShareDrawer({ diary, setDiary });
-	}, [diary, setDiary, openShareDrawer]);
-	return (
-		<DiaryContext value={{ diary, diaryDispatch }}>
-			<Column className={page} justify='start'>
-				<TopNavigator
-					leadingArea={<GoBack beforeBack={saveDiary} />}
-					trailingArea={
-						isReadOnly ? undefined : (
-							<Share onClick={isSaving ? undefined : onClickShare} />
-						)
-					}
-				/>
-				<Container vertical='large' horizontal='large'>
-					<Column gap={24}>
-						<Column gap={12}>
-							<EmojiInput
-								defaultValue={diary.emoji}
-								onValue={setEmoji}
-								disabled={isSaving || isReadOnly}
-							/>
-							<input
-								className={titleInput}
-								placeholder='New Diary'
-								value={diary.title}
-								onChange={(e) => setTitle(e.target.value)}
-								disabled={isSaving || isReadOnly}
-							/>
-							<Typo.Caption
-								color={color.sand}
-							>{`Last Edited : ${new Date(diary.updatedAt).toLocaleString()}`}</Typo.Caption>
-						</Column>
-						<DiaryAdditionalInfo />
-					</Column>
-				</Container>
-				<Divider />
-				<Container
-					className={textAreaContainer}
-					vertical='large'
-					horizontal='large'
-				>
-					<textarea
-						className={textArea}
-						placeholder='Write your diary'
-						value={diary.content}
-						onChange={(e) => setContent(e.target.value)}
-						disabled={isSaving || isReadOnly}
-					/>
-				</Container>
-			</Column>
-		</DiaryContext>
-	);
-}
 ````
