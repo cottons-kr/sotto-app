@@ -1,7 +1,9 @@
+import { DiaryRepliesDrawer } from '@/components/features/diary/replies-drawer';
 import { DiarySendReplyDrawer } from '@/components/features/diary/send-reply-drawer';
 import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
+import { Row } from '@/components/layout/row';
 import { DiaryAdditionalInfo } from '@/components/pages/diary/additional-info';
 import { DiaryContext } from '@/components/pages/diary/context';
 import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
@@ -15,7 +17,7 @@ import { useOverlay } from '@/hooks/use-overlay';
 import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
 import { color } from '@/styles/color.css';
-import { Share, SmilePlus } from 'lucide-react';
+import { MessageCircle, Share, SmilePlus } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { page, textArea, textAreaContainer, titleInput } from './page.css';
@@ -38,6 +40,7 @@ export default function DiaryPage() {
 		{ preventBackdropClose: true },
 	);
 	const { show: openSendReply } = useOverlay(DiarySendReplyDrawer);
+	const { show: openReplies } = useOverlay(DiaryRepliesDrawer);
 
 	const saveDiary = useCallback(async () => {
 		if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {
@@ -70,6 +73,10 @@ export default function DiaryPage() {
 		openSendReply({ diary });
 	}, [diary, openSendReply]);
 
+	const onClickViewReplies = useCallback(() => {
+		openReplies({ diary });
+	}, [diary, openReplies]);
+
 	return (
 		<DiaryContext value={{ diary, diaryDispatch }}>
 			<Column className={page} justify='start'>
@@ -79,7 +86,10 @@ export default function DiaryPage() {
 						isReadOnly ? (
 							<SmilePlus onClick={onClickSendReply} />
 						) : (
-							<Share onClick={isSaving ? undefined : onClickShare} />
+							<Row gap={16}>
+								<MessageCircle onClick={onClickViewReplies} />
+								<Share onClick={onClickShare} />
+							</Row>
 						)
 					}
 				/>
