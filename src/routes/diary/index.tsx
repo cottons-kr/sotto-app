@@ -5,6 +5,7 @@ import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
 import { DiaryAdditionalInfo } from '@/components/pages/diary/additional-info';
+import { DiaryAttachments } from '@/components/pages/diary/attachments';
 import { DiaryContext } from '@/components/pages/diary/context';
 import { DiarySavingPopup } from '@/components/pages/diary/saving-popup';
 import { Divider } from '@/components/ui/divider';
@@ -116,6 +117,7 @@ export default function DiaryPage() {
 					</Column>
 				</Container>
 				<Divider />
+				<DiaryAttachments />
 				<Container
 					className={textAreaContainer}
 					vertical='large'
