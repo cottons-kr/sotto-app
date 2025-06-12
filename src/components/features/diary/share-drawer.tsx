@@ -110,6 +110,7 @@ export function ShareDiaryDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 				},
 				{ label: 'Apply', loading: isProcessing, onClick: onClickShare },
 			]}
+			defaultSelected={diary.sharedWith}
 			close={close}
 		/>
 	);
