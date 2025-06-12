@@ -1,4 +1,4 @@
-import { encryptJson } from '@/binding/function/encrypt-diary';
+import { encryptJson } from '@/binding/function/encrypt-json';
 import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
 import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
