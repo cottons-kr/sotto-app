@@ -1,6 +1,6 @@
 import { ShareDiaryDrawer } from '@/components/features/diary/share-drawer';
-import { DiaryRepliesDrawer } from '@/components/features/reply/replies-drawer';
-import { DiarySendReplyDrawer } from '@/components/features/reply/send-reply-drawer';
+import { ReplyListDrawer } from '@/components/features/reply/replies-drawer';
+import { ReplySendDrawer } from '@/components/features/reply/send-drawer';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
@@ -39,8 +39,8 @@ export default function DiaryPage() {
 		DiarySavingPopup,
 		{ preventBackdropClose: true },
 	);
-	const { show: openSendReply } = useOverlay(DiarySendReplyDrawer);
-	const { show: openReplies } = useOverlay(DiaryRepliesDrawer);
+	const { show: openSendReply } = useOverlay(ReplySendDrawer);
+	const { show: openReplies } = useOverlay(ReplyListDrawer);
 
 	const saveDiary = useCallback(async () => {
 		if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {

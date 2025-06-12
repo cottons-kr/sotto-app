@@ -17,13 +17,11 @@ import { message } from '@tauri-apps/plugin-dialog';
 import { useCallback, useState } from 'react';
 import { textArea, wrapper } from './styles/send-reply-drawer.css';
 
-interface DiarySendReplyDrawerProps {
+interface ReplySendDrawerProps {
 	diary: Diary;
 }
 
-export function DiarySendReplyDrawer(
-	props: DiarySendReplyDrawerProps & OverlayProps,
-) {
+export function ReplySendDrawer(props: ReplySendDrawerProps & OverlayProps) {
 	const { diary, close } = props;
 
 	const [emoji, setEmoji] = useState('');

@@ -18,13 +18,11 @@ import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { content, list } from './styles/replies-drawer.css';
 
-interface DiaryRepliesDrawerProps {
+interface ReplyListDrawerProps {
 	diary: Diary;
 }
 
-export function DiaryRepliesDrawer(
-	props: DiaryRepliesDrawerProps & OverlayProps,
-) {
+export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 	const { diary, close } = props;
 
 	const [replies, setReplies] = useState<Array<Reply>>([]);
