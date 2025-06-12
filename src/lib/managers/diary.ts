@@ -34,6 +34,13 @@ interface DiaryEditable {
 	content: string;
 }
 
+export interface Reply extends ReplyData {
+	uuid: string;
+	diaryId: string;
+	authorId: string;
+	createdAt: Date;
+}
+
 class DiaryManager {
 	private data: Map<string, Diary> = new Map();
 	public isInitialized = false;

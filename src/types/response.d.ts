@@ -32,3 +32,20 @@ type SharedDiariesResponse = Array<{
 	recipient: unknown;
 	createdAt: string;
 }>;
+
+type RepliesResponse = Array<{
+	uuid: string;
+	diaryId: string;
+	data: string;
+	nonce: string;
+	encryptedKey: string;
+	authorId: string;
+	author: {
+		uuid: string;
+		username: string;
+		name: string;
+		profileUrl: string;
+	};
+	encryptedKey: string;
+	createdAt: string;
+}>;
