@@ -6,7 +6,7 @@ import { Typo } from '../typography';
 
 interface GoBackProps {
 	label?: string;
-	beforeBack?: () => unknown;
+	beforeBack?: (next: () => void) => unknown;
 }
 
 export function GoBack(props: GoBackProps) {
@@ -16,7 +16,8 @@ export function GoBack(props: GoBackProps) {
 
 	const onClickBack = useCallback(async () => {
 		if (beforeBack) {
-			await beforeBack();
+			await beforeBack(() => navigate(-1));
+			return;
 		}
 		navigate(-1);
 	}, [beforeBack, navigate]);

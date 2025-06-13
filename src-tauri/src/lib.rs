@@ -22,7 +22,7 @@ pub fn run() {
         ])
         .setup(|app| {
             #[cfg(any(target_os = "android", target_os = "ios"))]
-            app.handle().plugin(tauri_plugin_biometric::init());
+            let _ = app.handle().plugin(tauri_plugin_biometric::init());
 
             let salt_path = app
                 .path()

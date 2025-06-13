@@ -1,16 +1,16 @@
-interface FileMetadata {
+export interface FileMetadata {
 	name: string;
 	type: string;
 	lastModified: number;
 	size: number;
 }
 
-interface StoredFileData {
+export interface StoredFileData {
 	metadata: FileMetadata;
 	blob: Blob;
 }
 
-export class FileStorage {
+class FileStorage {
 	private db: IDBDatabase | null = null;
 
 	constructor(
@@ -26,33 +26,33 @@ export class FileStorage {
 		});
 	}
 
-	private getDatabase(): IDBDatabase {
+	private getDatabase() {
 		if (!this.db) {
 			throw new Error('Database is not initialized. Call init() first.');
 		}
 		return this.db;
 	}
 
-	async init(): Promise<void> {
-		const request = indexedDB.open(this.dbName, this.version);
+	async init() {
+		const openReq = indexedDB.open(this.dbName, this.version);
 
-		request.onupgradeneeded = (event) => {
-			const database = (event.target as IDBOpenDBRequest).result;
+		openReq.onupgradeneeded = () => {
+			const database = openReq.result;
 			if (!database.objectStoreNames.contains(this.storeName)) {
 				database.createObjectStore(this.storeName);
 			}
 		};
 
-		this.db = await this.openRequest(request);
+		this.db = await this.openRequest(openReq);
 	}
 
-	private transaction(mode: IDBTransactionMode): IDBObjectStore {
+	private transaction(mode: IDBTransactionMode) {
 		const database = this.getDatabase();
 		const tx = database.transaction(this.storeName, mode);
 		return tx.objectStore(this.storeName);
 	}
 
-	async saveFile(key: string, file: File): Promise<void> {
+	async saveFile(key: string, file: File) {
 		const store = this.transaction('readwrite');
 		const data: StoredFileData = {
 			metadata: {
@@ -66,7 +66,7 @@ export class FileStorage {
 		await this.openRequest(store.put(data, key));
 	}
 
-	async getFile(key: string): Promise<File | null> {
+	async getFile(key: string) {
 		const store = this.transaction('readonly');
 		const result = await this.openRequest<StoredFileData | undefined>(
 			store.get(key),
@@ -82,33 +82,25 @@ export class FileStorage {
 		});
 	}
 
-	async listFiles(): Promise<Array<{ key: string; metadata: FileMetadata }>> {
+	async listFiles() {
 		const store = this.transaction('readonly');
-		return new Promise((resolve, reject) => {
-			const files: Array<{ key: string; metadata: FileMetadata }> = [];
-			const request = store.openCursor();
+		const [keys, values] = await Promise.all([
+			this.openRequest<IDBValidKey[]>(store.getAllKeys()),
+			this.openRequest<StoredFileData[]>(store.getAll()),
+		]);
 
-			request.onsuccess = (event) => {
-				const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-				if (cursor) {
-					const data = cursor.value as StoredFileData;
-					files.push({ key: cursor.key.toString(), metadata: data.metadata });
-					cursor.continue();
-				} else {
-					resolve(files);
-				}
-			};
-
-			request.onerror = () => reject(request.error);
-		});
+		return values.map((data, index) => ({
+			key: String(keys[index]),
+			metadata: data.metadata,
+		}));
 	}
 
-	async deleteFile(key: string): Promise<void> {
+	async deleteFile(key: string) {
 		const store = this.transaction('readwrite');
 		await this.openRequest(store.delete(key));
 	}
 
-	async clearAll(): Promise<void> {
+	async clear() {
 		const store = this.transaction('readwrite');
 		await this.openRequest(store.clear());
 	}

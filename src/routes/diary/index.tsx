@@ -18,6 +18,7 @@ import { useOverlay } from '@/hooks/use-overlay';
 import { log } from '@/lib/log';
 import { diaryManager } from '@/lib/managers/diary';
 import { color } from '@/styles/color.css';
+import { message } from '@tauri-apps/plugin-dialog';
 import { MessageCircle, Share, SmilePlus } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -43,28 +44,33 @@ export default function DiaryPage() {
 	const { show: openSendReply } = useOverlay(ReplySendDrawer);
 	const { show: openReplies } = useOverlay(ReplyListDrawer);
 
-	const saveDiary = useCallback(async () => {
-		if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {
-			return;
-		}
-
-		setIsSaving(true);
-		openSavingPopup({});
-
-		try {
-			if (diaryManager.getDiary(diary.uuid)) {
-				await diaryManager.updateDiary(diary.uuid, diary);
-			} else {
-				await diaryManager.addDiary(diary);
+	const saveDiary = useCallback(
+		async (next: () => void) => {
+			if ((!diary.emoji && !diary.title && !diary.content) || diary.readonly) {
+				next();
+				return;
 			}
-		} catch (error) {
-			log('error', 'Error while saving diary', error);
-			console.error('Error while saving diary', error);
-		} finally {
-			setIsSaving(false);
-			closeSavingPopup();
-		}
-	}, [diary, openSavingPopup, closeSavingPopup]);
+
+			setIsSaving(true);
+			openSavingPopup({});
+
+			try {
+				if (diaryManager.getDiary(diary.uuid)) {
+					await diaryManager.updateDiary(diary.uuid, diary);
+				} else {
+					await diaryManager.addDiary(diary);
+				}
+				next();
+			} catch (error) {
+				log('error', 'Error while saving diary', error);
+				await message('Failed to save diary. Please try again.');
+			} finally {
+				setIsSaving(false);
+				closeSavingPopup();
+			}
+		},
+		[diary, openSavingPopup, closeSavingPopup],
+	);
 
 	const onClickShare = useCallback(() => {
 		openShareDrawer({ diary, setDiary });

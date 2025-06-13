@@ -41,9 +41,24 @@ export function useDiary(uuid: string | null) {
 		}));
 	}, []);
 
+	const setAttachments = useCallback((attachments: Array<string>) => {
+		setDiary((prev) => ({
+			...prev,
+			attachments,
+		}));
+	}, []);
+
 	return [
 		diary,
-		{ setEmoji, setTitle, setContent, setLocation, setWeather, setDiary },
+		{
+			setEmoji,
+			setTitle,
+			setContent,
+			setLocation,
+			setWeather,
+			setAttachments,
+			setDiary,
+		},
 	] as const;
 }
 

@@ -1,5 +1,6 @@
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import react from '@vitejs/plugin-react';
+import fg from 'fast-glob';
 import { defineConfig } from 'vite';
 
 const host = process.env.TAURI_DEV_HOST;
@@ -27,7 +28,7 @@ export default defineConfig(async () => ({
 			ignored: ['**/src-tauri/**'],
 		},
 		warmup: {
-			clientFiles: ['./src/**/*.css.ts'],
+			clientFiles: await fg(['./src/**/*.css.ts', '!./src/**/layer.css.ts']),
 		},
 	},
 	envPrefix: ['VITE_', 'TAURI_ENV_'],

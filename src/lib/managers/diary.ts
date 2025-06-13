@@ -3,6 +3,7 @@ import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recip
 import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
 import type { Weather } from '../weather';
+import { fileStorage } from './file';
 import { type User, friendManager } from './friend';
 import { apiClient } from './http';
 import { storageClient } from './storage';
@@ -363,6 +364,14 @@ class DiaryManager {
 
 		if (!diary.sharedBy && diary.shareUUID) {
 			await apiClient.delete(`/diaries/${diary.shareUUID}`);
+		}
+
+		if (diary.attachments.length > 0) {
+			await Promise.all(
+				diary.attachments.map((attachmentId) =>
+					fileStorage.deleteFile(attachmentId),
+				),
+			);
 		}
 
 		this.data.delete(uuid);
