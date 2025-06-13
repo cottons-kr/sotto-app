@@ -1,8 +1,10 @@
+import { AttachmentFocus } from '@/components/features/attachment/focus';
 import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
 import { LoadingCircle } from '@/components/ui/loading-circle';
 import { Typo } from '@/components/ui/typography';
+import { useOverlay } from '@/hooks/use-overlay';
 import { cn } from '@/lib/common';
 import { fileStorage } from '@/lib/managers/file';
 import { fullHeight } from '@/styles/utils.css';
@@ -110,6 +112,7 @@ function Attachment(props: AttachmentProps) {
 
 	const [isLoading, setIsLoading] = useState(true);
 	const [previewUrl, setPreviewUrl] = useState('');
+	const { show: showFocus } = useOverlay(AttachmentFocus);
 
 	const getAttachment = useCallback(async () => {
 		const isLocal = attachmentId.startsWith('local:');
@@ -131,6 +134,10 @@ function Attachment(props: AttachmentProps) {
 		setIsLoading(false);
 	}, [attachmentId]);
 
+	const onClick = useCallback(() => {
+		showFocus({ previewUrl });
+	}, [previewUrl, showFocus]);
+
 	useEffect(() => {
 		getAttachment();
 	}, [getAttachment]);
@@ -147,6 +154,7 @@ function Attachment(props: AttachmentProps) {
 					src={previewUrl}
 					alt={attachmentId}
 					draggable={false}
+					onClick={onClick}
 				/>
 			)}
 		</Item>
