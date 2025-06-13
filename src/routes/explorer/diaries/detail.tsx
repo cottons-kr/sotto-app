@@ -11,17 +11,23 @@ import { TopNavigator } from '@/components/ui/top-navigator';
 import { GoBack } from '@/components/ui/top-navigator/go-back';
 import { Typo } from '@/components/ui/typography';
 import { useOverlay } from '@/hooks/use-overlay';
+import { bytesToSize } from '@/lib/common';
 import { diaryManager } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
 import { color } from '@/styles/color.css';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function ExplorerDiariesDetailPage() {
 	const { uuid } = useParams();
 	const navigate = useNavigate();
 	const diary = useMemo(() => diaryManager.getDiary(uuid || ''), [uuid]);
+	const [showEncryptedData, setShowEncryptedData] = useState(false);
 	const { show: openDiaryDelete } = useOverlay(DeleteDiaryPopup);
+
+	const onClickRevealData = useCallback(() => {
+		setShowEncryptedData(true);
+	}, []);
 
 	const onClickDeleteDiary = useCallback(() => {
 		if (diary) {
@@ -39,7 +45,7 @@ export default function ExplorerDiariesDetailPage() {
 		<>
 			<TopNavigator leadingArea={<GoBack label='Diaries' />} />
 			<Container vertical='small'>
-				<Typo.Title weight='strong'>{diary.title}</Typo.Title>
+				<Typo.Title weight='strong'>{diary.title || 'Untitled'}</Typo.Title>
 			</Container>
 			<Container vertical='small'>
 				<Row align='center' justify='start' gap={8}>
@@ -59,10 +65,19 @@ export default function ExplorerDiariesDetailPage() {
 				</Row>
 			</Container>
 			<PaddingDivider />
-			<ExplorerContent
-				label='Encrypted Data'
-				content={diary.encryptedData?.toString() || 'No data available'}
-			/>
+			{showEncryptedData ? (
+				<ExplorerContent
+					label='Encrypted Data'
+					content={diary.encryptedData?.toString() || 'No data available'}
+				/>
+			) : (
+				<Container>
+					<Button fill variant='secondary' onClick={onClickRevealData}>
+						Click to reveal data -{' '}
+						{bytesToSize(diary.encryptedData?.length ?? 0)}
+					</Button>
+				</Container>
+			)}
 			<PaddingDivider />
 			<ExplorerContent
 				label='Nonce'
