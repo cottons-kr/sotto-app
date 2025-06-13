@@ -94,7 +94,9 @@ export default function DiaryPage() {
 							<SmilePlus onClick={onClickSendReply} />
 						) : (
 							<Row gap={16}>
-								<MessageCircle onClick={onClickViewReplies} />
+								{diary.shareUUID && (
+									<MessageCircle onClick={onClickViewReplies} />
+								)}
 								<Share onClick={onClickShare} />
 							</Row>
 						)

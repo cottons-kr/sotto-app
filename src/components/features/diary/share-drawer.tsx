@@ -37,6 +37,13 @@ export function ShareDiaryDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 				return;
 			}
 
+			if (!diary.shareUUID && selectedUsers.length === 0) {
+				await message(
+					'Please select at least one user to share your diary with.',
+				);
+				return;
+			}
+
 			setIsProcessing(true);
 
 			let uuid = diary.uuid;
