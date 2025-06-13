@@ -17,7 +17,7 @@ export interface Diary {
 	content: string;
 	location?: string;
 	weather?: Weather;
-	attachments: Array<string>;
+	attachments: Array<Attachment>;
 	sharedWith: Array<string>;
 	encryptedData: string | null;
 	aesKey: string | null;
@@ -41,6 +41,11 @@ export interface Reply extends ReplyData {
 	authorId: string;
 	createdAt: Date;
 }
+
+export type Attachment = {
+	localId: string;
+	remoteUrl?: string;
+};
 
 class DiaryManager {
 	private data: Map<string, Diary> = new Map();
@@ -366,12 +371,10 @@ class DiaryManager {
 			await apiClient.delete(`/diaries/${diary.shareUUID}`);
 		}
 
-		if (diary.attachments.length > 0) {
-			await Promise.all(
-				diary.attachments.map((attachmentId) =>
-					fileStorage.deleteFile(attachmentId),
-				),
-			);
+		if (diary.attachments.length > 0 && !diary.readonly) {
+			for (const attachment of diary.attachments) {
+				await fileStorage.deleteFile(attachment.localId);
+			}
 		}
 
 		this.data.delete(uuid);

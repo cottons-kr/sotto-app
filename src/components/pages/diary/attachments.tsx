@@ -6,6 +6,7 @@ import { LoadingCircle } from '@/components/ui/loading-circle';
 import { Typo } from '@/components/ui/typography';
 import { useOverlay } from '@/hooks/use-overlay';
 import { cn } from '@/lib/common';
+import type { Attachment as AttachmentType } from '@/lib/managers/diary';
 import { fileStorage } from '@/lib/managers/file';
 import { fullHeight } from '@/styles/utils.css';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
@@ -16,7 +17,6 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
-	useMemo,
 	useRef,
 	useState,
 } from 'react';
@@ -31,8 +31,8 @@ export function DiaryAttachments() {
 		<Container className={list} vertical='large' horizontal='large'>
 			<Row gap={8} justify='start'>
 				{diary.attachments.length < 5 && <AddPhoto />}
-				{diary.attachments.map((id) => (
-					<Attachment key={id} attachmentId={id} />
+				{diary.attachments.map((a, i) => (
+					<Attachment key={i.toString()} attachment={a} />
 				))}
 			</Row>
 		</Container>
@@ -78,7 +78,7 @@ function AddPhoto() {
 				fileList.map(async (file) => {
 					const id = v4();
 					await fileStorage.saveFile(id, file);
-					return `local:${id}`;
+					return { localId: id };
 				}),
 			);
 			setAttachments([...newAttachments, ...diary.attachments]);
@@ -105,18 +105,14 @@ function AddPhoto() {
 }
 
 interface AttachmentProps {
-	attachmentId: string;
+	attachment: AttachmentType;
 }
 
 function Attachment(props: AttachmentProps) {
-	const { attachmentId } = props;
+	const { attachment } = props;
 
 	const [isLoading, setIsLoading] = useState(true);
 	const [previewUrl, setPreviewUrl] = useState('');
-	const isLocal = useMemo(
-		() => attachmentId.startsWith('local:'),
-		[attachmentId],
-	);
 	const {
 		diary,
 		diaryDispatch: { setAttachments },
@@ -124,33 +120,31 @@ function Attachment(props: AttachmentProps) {
 	const { show: showFocus, hide: hideFocus } = useOverlay(AttachmentFocus);
 
 	const getAttachment = useCallback(async () => {
-		let file: File;
-		if (isLocal) {
-			const saved = await fileStorage.getFile(
-				attachmentId.replace('local:', ''),
-			);
-			if (!saved) {
-				throw new Error('File not found');
-			}
-			file = saved;
-		} else {
+		if (diary.readonly) {
 			throw new Error('not implemented');
 		}
+		const saved = await fileStorage.getFile(attachment.localId);
+		if (!saved) {
+			throw new Error('File not found');
+		}
+		const file = saved;
 
 		const url = URL.createObjectURL(file);
 		setPreviewUrl(url);
 		setIsLoading(false);
-	}, [attachmentId, isLocal]);
+	}, [attachment, diary.readonly]);
 
 	const deleteAttachment = useCallback(async () => {
-		if (isLocal) {
-			await fileStorage.deleteFile(attachmentId.replace('local:', ''));
-			setAttachments(diary.attachments.filter((id) => id !== attachmentId));
-		} else {
+		if (diary.readonly) {
 			throw new Error('not implemented');
 		}
+		await fileStorage.deleteFile(attachment.localId);
+		setAttachments(
+			diary.attachments.filter((a) => a.localId !== attachment.localId),
+		);
+		URL.revokeObjectURL(previewUrl);
 		hideFocus();
-	}, [attachmentId, isLocal, diary.attachments, setAttachments, hideFocus]);
+	}, [attachment, diary, hideFocus, previewUrl, setAttachments]);
 
 	const onClick = useCallback(() => {
 		showFocus({ previewUrl, handleDelete: deleteAttachment });
@@ -170,7 +164,7 @@ function Attachment(props: AttachmentProps) {
 				<img
 					className={image}
 					src={previewUrl}
-					alt={attachmentId}
+					alt='Attachment preview'
 					draggable={false}
 					onClick={onClick}
 				/>
