@@ -39,6 +39,15 @@ pub fn generate_key_pair() -> Result<(String, String), String> {
 }
 
 #[tauri::command]
+pub fn generate_aes_key() -> Result<String, String> {
+    let mut key = [0u8; 32];
+    let mut rng = OsRng;
+    rng.fill_bytes(&mut key);
+
+    Ok(BASE64_STANDARD.encode(&key))
+}
+
+#[tauri::command]
 pub fn encrypt_data(data: String, prev_aes_key: Option<String>) -> Result<(String, String, String), String> {
     let aes_key: [u8; 32] = if let Some(b64) = prev_aes_key {
         BASE64_STANDARD

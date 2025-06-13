@@ -49,3 +49,8 @@ type RepliesResponse = Array<{
 	encryptedKey: string;
 	createdAt: string;
 }>;
+
+type PresignedUrlResponse = {
+	url: string;
+	fileName: string;
+};

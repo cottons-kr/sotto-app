@@ -1,8 +1,10 @@
 import { encryptData } from '@/binding/function/encrypt-data';
 import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
+import { generateAesKey } from '@/binding/function/generate-aes-key';
 import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
 import { log } from '../log';
+import { uploadAttachment } from './attachment';
 import { fileStorage } from './file';
 import { type User, friendManager } from './friend';
 import { apiClient } from './http';
@@ -199,7 +201,27 @@ class DiaryManager {
 				);
 			}
 		} else {
-			const [encryptedData, aesKey, nonce] = await encryptData(diary);
+			const aesKey = await generateAesKey();
+
+			for (const attachment of diary.attachments) {
+				if (!attachment.localId) {
+					throw new Error('Attachment localId is missing');
+				}
+				const file = await fileStorage.getFile(attachment.localId);
+				if (!file) {
+					throw new Error(`Attachment ${attachment.localId} not found`);
+				}
+
+				try {
+					const { fileUrl } = await uploadAttachment(file, aesKey);
+					attachment.remoteUrl = fileUrl;
+				} catch (error) {
+					log('error', 'Failed to upload attachment:', error);
+					throw new Error(`Failed to upload attachment: ${attachment.localId}`);
+				}
+			}
+
+			const [encryptedData, , nonce] = await encryptData(diary, aesKey);
 
 			diary.encryptedData = encryptedData;
 			diary.aesKey = aesKey;
