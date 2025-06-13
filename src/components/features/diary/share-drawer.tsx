@@ -17,6 +17,7 @@ import { DiaryURLCopiedPopup } from './url-copied-popup';
 
 interface DiaryShareDrawerProps {
 	diary: Diary;
+	isAttachmentUpdated: boolean;
 	setDiary: Dispatch<SetStateAction<Diary>>;
 }
 
@@ -47,13 +48,18 @@ export function ShareDiaryDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 			setIsProcessing(true);
 
 			let uuid = diary.uuid;
+			let result: Diary;
 			if (uuid === 'NOT_SAVED') {
 				const savedDiary = await diaryManager.addDiary(diary);
 				uuid = savedDiary.uuid;
 			}
-			const result = await diaryManager.shareDiary(uuid, selectedUsers);
-			setDiary(result);
+			if (selectedUsers.length > 0) {
+				result = await diaryManager.shareDiary(uuid, selectedUsers);
+			} else {
+				result = await diaryManager.cancelShare(uuid);
+			}
 
+			setDiary(result);
 			setIsProcessing(false);
 			close();
 		},

@@ -27,7 +27,7 @@ export function HomeMyDiaryDrawer(
 
 	const onClickCancelSharing = useCallback(async () => {
 		try {
-			await diaryManager.shareDiary(diary.uuid, []);
+			await diaryManager.cancelShare(diary.uuid);
 		} catch (error) {
 			log('error', 'Fail to cancel sharing diary', error);
 			await message('Failed to cancel sharing the diary.');

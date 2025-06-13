@@ -4,7 +4,7 @@ import { generateAesKey } from '@/binding/function/generate-aes-key';
 import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
 import { log } from '../log';
-import { uploadAttachment } from './attachment';
+import { uploadAttachments } from './attachment';
 import { fileStorage } from './file';
 import { type User, friendManager } from './friend';
 import { apiClient } from './http';
@@ -133,7 +133,11 @@ class DiaryManager {
 		return diary;
 	}
 
-	async updateDiary(uuid: string, updatedData: Diary | DiaryEditable) {
+	async updateDiary(
+		uuid: string,
+		updatedData: Diary | DiaryEditable,
+		updateAttachments = false,
+	) {
 		this.checkInitialized();
 		const diary = this.data.get(uuid);
 		if (!diary) {
@@ -148,6 +152,13 @@ class DiaryManager {
 		await this.saveData();
 
 		if (diary.shareUUID && diary.aesKey) {
+			if (updateAttachments) {
+				updatedDiary.attachments = await uploadAttachments(
+					updatedDiary.attachments,
+					diary.aesKey,
+				);
+			}
+
 			const [encryptedData, _, nonce] = await encryptData(
 				updatedDiary,
 				diary.aesKey,
@@ -165,61 +176,35 @@ class DiaryManager {
 		return updatedDiary;
 	}
 
-	async shareDiary(
-		uuid: string,
-		targetUsers: Array<User>,
-		preventDelete = false,
-	) {
+	async shareDiary(uuid: string, targetUsers: Array<User>) {
 		this.checkInitialized();
 		const diary = this.data.get(uuid);
 		if (!diary) {
 			throw new Error('Diary not found');
 		}
+		if (targetUsers.length === 0) {
+			throw new Error('No target users specified for sharing');
+		}
+		if (diary.readonly) {
+			throw new Error('Cannot share a readonly diary');
+		}
 
 		if (diary.shareUUID) {
-			if (targetUsers.length === 0 && !preventDelete) {
-				await apiClient.delete(`/diaries/${diary.shareUUID}`);
-
-				diary.shareUUID = null;
-				diary.encryptedData = null;
-				diary.aesKey = null;
-				diary.nonce = null;
-				diary.sharedWith = [];
-			} else {
-				const removedUsers = diary.sharedWith.filter(
-					(uuid) => !targetUsers.some((user) => user.uuid === uuid),
-				);
-				await Promise.all(
-					removedUsers.map((uuid) =>
-						apiClient.delete(
-							`/diaries/shared/${diary.shareUUID}/users/${uuid}`,
-						),
-					),
-				);
-				diary.sharedWith = diary.sharedWith.filter(
-					(uuid) => !removedUsers.includes(uuid),
-				);
-			}
+			const removedUsers = diary.sharedWith.filter(
+				(uuid) => !targetUsers.some((user) => user.uuid === uuid),
+			);
+			await Promise.all(
+				removedUsers.map((uuid) =>
+					apiClient.delete(`/diaries/shared/${diary.shareUUID}/users/${uuid}`),
+				),
+			);
+			diary.sharedWith = diary.sharedWith.filter(
+				(uuid) => !removedUsers.includes(uuid),
+			);
 		} else {
 			const aesKey = await generateAesKey();
 
-			for (const attachment of diary.attachments) {
-				if (!attachment.localId) {
-					throw new Error('Attachment localId is missing');
-				}
-				const file = await fileStorage.getFile(attachment.localId);
-				if (!file) {
-					throw new Error(`Attachment ${attachment.localId} not found`);
-				}
-
-				try {
-					const { fileUrl } = await uploadAttachment(file, aesKey);
-					attachment.remoteUrl = fileUrl;
-				} catch (error) {
-					log('error', 'Failed to upload attachment:', error);
-					throw new Error(`Failed to upload attachment: ${attachment.localId}`);
-				}
-			}
+			diary.attachments = await uploadAttachments(diary.attachments, aesKey);
 
 			const [encryptedData, , nonce] = await encryptData(diary, aesKey);
 
@@ -255,6 +240,37 @@ class DiaryManager {
 		return diary;
 	}
 
+	async cancelShare(uuid: string) {
+		this.checkInitialized();
+		const diary = this.data.get(uuid);
+		if (!diary) {
+			throw new Error('Diary not found');
+		}
+		if (!diary.shareUUID) {
+			throw new Error('Diary is not shared');
+		}
+		if (diary.readonly) {
+			throw new Error('Cannot cancel share for a readonly diary');
+		}
+
+		await apiClient.delete(`/diaries/${diary.shareUUID}`);
+
+		for (const attachment of diary.attachments) {
+			attachment.remoteUrl = undefined;
+		}
+
+		diary.shareUUID = null;
+		diary.encryptedData = null;
+		diary.aesKey = null;
+		diary.nonce = null;
+		diary.sharedWith = [];
+		diary.updatedAt = new Date();
+
+		this.data.set(uuid, diary);
+		await this.saveData();
+		return diary;
+	}
+
 	async shareDiaryViaURL(uuid: string) {
 		this.checkInitialized();
 		const diary = this.data.get(uuid);
@@ -265,7 +281,7 @@ class DiaryManager {
 		let shareUUID = diary.shareUUID;
 		let aesKey = diary.aesKey;
 		if (!shareUUID || !aesKey) {
-			const sharedDiary = await this.shareDiary(uuid, [], true);
+			const sharedDiary = await this.shareDiary(uuid, []);
 			shareUUID = sharedDiary.shareUUID;
 			aesKey = sharedDiary.aesKey;
 		}

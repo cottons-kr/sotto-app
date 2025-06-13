@@ -33,6 +33,7 @@ export default function DiaryPage() {
 	);
 	const [diary, diaryDispatch] = useDiary(diaryUUID);
 	const { setDiary, setEmoji, setTitle, setContent } = diaryDispatch;
+	const [isAttachmentUpdated, setIsAttachmentUpdated] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const { show: openShareDrawer } = useOverlay(ShareDiaryDrawer, {
 		preventBackdropClose: isSaving,
@@ -56,7 +57,11 @@ export default function DiaryPage() {
 
 			try {
 				if (diaryManager.getDiary(diary.uuid)) {
-					await diaryManager.updateDiary(diary.uuid, diary);
+					await diaryManager.updateDiary(
+						diary.uuid,
+						diary,
+						isAttachmentUpdated,
+					);
 				} else {
 					await diaryManager.addDiary(diary);
 				}
@@ -69,12 +74,12 @@ export default function DiaryPage() {
 				closeSavingPopup();
 			}
 		},
-		[diary, openSavingPopup, closeSavingPopup],
+		[diary, isAttachmentUpdated, openSavingPopup, closeSavingPopup],
 	);
 
 	const onClickShare = useCallback(() => {
-		openShareDrawer({ diary, setDiary });
-	}, [diary, setDiary, openShareDrawer]);
+		openShareDrawer({ diary, isAttachmentUpdated, setDiary });
+	}, [diary, isAttachmentUpdated, setDiary, openShareDrawer]);
 
 	const onClickSendReply = useCallback(() => {
 		openSendReply({ diary });
@@ -88,8 +93,19 @@ export default function DiaryPage() {
 		console.log(diary);
 	}, [diary]);
 
+	useEffect(() => {
+		console.log('isAttachmentUpdated', isAttachmentUpdated);
+	}, [isAttachmentUpdated]);
+
 	return (
-		<DiaryContext value={{ diary, diaryDispatch }}>
+		<DiaryContext
+			value={{
+				diary,
+				diaryDispatch,
+				isAttachmentUpdated,
+				setIsAttachmentUpdated,
+			}}
+		>
 			<Column className={page} justify='start'>
 				<TopNavigator
 					leadingArea={<GoBack beforeBack={saveDiary} />}

@@ -30,7 +30,7 @@ export function DiaryAttachments() {
 	return (
 		<Container className={list} vertical='large' horizontal='large'>
 			<Row gap={8} justify='start'>
-				{diary.attachments.length < 5 && <AddPhoto />}
+				{diary.attachments.length < 5 && !diary.readonly ? <AddPhoto /> : null}
 				{diary.attachments.map((a, i) => (
 					<AttachmentItem key={i.toString()} attachment={a} />
 				))}
@@ -44,6 +44,7 @@ function AddPhoto() {
 	const {
 		diary,
 		diaryDispatch: { setAttachments },
+		setIsAttachmentUpdated,
 	} = useContext(DiaryContext);
 
 	const onClick = useCallback(() => {
@@ -82,8 +83,9 @@ function AddPhoto() {
 				}),
 			);
 			setAttachments([...newAttachments, ...diary.attachments]);
+			setIsAttachmentUpdated(true);
 		},
-		[diary.attachments, setAttachments],
+		[diary.attachments, setAttachments, setIsAttachmentUpdated],
 	);
 
 	return (
@@ -116,6 +118,7 @@ function AttachmentItem(props: AttachmentProps) {
 	const {
 		diary,
 		diaryDispatch: { setAttachments },
+		setIsAttachmentUpdated,
 	} = useContext(DiaryContext);
 	const { show: showFocus, hide: hideFocus } = useOverlay(AttachmentFocus);
 
@@ -149,9 +152,17 @@ function AttachmentItem(props: AttachmentProps) {
 		setAttachments(
 			diary.attachments.filter((a) => a.localId !== attachment.localId),
 		);
+		setIsAttachmentUpdated(true);
 		URL.revokeObjectURL(previewUrl);
 		hideFocus();
-	}, [attachment, diary, hideFocus, previewUrl, setAttachments]);
+	}, [
+		attachment,
+		diary,
+		hideFocus,
+		previewUrl,
+		setAttachments,
+		setIsAttachmentUpdated,
+	]);
 
 	const onClick = useCallback(() => {
 		showFocus({ previewUrl, handleDelete: deleteAttachment });

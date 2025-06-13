@@ -1,8 +1,40 @@
 import { decryptData } from '@/binding/function/decrypt-data';
 import { encryptData } from '@/binding/function/encrypt-data';
 import { convertFileToBase64 } from '../common';
+import { log } from '../log';
+import { fileStorage } from './file';
 import { apiClient } from './http';
 import { storageClient } from './storage';
+
+export async function uploadAttachments(
+	attachments: Array<Attachment>,
+	aesKey: string,
+) {
+	const updatedAttachments = await Promise.all(
+		attachments.map(async (attachment) => {
+			if (!attachment.localId) {
+				throw new Error('Attachment localId is missing');
+			}
+			const file = await fileStorage.getFile(attachment.localId);
+			if (!file) {
+				throw new Error(`Attachment ${attachment.localId} not found`);
+			}
+
+			try {
+				const { fileUrl } = await uploadAttachment(file, aesKey);
+				attachment.remoteUrl = fileUrl;
+				return attachment;
+			} catch (error) {
+				log('error', 'Failed to upload attachment:', error);
+				throw new Error(`Failed to upload attachment: ${attachment.localId}`);
+			}
+		}),
+	);
+
+	console.log('Updated attachments:', updatedAttachments);
+
+	return updatedAttachments;
+}
 
 export async function uploadAttachment(file: File, aesKey: string) {
 	const base64File = await convertFileToBase64(file);
