@@ -1,5 +1,4 @@
 import type { useDiary } from '@/hooks/use-diary';
-import type { Diary } from '@/lib/managers/diary';
 import { createContext } from 'react';
 
 type DiaryContextType = {

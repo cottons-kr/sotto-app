@@ -4,7 +4,6 @@ import { ButtonGroup } from '@/components/ui/button/group';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Popup } from '@/components/ui/popup';
 import { PopupContent } from '@/components/ui/popup/content';
-import type { Diary } from '@/lib/managers/diary';
 import { apiClient } from '@/lib/managers/http';
 import { CloudUpload } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';

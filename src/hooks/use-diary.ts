@@ -1,4 +1,4 @@
-import { type Attachment, diaryManager } from '@/lib/managers/diary';
+import { diaryManager } from '@/lib/managers/diary';
 import { storageClient } from '@/lib/managers/storage';
 import type { Weather } from '@/lib/weather';
 import { useCallback, useState } from 'react';

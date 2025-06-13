@@ -1,6 +1,6 @@
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { useOverlay } from '@/hooks/use-overlay';
-import { type Diary, diaryManager } from '@/lib/managers/diary';
+import { diaryManager } from '@/lib/managers/diary';
 import type { User } from '@/lib/managers/friend';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { message } from '@tauri-apps/plugin-dialog';

@@ -5,7 +5,6 @@ import { HomeFriendDiaryDrawer } from '@/components/pages/home/friend-diary-draw
 import { HomeMyDiaryDrawer } from '@/components/pages/home/my-diaries/drawer';
 import { useOverlay } from '@/hooks/use-overlay';
 import { calculateDiffDays } from '@/lib/common';
-import type { Diary } from '@/lib/managers/diary';
 import { useCallback, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typo } from '../typography';

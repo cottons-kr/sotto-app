@@ -9,7 +9,6 @@ import { DrawerTitle } from '@/components/ui/drawer/title';
 import { EmojiInput } from '@/components/ui/input/emoji';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { log } from '@/lib/log';
-import type { Diary } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { fullHeight } from '@/styles/utils.css';

@@ -2,50 +2,10 @@ import { encryptData } from '@/binding/function/encrypt-data';
 import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
 import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
-import type { Weather } from '../weather';
 import { fileStorage } from './file';
 import { type User, friendManager } from './friend';
 import { apiClient } from './http';
 import { storageClient } from './storage';
-
-export interface Diary {
-	uuid: string;
-	shareUUID: string | null;
-	sharedBy: string | null;
-	emoji: string;
-	title: string;
-	content: string;
-	location?: string;
-	weather?: Weather;
-	attachments: Array<Attachment>;
-	sharedWith: Array<string>;
-	encryptedData: string | null;
-	aesKey: string | null;
-	encryptedKey: string | null;
-	nonce: string | null;
-	readonly: boolean;
-	isSharedViaURL: boolean;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-interface DiaryEditable {
-	emoji: string;
-	title: string;
-	content: string;
-}
-
-export interface Reply extends ReplyData {
-	uuid: string;
-	diaryId: string;
-	authorId: string;
-	createdAt: Date;
-}
-
-export type Attachment = {
-	localId: string;
-	remoteUrl?: string;
-};
 
 class DiaryManager {
 	private data: Map<string, Diary> = new Map();

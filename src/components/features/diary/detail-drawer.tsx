@@ -5,7 +5,6 @@ import { Drawer } from '@/components/ui/drawer';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import { calculateDiffDays } from '@/lib/common';
-import type { Diary } from '@/lib/managers/diary';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
 import {
 	card,

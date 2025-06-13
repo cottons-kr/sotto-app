@@ -5,7 +5,6 @@ import { DiaryCard } from '@/components/ui/card/diary';
 import { Drawer } from '@/components/ui/drawer';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
-import type { Diary } from '@/lib/managers/diary';
 import type { Dayjs } from 'dayjs';
 
 interface DiaryInDateDrawerProps {

@@ -5,7 +5,6 @@ import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Popup } from '@/components/ui/popup';
 import { PopupContent } from '@/components/ui/popup/content';
 import { log } from '@/lib/log';
-import type { Reply } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { message } from '@tauri-apps/plugin-dialog';

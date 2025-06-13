@@ -6,7 +6,6 @@ import { LoadingCircle } from '@/components/ui/loading-circle';
 import { Typo } from '@/components/ui/typography';
 import { useOverlay } from '@/hooks/use-overlay';
 import { cn } from '@/lib/common';
-import type { Attachment as AttachmentType } from '@/lib/managers/diary';
 import { fileStorage } from '@/lib/managers/file';
 import { fullHeight } from '@/styles/utils.css';
 import type { BaseProps, HAS_CHILDREN } from '@/types/props';
@@ -32,7 +31,7 @@ export function DiaryAttachments() {
 			<Row gap={8} justify='start'>
 				{diary.attachments.length < 5 && <AddPhoto />}
 				{diary.attachments.map((a, i) => (
-					<Attachment key={i.toString()} attachment={a} />
+					<AttachmentItem key={i.toString()} attachment={a} />
 				))}
 			</Row>
 		</Container>
@@ -105,10 +104,10 @@ function AddPhoto() {
 }
 
 interface AttachmentProps {
-	attachment: AttachmentType;
+	attachment: Attachment;
 }
 
-function Attachment(props: AttachmentProps) {
+function AttachmentItem(props: AttachmentProps) {
 	const { attachment } = props;
 
 	const [isLoading, setIsLoading] = useState(true);

@@ -8,7 +8,6 @@ import { ButtonGroup } from '@/components/ui/button/group';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import { useOverlay } from '@/hooks/use-overlay';
-import type { Diary } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
 import { useCallback } from 'react';
 

@@ -5,7 +5,7 @@ import { Popup } from '@/components/ui/popup';
 import { PopupContent } from '@/components/ui/popup/content';
 import { useAuth } from '@/hooks/use-auth';
 import { log } from '@/lib/log';
-import { type Diary, diaryManager } from '@/lib/managers/diary';
+import { diaryManager } from '@/lib/managers/diary';
 import { message } from '@tauri-apps/plugin-dialog';
 import { TriangleAlert } from 'lucide-react';
 import { useCallback } from 'react';

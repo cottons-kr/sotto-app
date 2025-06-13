@@ -10,7 +10,6 @@ import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import { useOverlay } from '@/hooks/use-overlay';
 import { log } from '@/lib/log';
-import type { Diary, Reply } from '@/lib/managers/diary';
 import { friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
