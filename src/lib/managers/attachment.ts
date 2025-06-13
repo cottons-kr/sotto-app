@@ -1,6 +1,8 @@
+import { decryptData } from '@/binding/function/decrypt-data';
 import { encryptData } from '@/binding/function/encrypt-data';
 import { convertFileToBase64 } from '../common';
 import { apiClient } from './http';
+import { storageClient } from './storage';
 
 export async function uploadAttachment(file: File, aesKey: string) {
 	const base64File = await convertFileToBase64(file);
@@ -29,4 +31,22 @@ export async function uploadAttachment(file: File, aesKey: string) {
 		fileName,
 		fileUrl,
 	};
+}
+
+export async function decryptAttachment(fileUrl: string, aesKey: string) {
+	const res = await window.fetch(fileUrl);
+	if (!res.ok) {
+		throw new Error('Failed to fetch attachment');
+	}
+
+	const privateKey = await storageClient.get('privateKey');
+	if (!privateKey) {
+		throw new Error('Private key not found');
+	}
+
+	const attachment: AttachmentResponse = await res.json();
+	const { data: encryptData, nonce } = attachment;
+
+	const data = await decryptData(privateKey, encryptData, aesKey, nonce);
+	return data;
 }

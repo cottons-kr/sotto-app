@@ -54,3 +54,8 @@ type PresignedUrlResponse = {
 	url: string;
 	fileName: string;
 };
+
+type AttachmentResponse = {
+	data: string;
+	nonce: string;
+};

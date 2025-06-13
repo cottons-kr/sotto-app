@@ -10,7 +10,13 @@ pub struct DiaryData {
     pub content: String,
     pub location: Option<String>,
     pub weather: Option<String>,
-    pub attachments: Vec<String>,
+    pub attachments: Vec<Attachment>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Attachment {
+    pub localId: String,
+    pub remoteUrl: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
