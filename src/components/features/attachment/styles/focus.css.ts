@@ -1,3 +1,4 @@
+import { color } from '@/styles/color.css';
 import { uiStyle } from '@/styles/layer.css';
 
 export const image = uiStyle({
@@ -10,4 +11,14 @@ export const image = uiStyle({
 	WebkitTouchCallout: 'none',
 	top: '50%',
 	left: '50%',
+});
+
+export const deleteButton = uiStyle({
+	position: 'fixed',
+	width: 48,
+	height: 48,
+	backgroundColor: color.cream,
+	borderRadius: '50%',
+	right: '50%',
+	bottom: 64,
 });

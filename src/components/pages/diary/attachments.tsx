@@ -16,6 +16,7 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react';
@@ -112,10 +113,17 @@ function Attachment(props: AttachmentProps) {
 
 	const [isLoading, setIsLoading] = useState(true);
 	const [previewUrl, setPreviewUrl] = useState('');
-	const { show: showFocus } = useOverlay(AttachmentFocus);
+	const isLocal = useMemo(
+		() => attachmentId.startsWith('local:'),
+		[attachmentId],
+	);
+	const {
+		diary,
+		diaryDispatch: { setAttachments },
+	} = useContext(DiaryContext);
+	const { show: showFocus, hide: hideFocus } = useOverlay(AttachmentFocus);
 
 	const getAttachment = useCallback(async () => {
-		const isLocal = attachmentId.startsWith('local:');
 		let file: File;
 		if (isLocal) {
 			const saved = await fileStorage.getFile(
@@ -132,11 +140,21 @@ function Attachment(props: AttachmentProps) {
 		const url = URL.createObjectURL(file);
 		setPreviewUrl(url);
 		setIsLoading(false);
-	}, [attachmentId]);
+	}, [attachmentId, isLocal]);
+
+	const deleteAttachment = useCallback(async () => {
+		if (isLocal) {
+			await fileStorage.deleteFile(attachmentId.replace('local:', ''));
+			setAttachments(diary.attachments.filter((id) => id !== attachmentId));
+		} else {
+			throw new Error('not implemented');
+		}
+		hideFocus();
+	}, [attachmentId, isLocal, diary.attachments, setAttachments, hideFocus]);
 
 	const onClick = useCallback(() => {
-		showFocus({ previewUrl });
-	}, [previewUrl, showFocus]);
+		showFocus({ previewUrl, handleDelete: deleteAttachment });
+	}, [previewUrl, showFocus, deleteAttachment]);
 
 	useEffect(() => {
 		getAttachment();
