@@ -82,7 +82,7 @@ export function ShareDiaryDrawer(props: DiaryShareDrawerProps & OverlayProps) {
 			const { url, diary: result } = await diaryManager.shareDiaryViaURL(uuid);
 			setDiary(result);
 			await writeText(url);
-			openURLCopied({});
+			openURLCopied({ url });
 		} finally {
 			setIsProcessing(false);
 		}

@@ -182,9 +182,6 @@ class DiaryManager {
 		if (!diary) {
 			throw new Error('Diary not found');
 		}
-		if (targetUsers.length === 0) {
-			throw new Error('No target users specified for sharing');
-		}
 		if (diary.readonly) {
 			throw new Error('Cannot share a readonly diary');
 		}
