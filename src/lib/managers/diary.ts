@@ -2,6 +2,7 @@ import { encryptData } from '@/binding/function/encrypt-data';
 import { encryptKeyForRecipient } from '@/binding/function/encrypt-key-for-recipient';
 import type { Dayjs } from 'dayjs';
 import { v4 } from 'uuid';
+import { log } from '../log';
 import { fileStorage } from './file';
 import { type User, friendManager } from './friend';
 import { apiClient } from './http';
@@ -333,7 +334,11 @@ class DiaryManager {
 
 		if (diary.attachments.length > 0 && !diary.readonly) {
 			for (const attachment of diary.attachments) {
-				await fileStorage.deleteFile(attachment.localId);
+				try {
+					await fileStorage.deleteFile(attachment.localId);
+				} catch (error) {
+					log('error', 'Failed to delete attachment:', error);
+				}
 			}
 		}
 
