@@ -30,14 +30,12 @@ export function DiaryCard(props: DiaryCardProps) {
 		navigate(`/diary?uuid=${diary.uuid}&readonly=${diary.readonly ?? false}`);
 	}, [diary, navigate]);
 
+	const onLongPress = useCallback(() => {
+		show({ diary, onDelete: forceUpdate });
+	}, [diary, show, forceUpdate]);
+
 	return (
-		<Container
-			className={card}
-			onClick={onClick}
-			onLongPress={() => {
-				show({ diary, onDelete: forceUpdate });
-			}}
-		>
+		<Container className={card} onClick={onClick} onLongPress={onLongPress}>
 			<Column className={content} align='end' justify='space-between'>
 				<Typo.Caption>
 					{diffDays === 0

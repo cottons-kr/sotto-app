@@ -5,10 +5,9 @@ import { Content } from '@/components/ui/content';
 import { diaryManager } from '@/lib/managers/diary';
 import { fullHeight } from '@/styles/utils.css';
 import { BookDashed } from 'lucide-react';
-import { useMemo } from 'react';
 
 export function HomeMyDiariesList() {
-	const diaries = useMemo(() => diaryManager.getDiaries(), []);
+	const diaries = diaryManager.getDiaries();
 
 	return (
 		<Container className={fullHeight}>

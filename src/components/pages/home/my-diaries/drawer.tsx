@@ -37,8 +37,16 @@ export function HomeMyDiaryDrawer(
 	}, [diary, close]);
 
 	const onClickDelete = useCallback(() => {
-		openDelete({ diary, callback: onDelete || (() => {}) });
-	}, [diary, openDelete, onDelete]);
+		openDelete({
+			diary,
+			callback: () => {
+				if (onDelete) {
+					onDelete();
+				}
+				close();
+			},
+		});
+	}, [diary, openDelete, onDelete, close]);
 
 	return (
 		<DiaryDetailDrawer diary={diary} close={close}>
