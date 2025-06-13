@@ -31,8 +31,3 @@ interface Reply extends ReplyData {
 	authorId: string;
 	createdAt: Date;
 }
-
-type Attachment = {
-	localId: string;
-	remoteUrl?: string;
-};

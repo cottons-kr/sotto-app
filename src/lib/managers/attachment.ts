@@ -12,21 +12,21 @@ export async function uploadAttachments(
 ) {
 	const updatedAttachments = await Promise.all(
 		attachments.map(async (attachment) => {
-			if (!attachment.localId) {
+			if (!attachment.local_id) {
 				throw new Error('Attachment localId is missing');
 			}
-			const file = await fileStorage.getFile(attachment.localId);
+			const file = await fileStorage.getFile(attachment.local_id);
 			if (!file) {
-				throw new Error(`Attachment ${attachment.localId} not found`);
+				throw new Error(`Attachment ${attachment.local_id} not found`);
 			}
 
 			try {
 				const { fileUrl } = await uploadAttachment(file, aesKey);
-				attachment.remoteUrl = fileUrl;
+				attachment.remote_url = fileUrl;
 				return attachment;
 			} catch (error) {
 				log('error', 'Failed to upload attachment:', error);
-				throw new Error(`Failed to upload attachment: ${attachment.localId}`);
+				throw new Error(`Failed to upload attachment: ${attachment.local_id}`);
 			}
 		}),
 	);

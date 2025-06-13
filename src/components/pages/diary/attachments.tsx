@@ -79,7 +79,7 @@ function AddPhoto() {
 				fileList.map(async (file) => {
 					const id = v4();
 					await fileStorage.saveFile(id, file);
-					return { localId: id };
+					return { local_id: id };
 				}),
 			);
 			setAttachments([...newAttachments, ...diary.attachments]);
@@ -125,14 +125,14 @@ function AttachmentItem(props: AttachmentProps) {
 	const getAttachment = useCallback(async () => {
 		let url: string;
 
-		if (diary.readonly && attachment.remoteUrl) {
+		if (diary.readonly && attachment.remote_url) {
 			if (!diary.encryptedKey) {
 				throw new Error('Diary is read-only and no AES key is available.');
 			}
 
-			url = await decryptAttachment(attachment.remoteUrl, diary.encryptedKey);
+			url = await decryptAttachment(attachment.remote_url, diary.encryptedKey);
 		} else {
-			const saved = await fileStorage.getFile(attachment.localId);
+			const saved = await fileStorage.getFile(attachment.local_id);
 			if (!saved) {
 				throw new Error('File not found');
 			}
@@ -148,9 +148,9 @@ function AttachmentItem(props: AttachmentProps) {
 		if (diary.readonly) {
 			throw new Error('not implemented');
 		}
-		await fileStorage.deleteFile(attachment.localId);
+		await fileStorage.deleteFile(attachment.local_id);
 		setAttachments(
-			diary.attachments.filter((a) => a.localId !== attachment.localId),
+			diary.attachments.filter((a) => a.local_id !== attachment.local_id),
 		);
 		setIsAttachmentUpdated(true);
 		URL.revokeObjectURL(previewUrl);

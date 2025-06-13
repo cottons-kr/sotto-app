@@ -253,7 +253,7 @@ class DiaryManager {
 		await apiClient.delete(`/diaries/${diary.shareUUID}`);
 
 		for (const attachment of diary.attachments) {
-			attachment.remoteUrl = undefined;
+			attachment.remote_url = undefined;
 		}
 
 		diary.shareUUID = null;
@@ -370,7 +370,7 @@ class DiaryManager {
 		if (diary.attachments.length > 0 && !diary.readonly) {
 			for (const attachment of diary.attachments) {
 				try {
-					await fileStorage.deleteFile(attachment.localId);
+					await fileStorage.deleteFile(attachment.local_id);
 				} catch (error) {
 					log('error', 'Failed to delete attachment:', error);
 				}

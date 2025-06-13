@@ -15,8 +15,8 @@ pub struct DiaryData {
 
 #[derive(Serialize, Deserialize)]
 pub struct Attachment {
-    pub localId: String,
-    pub remoteUrl: Option<String>,
+    pub local_id: String,
+    pub remote_url: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
