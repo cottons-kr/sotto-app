@@ -31,7 +31,7 @@ export default function App() {
 		<AppContext value={{ forceUpdate }}>
 			<BrowserRouter>
 				<OverlayProvider>
-					<Suspense fallback={<div>Loading...</div>}>
+					<Suspense>
 						<Routes>
 							<Route path='/' element={<IndexPage />} />
 							<Route path='/sign-up' element={<SignUpPage />} />

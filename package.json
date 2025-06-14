@@ -12,7 +12,7 @@
 		"dev": "vite",
 		"build": "tsc && vite build",
 		"ios": "tauri ios dev \"iPhone 16 Pro\"",
-		"android": "tauri android dev \"Pixel_7_Pro\"",
+		"android": "tauri android dev \"Pixel_9_Pro\"",
 		"tauri": "tauri",
 		"check": "biome check",
 		"format": "biome check --fix && bun repomix",

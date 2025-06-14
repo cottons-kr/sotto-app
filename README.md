@@ -27,6 +27,7 @@ This app cannot run on real iPhone because I don't have Apple Developer Program 
 
 # Others
 - [`sotto-api`](https://github.com/cottons-kr/sotto-api)
+- [`sotto-web`](https://github.com/cottons-kr/sotto-web)
 
 # License
 [MIT](https://github.com/cottons-kr/sotto-app/blob/main/LICENSE.md)
