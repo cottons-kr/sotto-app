@@ -6,6 +6,7 @@ import { Drawer } from '@/components/ui/drawer';
 import type { OverlayProps } from '@/components/ui/overlay/types';
 import { Typo } from '@/components/ui/typography';
 import type { Dayjs } from 'dayjs';
+import { list } from './styles/in-date-drawer.css';
 
 interface DiaryInDateDrawerProps {
 	day: Dayjs;
@@ -24,7 +25,7 @@ export function DiaryInDateDrawer(
 					<Typo.Body weight='strong'>{day.format('MMMM DD, YYYY')}</Typo.Body>
 				</Row>
 			</Container>
-			<Container>
+			<Container className={list}>
 				<Grid>
 					{diaries.map((d) => (
 						<DiaryCard key={d.uuid} diary={d} />
