@@ -3,6 +3,7 @@ import { Column } from '@/components/layout/column';
 import { Container } from '@/components/layout/container';
 import { Row } from '@/components/layout/row';
 import { Avatar } from '@/components/ui/avatar';
+import { Content } from '@/components/ui/content';
 import { Drawer } from '@/components/ui/drawer';
 import { DrawerTitle } from '@/components/ui/drawer/title';
 import { LoadingCircle } from '@/components/ui/loading-circle';
@@ -14,7 +15,7 @@ import { friendManager } from '@/lib/managers/friend';
 import { apiClient } from '@/lib/managers/http';
 import { storageClient } from '@/lib/managers/storage';
 import { message } from '@tauri-apps/plugin-dialog';
-import { X } from 'lucide-react';
+import { MessageCircleDashed, X } from 'lucide-react';
 import { type MouseEvent, useCallback, useEffect, useState } from 'react';
 import { ReplyDeletePopup } from './delete-popup';
 import { content, list } from './styles/replies-drawer.css';
@@ -82,12 +83,17 @@ export function ReplyListDrawer(props: ReplyListDrawerProps & OverlayProps) {
 						<LoadingCircle />
 					</Row>
 				</Container>
-			) : (
+			) : replies.length > 0 ? (
 				<Column className={list}>
 					{replies.map((reply, i) => (
 						<Item key={i.toString()} reply={reply} onDelete={fetchReplies} />
 					))}
 				</Column>
+			) : (
+				<Content
+					icon={<MessageCircleDashed size={36} />}
+					description='No replies yet'
+				/>
 			)}
 		</Drawer>
 	);
