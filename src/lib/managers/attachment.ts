@@ -31,8 +31,6 @@ export async function uploadAttachments(
 		}),
 	);
 
-	console.log('Updated attachments:', updatedAttachments);
-
 	return updatedAttachments;
 }
 

@@ -20,7 +20,7 @@ import { diaryManager } from '@/lib/managers/diary';
 import { color } from '@/styles/color.css';
 import { message } from '@tauri-apps/plugin-dialog';
 import { MessageCircle, Share, SmilePlus } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { page, textArea, textAreaContainer, titleInput } from './page.css';
 
@@ -88,14 +88,6 @@ export default function DiaryPage() {
 	const onClickViewReplies = useCallback(() => {
 		openReplies({ diary });
 	}, [diary, openReplies]);
-
-	useEffect(() => {
-		console.log(diary);
-	}, [diary]);
-
-	useEffect(() => {
-		console.log('isAttachmentUpdated', isAttachmentUpdated);
-	}, [isAttachmentUpdated]);
 
 	return (
 		<DiaryContext
