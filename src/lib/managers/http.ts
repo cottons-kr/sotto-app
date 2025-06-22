@@ -1,4 +1,3 @@
-import { fetch } from '@tauri-apps/plugin-http';
 import { log } from '../log';
 
 interface APIResponse<T> {
@@ -9,6 +8,7 @@ interface APIResponse<T> {
 }
 
 const DEFAULT_API_URL = 'http://localhost:3000' as const;
+const fetch = window.fetch;
 
 class APIClient {
 	constructor(private baseUrl: string) {

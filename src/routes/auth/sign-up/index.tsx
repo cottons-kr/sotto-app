@@ -59,7 +59,7 @@ export default function SignUpPage() {
 
 				navigate('/home');
 			} catch (error) {
-				await message('Sign up failed. Please try again.', { kind: 'error' });
+				await message(`Sign up failed. ${error}`, { kind: 'error' });
 				log('error', 'Sign up failed', error);
 			}
 		},
